@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+.import-button{border:1px solid #c99700!important;background:#fffaf0!important;color:#765800!important;margin:-4px 0 14px!important}.surface-picker{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:#687482}.surface-picker select{border:1px solid #d9dee3;border-radius:5px;background:#fff;padding:5px;color:#344250;font-size:10px}.import-help{margin:0 0 16px;color:#5d6974;font-size:12px;line-height:1.55}.style-form .html-import-source{display:block;width:100%;height:230px;margin-top:7px;border:1px solid #d9dee3;border-radius:6px;padding:10px;resize:vertical;font:11px/1.45 monospace}.import-message{padding:9px;background:#eaf6ef;color:#28784c;border-radius:6px;font-size:11px}.style-modal button:disabled{opacity:.5}.surface-note{font-size:10px!important;color:#71808c!important;font-style:italic;line-height:1.4!important}
+
 
 .extension-shell .topbar{height:54px;padding:0 12px}.extension-shell .brand small,.extension-shell .style-tools,.extension-shell .avatar{display:none}.extension-shell .workspace{height:auto;display:block}.extension-shell .rail,.extension-shell .inspector{border:0}.extension-shell .stage{display:none}.extension-shell .rail-head{padding-top:16px}.extension-shell .inspector{border-top:5px solid #eef0f2}.extension-shell .post-menu-popover{right:0}.extension-shell .formatbar{flex-wrap:wrap}
 
