@@ -142,7 +142,7 @@ export default function Home() {
     try{
       const [tab]=await chromeApi.tabs.query({active:true,currentWindow:true});
       if(!tab?.id)throw new Error("No active tab");
-      const results=await chromeApi.scripting.executeScript({target:{tabId:tab.id,allFrames:true},world:"MAIN",args:[html],func:(markup:string)=>{
+      const results=await chromeApi.scripting.executeScript({target:{tabId:tab.id},world:"MAIN",args:[html],func:(markup:string)=>{
         const page=window as any;
         if(page.tinymce?.activeEditor){page.tinymce.activeEditor.setContent(markup);page.tinymce.activeEditor.fire("change");return {inserted:true,adapter:"tinymce-api"}}
         const ck=page.CKEDITOR?.instances&&Object.values(page.CKEDITOR.instances)[0] as any;
@@ -153,12 +153,13 @@ export default function Home() {
         }
         const visible=(el:HTMLElement)=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=="none"&&s.visibility!=="hidden"};
         const active=document.activeElement as HTMLElement|null;
-        const selector='textarea,[contenteditable]:not([contenteditable="false"]),[role="textbox"],body.mce-content-body,.ck-editor__editable,.ck-content,.ProseMirror,.k-editor-content,.fr-element,.tox-edit-area';
+        const selector='.tox-textarea,textarea,[contenteditable]:not([contenteditable="false"]),[role="textbox"],body.mce-content-body,.ck-editor__editable,.ck-content,.ProseMirror,.k-editor-content,.fr-element,.tox-edit-area';
         const roots:Array<Document|ShadowRoot>=[document];
         for(let i=0;i<roots.length;i++)roots[i].querySelectorAll<HTMLElement>("*").forEach(el=>{if(el.shadowRoot)roots.push(el.shadowRoot)});
         const candidates=roots.flatMap(root=>Array.from(root.querySelectorAll<HTMLElement>(selector)));
         const activeEditor=active?.closest?.(selector) as HTMLElement|null;
-        const editor=(activeEditor&&visible(activeEditor)?activeEditor:candidates.find(visible));
+        const tinySource=document.querySelector<HTMLElement>("textarea.tox-textarea");
+        const editor=(tinySource&&visible(tinySource)?tinySource:activeEditor&&visible(activeEditor)?activeEditor:candidates.find(visible));
         if(!editor)return {inserted:false,reason:"No visible text editor found"};
         editor.focus();
         if(editor instanceof HTMLTextAreaElement||editor instanceof HTMLInputElement){
