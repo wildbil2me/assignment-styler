@@ -86,7 +86,7 @@ function renderHtml(blocks: Block[], preset: StylePreset) {
     if (b.type === "hero") return `<div style="border-top:5px solid ${preset.accent};padding:22px 0 16px;">${b.label?.trim() ? `<p style="margin:0 0 5px;color:${preset.accent};font-size:12px;font-weight:700;letter-spacing:1.5px;">${esc(b.label)}</p>` : ""}<h1 style="margin:0;color:${preset.primary};font-family:${preset.heading};font-size:26px;line-height:1.25;">${icon}${title}</h1><p style="margin:5px 0 0;color:#4B5563;">${body}</p></div>`;
     if (b.type === "intro") return `<p style="margin:0 0 16px;font-size:15px;">${body}</p>`;
     const colors = b.type === "deadline" ? ["#FEF3C7", preset.accent] : b.type === "focus" ? [preset.focus, preset.accent] : b.type === "homework" ? ["#EFF6FF", "#93C5FD"] : [preset.surface, "#E2E8F0"];
-    const width = b.width === "half" ? "display:inline-block;vertical-align:top;width:100%;max-width:330px;margin-right:10px;" : "display:block;width:100%;";
+    const width = b.width === "half" ? "display:inline-block;vertical-align:top;width:calc(50% - 10px);min-width:260px;margin-right:10px;" : "display:block;width:100%;";
     return `<div data-layout="${b.width || "full"}" style="${width}margin-bottom:14px;padding:16px;background-color:${colors[0]};border:1px solid ${colors[1]};border-left:4px solid ${colors[1]};"><p style="margin:0 0 6px;color:${preset.primary};font-weight:700;">${icon}${title || blockMeta[b.type].label}</p><p style="margin:0;">${body}</p></div>`;
   }).join("") + `</div>`;
 }
