@@ -106,7 +106,6 @@ export default function Home() {
   const [savedPosts, setSavedPosts] = useState<Array<{id:number;title:string;blocks:Block[]}>>([]);
   const [exportHistory, setExportHistory] = useState<Array<{date:string;title:string;html:string}>>([]);
   const [drafting, setDrafting] = useState(false);
-  const [insertStatus, setInsertStatus] = useState<"idle"|"working"|"success"|"error">("idle");
   const past = useRef<Block[][]>([]), future = useRef<Block[][]>([]), previous = useRef<Block[]>(starter), historyAction = useRef(false);
   const dragged = useRef<number | null>(null);
   const preset = styleKey === "custom" ? customStyle : styles[styleKey];
@@ -135,49 +134,6 @@ export default function Home() {
   const generate = async () => {setDrafting(true);try{const res=await fetch("/api/draft",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({draft,subject:preset.name})});if(!res.ok)throw new Error();const data=await res.json(),stamp=Date.now();const next=data.blocks.map((b:Block,i:number)=>({...b,id:stamp+i}));setBlocks(next);setSelected(stamp)}catch{localGenerate()}finally{setDrafting(false)}};
   const copy = async () => { await navigator.clipboard.writeText(html); setExportHistory(v=>[{date:new Date().toLocaleString(),title:postTitle,html},...v].slice(0,10)); setCopied(true); setTimeout(()=>setCopied(false),1800); };
   const isExtension = typeof location !== "undefined" && location.protocol === "chrome-extension:";
-  const insertIntoBlackbaud = async (mode:"replace"|"cursor"="replace") => {
-    const chromeApi=(globalThis as typeof globalThis&{chrome?:any}).chrome;
-    if(!chromeApi?.tabs||!chromeApi?.scripting){setInsertStatus("error");return}
-    setInsertStatus("working");
-    try{
-      const [tab]=await chromeApi.tabs.query({active:true,currentWindow:true});
-      if(!tab?.id)throw new Error("No active tab");
-      const results=await chromeApi.scripting.executeScript({target:{tabId:tab.id},world:"MAIN",args:[html,mode],func:(markup:string,insertMode:"replace"|"cursor")=>{
-        const page=window as any;
-        if(page.tinymce?.activeEditor){if(insertMode==="cursor")page.tinymce.activeEditor.selection.setContent(markup);else page.tinymce.activeEditor.setContent(markup);page.tinymce.activeEditor.fire("change");return {inserted:true,adapter:"tinymce-api"}}
-        const ck=page.CKEDITOR?.instances&&Object.values(page.CKEDITOR.instances)[0] as any;
-        if(ck?.setData){if(insertMode==="cursor"&&ck.insertHtml)ck.insertHtml(markup);else ck.setData(markup);return {inserted:true,adapter:"ckeditor-api"}}
-        if(page.jQuery){
-          const kendo=page.jQuery(".k-editor textarea,textarea").filter(function(this:HTMLElement){return !!page.jQuery(this).data("kendoEditor")}).first().data("kendoEditor");
-          if(kendo?.value){if(insertMode==="cursor"&&kendo.exec)kendo.exec("inserthtml",{value:markup});else kendo.value(markup);kendo.trigger?.("change");return {inserted:true,adapter:"kendo-api"}}
-        }
-        const visible=(el:HTMLElement)=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=="none"&&s.visibility!=="hidden"};
-        const active=document.activeElement as HTMLElement|null;
-        const selector='.tox-textarea,textarea,[contenteditable]:not([contenteditable="false"]),[role="textbox"],body.mce-content-body,.ck-editor__editable,.ck-content,.ProseMirror,.k-editor-content,.fr-element,.tox-edit-area';
-        const roots:Array<Document|ShadowRoot>=[document];
-        for(let i=0;i<roots.length;i++)roots[i].querySelectorAll<HTMLElement>("*").forEach(el=>{if(el.shadowRoot)roots.push(el.shadowRoot)});
-        const candidates=roots.flatMap(root=>Array.from(root.querySelectorAll<HTMLElement>(selector)));
-        const activeEditor=active?.closest?.(selector) as HTMLElement|null;
-        const tinySource=document.querySelector<HTMLElement>("textarea.tox-textarea");
-        const editor=(tinySource&&visible(tinySource)?tinySource:activeEditor&&visible(activeEditor)?activeEditor:candidates.find(visible));
-        if(!editor)return {inserted:false,reason:"No visible text editor found"};
-        editor.focus();
-        if(editor instanceof HTMLTextAreaElement||editor instanceof HTMLInputElement){
-          const setter=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(editor),"value")?.set;
-          if(insertMode==="cursor"){const start=editor.selectionStart??editor.value.length,end=editor.selectionEnd??start,next=editor.value.slice(0,start)+markup+editor.value.slice(end);setter?.call(editor,next);editor.setSelectionRange(start+markup.length,start+markup.length)}else setter?.call(editor,markup);
-        }else if(insertMode==="cursor"){
-          const selection=getSelection(),range=selection?.rangeCount?selection.getRangeAt(0):null;
-          if(range&&editor.contains(range.commonAncestorContainer)){range.deleteContents();range.insertNode(range.createContextualFragment(markup));selection?.collapseToEnd()}else editor.insertAdjacentHTML("beforeend",markup);
-        }else{editor.innerHTML=markup}
-        editor.dispatchEvent(new InputEvent("input",{bubbles:true,inputType:"insertText",data:null}));
-        for(const name of ["change","blur"]){editor.dispatchEvent(new Event(name,{bubbles:true}))}
-        return {inserted:true,adapter:"dom",tag:editor.tagName,className:editor.className};
-      }});
-      if(!results.some((r:{result?:{inserted?:boolean}})=>r.result?.inserted))throw new Error("No editor found");
-      setExportHistory(v=>[{date:new Date().toLocaleString(),title:`${postTitle} · ${mode==="cursor"?"Pasted":"Inserted"}`,html},...v].slice(0,10));
-      setInsertStatus("success");setTimeout(()=>setInsertStatus("idle"),2500);
-    }catch{setInsertStatus("error")}
-  };
   const undo = () => {const prior=past.current.pop();if(!prior)return;future.current.push(blocks);historyAction.current=true;setBlocks(prior)};
   const redo = () => {const next=future.current.pop();if(!next)return;past.current.push(blocks);historyAction.current=true;setBlocks(next)};
   const savePost = () => {setSavedPosts(v=>[{id:Date.now(),title:postTitle,blocks:blocks.map(b=>({...b}))},...v].slice(0,12));setPostMenu(false)};
@@ -213,7 +169,7 @@ export default function Home() {
         <div className="inspector-title"><div><span className="eyebrow">EDIT BLOCK</span><h2>{active ? blockMeta[active.type].label : "Block"}</h2></div>{active&&<button onClick={()=>{setBlocks(v=>v.filter(b=>b.id!==selected));setSelected(blocks[0]?.id)}} aria-label="Delete block">⌫</button>}</div>
         {active&&<div className="fields"><label>Block type<select value={active.type} onChange={e=>update({type:e.target.value as BlockType})}>{Object.entries(blockMeta).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select></label><button className={`visibility-toggle ${active.hidden?"active":""}`} onClick={()=>update({hidden:!active.hidden})}>{active.hidden?"Show in export":"Hide from export"}</button>{active.type !== "hero" && active.type !== "intro" && <fieldset className="width-control"><legend>Desktop width</legend><button className={(active.width || "full") === "full" ? "active" : ""} onClick={()=>update({width:"full"})}><span>▬</span> Full</button><button className={active.width === "half" ? "active" : ""} onClick={()=>update({width:"half"})}><span>▰</span> Half</button><small>Half-width blocks stack on mobile.</small></fieldset>}<fieldset className="emoji-control"><legend>Block icon</legend><div>{["","📘","📖","✏️","💡","❓","✅","⚠️","📅","🔬","🎨","🌎"].map(x=><button type="button" className={(active.emoji||"")===x?"active":""} key={x||"none"} onClick={()=>update({emoji:x})}>{x||"None"}</button>)}</div></fieldset>{active.type === "hero" && <label>Context label<input value={active.label || ""} placeholder="Optional — e.g. UNIT UPDATE" onChange={e=>update({label:e.target.value})}/></label>}<label>{active.type === "hero" ? "Page heading" : "Label / heading"}<input value={active.title} onChange={e=>update({title:e.target.value})}/></label><label>{active.type === "hero" ? "Subtitle" : "Content"}<RichEditor value={active.body} onChange={body=>update({body})}/></label></div>}
         <div className="checks"><div className="check-head"><div><span className="eyebrow">COMPATIBILITY</span><h3>Ready for Blackbaud</h3></div><span className="score">4/4</span></div><p><i>✓</i> All export styles are inline</p><p><i>✓</i> Blackbaud-safe structure</p><p><i>✓</i> Strong heading hierarchy</p><p><i>✓</i> Accessible color contrast</p>{blocks.some(b=>b.width==="half")&&<p className="compat-warning"><i>!</i> Preview half-width blocks in your target Blackbaud editor; responsive behavior can vary by surface.</p>}</div>
-        <div className="export">{isExtension&&<div className="insert-actions"><button className={`insert-button ${insertStatus}`} onClick={()=>insertIntoBlackbaud("replace")} disabled={insertStatus==="working"}>{insertStatus==="working"?"Finding editor…":insertStatus==="success"?"✓ Added to Blackbaud":insertStatus==="error"?"Editor not found":"Replace editor content"}</button><button className="cursor-button" onClick={()=>insertIntoBlackbaud("cursor")} disabled={insertStatus==="working"}>Paste at cursor</button></div>}<button className="copy" onClick={copy}>{copied?"✓ Copied to clipboard":isExtension?"Add to clipboard":"Copy for Blackbaud"}</button><details><summary>View generated HTML</summary><textarea readOnly value={html}/></details>{exportHistory.length>0&&<details><summary>Export history ({exportHistory.length})</summary><div className="export-history">{exportHistory.map((x,i)=><button key={`${x.date}-${i}`} onClick={()=>navigator.clipboard.writeText(x.html)}><strong>{x.title}</strong><small>{x.date} · Click to copy</small></button>)}</div></details>}<small>{isExtension?"Insertion never publishes or saves the Blackbaud page. Preview before publishing.":"Paste into Blackbaud’s HTML editor, then preview before publishing."}</small></div>
+        <div className="export"><button className="copy" onClick={copy}>{copied?"✓ Copied to clipboard":isExtension?"Copy to clipboard":"Copy for Blackbaud"}</button><details><summary>View generated HTML</summary><textarea readOnly value={html}/></details>{exportHistory.length>0&&<details><summary>Export history ({exportHistory.length})</summary><div className="export-history">{exportHistory.map((x,i)=><button key={`${x.date}-${i}`} onClick={()=>navigator.clipboard.writeText(x.html)}><strong>{x.title}</strong><small>{x.date} · Click to copy</small></button>)}</div></details>}<small>{isExtension?"Open Blackbaud’s HTML/source editor and paste from your clipboard.":"Paste into Blackbaud’s HTML editor, then preview before publishing."}</small></div>
       </aside>
     </section>
   </main>;
