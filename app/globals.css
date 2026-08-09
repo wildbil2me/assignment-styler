@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+.insert-button{width:100%;border:0;background:#243b53;color:#fff;padding:12px;border-radius:7px;font-weight:800;font-size:12px;margin-bottom:8px}.insert-button.success{background:#28784c}.insert-button.error{background:#9d2c2c}.insert-button:disabled{opacity:.7}.extension-shell .topbar{height:54px;padding:0 12px}.extension-shell .brand small,.extension-shell .style-tools,.extension-shell .avatar{display:none}.extension-shell .workspace{height:auto;display:block}.extension-shell .rail,.extension-shell .inspector{border:0}.extension-shell .stage{display:none}.extension-shell .rail-head{padding-top:16px}.extension-shell .inspector{border-top:5px solid #eef0f2}.extension-shell .post-menu-popover{right:0}.extension-shell .formatbar{flex-wrap:wrap}
+
 
 
 .style-modal>footer .import-style{border:1px solid #d9dee3;background:#fff;border-radius:7px;padding:9px 14px;font-size:11px;font-weight:700;cursor:pointer}.import-style input{display:none}.footer-spacer{flex:1}.compat-warning{color:#8a5d00!important;background:#fff8e1;padding:7px;border-radius:5px}.compat-warning i{color:#b77900!important}
