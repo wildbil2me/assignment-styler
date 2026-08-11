@@ -2,6 +2,18 @@
 
 Guidance for Claude Code working in this repository.
 
+## Current state: prototype, with a rebuild planned
+
+This repo is a **prototype**. The plan for turning it into a real project is
+[docs/rebuild-plan.md](docs/rebuild-plan.md) — read that before starting work, and
+note that **nothing in it is implemented yet**.
+
+Decided 2026-08-11: the target audience is other schools (public), both the web
+app and the extension stay, and AI drafting is deferred to a future feature —
+which is what makes a zero-backend, free-to-publish tool possible. The plan starts
+with Phase 0, measuring what Blackbaud actually strips, because that knowledge
+does not exist anywhere in this repo yet and every correctness claim depends on it.
+
 ## What this is
 
 **Blackbaud Content Composer** (`blackbaud-content-composer`) — a composer for
