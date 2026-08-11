@@ -61,7 +61,24 @@ against the actual composer output. Until then `npm test` is not a usable signal
 - `npm install` leaves 6 postinstall scripts ungated by npm's allow-scripts
   (`esbuild`, `sharp`, `workerd`). The platform binaries install as optional deps
   anyway and the build works; approving them is not required.
-- Session sync is handled by shared user-level config, not by anything in this
-  repo: a `SessionStart` hook auto-pulls on launch, and the `/wrap-up` and
-  `/sync-up` skills cover the rest. This file is where that shared `/wrap-up`
-  looks for the project's checks — keep the baseline above current.
+## Session sync — check this on a machine you haven't used before
+
+Session git sync is **not** in this repo. It is shared user-level config living in
+[toomey-sj/wjt-claude-config](https://github.com/toomey-sj/wjt-claude-config): a
+`SessionStart` hook that auto-pulls on launch, plus the `/wrap-up` and `/sync-up`
+skills. This repo once had its own copy under `.claude/`; that was deleted, so a
+machine without the shared config installed has **no** session sync at all.
+
+Verify before trusting it:
+
+```powershell
+Test-Path "$env:USERPROFILE\.claude\hooks\git-auto-pull.ps1"   # should be True
+```
+
+If it's False — or no `blackbaud-styler: already up to date` style message appears
+when a session opens, or `/wrap-up` isn't offered — clone that repo and run
+`install.ps1`. Its README covers the rest.
+
+This file is where the shared `/wrap-up` looks for this project's checks, so keep
+the known-red baseline above current. If your lint count isn't 15, update it here
+rather than working around it.
