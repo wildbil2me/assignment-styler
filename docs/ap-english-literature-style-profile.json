@@ -1,0 +1,346 @@
+{
+  "classProfile": {
+    "id": "ap-english-literature",
+    "name": "AP English Literature",
+    "description": "Literary instructional content with editorial structure for student-facing Blackbaud posts.",
+    "tokens": {
+      "fonts": {
+        "body": "Arial, sans-serif",
+        "heading": "Georgia, serif"
+      },
+      "fontSizes": {
+        "title": "26px",
+        "section": "20px",
+        "subsection": "16px",
+        "body": "14px",
+        "muted": "13px",
+        "label": "12px"
+      },
+      "lineHeights": {
+        "body": "1.6",
+        "heading": "1.25"
+      },
+      "fontWeights": {
+        "normal": "400",
+        "semibold": "600",
+        "bold": "700"
+      },
+      "colors": {
+        "primary": "#243B53",
+        "accent": "#C99700",
+        "text": "#1F2937",
+        "mutedText": "#4B5563",
+        "background": "#FFFFFF",
+        "surface": "#F8FAFC",
+        "border": "#E2E8F0",
+        "success": "#16A34A",
+        "warning": "#F59E0B",
+        "danger": "#DC2626"
+      },
+      "spacing": {
+        "xxs": "4px",
+        "xs": "8px",
+        "sm": "12px",
+        "md": "16px",
+        "lg": "22px",
+        "xl": "28px"
+      },
+      "borders": {
+        "radius": "8px",
+        "width": "1px",
+        "divider": "1px solid #E2E8F0"
+      },
+      "icons": {
+        "type": "emoji",
+        "defaultMap": {
+          "hero": "🎓",
+          "reading": "📖",
+          "focus": "💭",
+          "homework": "📘",
+          "deadline": "⚠️",
+          "question": "❓",
+          "resource": "🔗",
+          "quote": "❝",
+          "warning": "⚠️"
+        }
+      }
+    },
+    "components": {
+      "hero": {
+        "displayName": "Page Title",
+        "description": "High-level identity and unit label for the post.",
+        "variants": {
+          "default": {
+            "label": "Title",
+            "icon": "🎓",
+            "style": {
+              "fontFamily": "heading",
+              "fontSize": "title",
+              "fontWeight": "bold",
+              "color": "primary",
+              "marginBottom": "md"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["title"]
+      },
+      "intro": {
+        "displayName": "Intro Text",
+        "description": "Short opening paragraph that sets context or purpose.",
+        "variants": {
+          "default": {
+            "label": "Intro",
+            "icon": "📝",
+            "style": {
+              "fontFamily": "body",
+              "fontSize": "body",
+              "color": "text",
+              "marginBottom": "md"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["body"]
+      },
+      "reading": {
+        "displayName": "Reading Assignment",
+        "description": "Assigned text, scenes, or pages students should read.",
+        "variants": {
+          "default": {
+            "label": "Reading",
+            "icon": "📖",
+            "style": {
+              "backgroundColor": "surface",
+              "border": "1px solid #E2E8F0",
+              "borderRadius": "radius",
+              "padding": "md",
+              "fontFamily": "body",
+              "color": "text"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["item"]
+      },
+      "focus": {
+        "displayName": "Focus",
+        "description": "Key ideas, focus questions, or analytical anchors.",
+        "variants": {
+          "default": {
+            "label": "Focus",
+            "icon": "💭",
+            "style": {
+              "backgroundColor": "#FEF3C7",
+              "border": "1px solid #F59E0B",
+              "borderRadius": "radius",
+              "padding": "md",
+              "fontFamily": "body",
+              "color": "text"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["headline", "body"]
+      },
+      "homework": {
+        "displayName": "Homework",
+        "description": "Required student action with a due date or task list.",
+        "variants": {
+          "standard": {
+            "label": "Homework",
+            "icon": "📘",
+            "style": {
+              "backgroundColor": "#EFF6FF",
+              "border": "1px solid #93C5FD",
+              "borderRadius": "radius",
+              "padding": "md",
+              "fontFamily": "body",
+              "color": "text"
+            }
+          },
+          "urgent": {
+            "label": "Urgent Homework",
+            "icon": "⚠️",
+            "style": {
+              "backgroundColor": "#FEE2E2",
+              "border": "1px solid #F87171",
+              "borderRadius": "radius",
+              "padding": "md",
+              "fontFamily": "body",
+              "color": "text"
+            }
+          }
+        },
+        "defaultVariant": "standard",
+        "requiredFields": ["task"]
+      },
+      "deadline": {
+        "displayName": "Deadline",
+        "description": "Time-sensitive notice or reminder for an upcoming event.",
+        "variants": {
+          "default": {
+            "label": "Deadline",
+            "icon": "⚠️",
+            "style": {
+              "backgroundColor": "#FEF3C7",
+              "border": "1px solid #F59E0B",
+              "borderRadius": "radius",
+              "padding": "md",
+              "fontFamily": "body",
+              "color": "text"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["label", "date"]
+      },
+      "question": {
+        "displayName": "Question",
+        "description": "Discussion prompt, reflection question, or exit ticket.",
+        "variants": {
+          "default": {
+            "label": "Question",
+            "icon": "❓",
+            "style": {
+              "fontFamily": "body",
+              "fontSize": "body",
+              "color": "text",
+              "marginBottom": "sm"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["prompt"]
+      },
+      "resource": {
+        "displayName": "Resource",
+        "description": "Link, document, or media reference for students.",
+        "variants": {
+          "default": {
+            "label": "Resource",
+            "icon": "🔗",
+            "style": {
+              "fontFamily": "body",
+              "fontSize": "body",
+              "color": "text",
+              "marginBottom": "sm"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["title", "url"]
+      },
+      "quote": {
+        "displayName": "Quote",
+        "description": "Textual evidence or inspirational quotation.",
+        "variants": {
+          "default": {
+            "label": "Quote",
+            "icon": "❝",
+            "style": {
+              "fontFamily": "heading",
+              "fontStyle": "italic",
+              "color": "text",
+              "borderLeft": "4px solid #C99700",
+              "paddingLeft": "md",
+              "marginBottom": "md"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["text"]
+      },
+      "note": {
+        "displayName": "Note",
+        "description": "Secondary information or clarifying detail.",
+        "variants": {
+          "default": {
+            "label": "Note",
+            "icon": "📝",
+            "style": {
+              "fontFamily": "body",
+              "fontSize": "body",
+              "color": "mutedText",
+              "marginBottom": "sm"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["body"]
+      },
+      "warning": {
+        "displayName": "Warning",
+        "description": "Critical caution or important message.",
+        "variants": {
+          "default": {
+            "label": "Warning",
+            "icon": "⚠️",
+            "style": {
+              "backgroundColor": "#FEF2F2",
+              "border": "1px solid #FECACA",
+              "borderRadius": "radius",
+              "padding": "md",
+              "fontFamily": "body",
+              "color": "danger"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": ["body"]
+      },
+      "divider": {
+        "displayName": "Divider",
+        "description": "Visual separation between sections.",
+        "variants": {
+          "default": {
+            "label": "Divider",
+            "style": {
+              "borderBottom": "divider",
+              "marginTop": "lg",
+              "marginBottom": "lg"
+            }
+          }
+        },
+        "defaultVariant": "default",
+        "requiredFields": []
+      }
+    },
+    "compositionRules": {
+      "allowedTopLevelComponents": ["hero", "intro", "reading", "focus", "homework", "deadline", "question", "resource", "quote", "note", "warning", "divider"],
+      "requiredAtLeastOne": ["hero"],
+      "maxInstances": {
+        "hero": 1,
+        "deadline": 2,
+        "divider": 5
+      },
+      "groupingRules": {
+        "hero": ["intro", "reading", "focus", "homework"],
+        "reading": ["focus", "homework", "deadline"],
+        "focus": ["question", "resource"]
+      },
+      "maxVisualTreatmentsPerPage": 4,
+      "maxAccentBlocksInRow": 2,
+      "suggestedSpacing": {
+        "top": "lg",
+        "betweenSections": "md",
+        "betweenItems": "sm"
+      },
+      "minContrastRatio": 4.5,
+      "minFontSize": "13px",
+      "strongHeadingHierarchy": true
+    },
+    "compatibility": {
+      "exportMode": "inline-html",
+      "safeElements": ["div", "p", "ul", "ol", "li", "strong", "em", "a", "img", "table", "tbody", "tr", "td", "th", "blockquote", "h1", "h2", "h3", "h4", "span"],
+      "safeStyles": ["color", "background-color", "font-size", "font-weight", "font-style", "text-decoration", "padding", "margin", "border", "border-left", "border-right", "border-top", "border-bottom", "width", "max-width", "min-width", "line-height", "text-align", "vertical-align", "display"],
+      "avoidStyles": ["position", "float", "grid", "column-count", "animation", "transform", "filter"],
+      "maxImageWidth": "100%",
+      "tableFallback": true,
+      "warningsOnMissingAlt": true,
+      "warningsOnLowContrast": true,
+      "warningsOnWideTables": true,
+      "warningsOnUnsupportedStyles": true
+    }
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/blackbaud-content-composer-style-guide-schema.json",
+  "title": "Blackbaud Content Composer Class Style Guide",
+  "type": "object",
+  "required": ["classProfile"],
+  "properties": {
+    "classProfile": {
+      "type": "object",
+      "required": ["id", "name", "description", "tokens", "components", "compositionRules", "compatibility"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the class profile."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name for the class profile."
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description of the class profile's visual and instructional intent."
+        },
+        "tokens": {
+          "type": "object",
+          "required": ["fonts", "fontSizes", "lineHeights", "fontWeights", "colors", "spacing", "borders", "icons"],
+          "properties": {
+            "fonts": {
+              "type": "object",
+              "required": ["body", "heading"],
+              "properties": {
+                "body": { "type": "string" },
+                "heading": { "type": "string" }
+              }
+            },
+            "fontSizes": {
+              "type": "object",
+              "required": ["title", "section", "subsection", "body", "muted", "label"],
+              "properties": {
+                "title": { "type": "string" },
+                "section": { "type": "string" },
+                "subsection": { "type": "string" },
+                "body": { "type": "string" },
+                "muted": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            },
+            "lineHeights": {
+              "type": "object",
+              "required": ["body", "heading"],
+              "properties": {
+                "body": { "type": "string" },
+                "heading": { "type": "string" }
+              }
+            },
+            "fontWeights": {
+              "type": "object",
+              "required": ["normal", "semibold", "bold"],
+              "properties": {
+                "normal": { "type": "string" },
+                "semibold": { "type": "string" },
+                "bold": { "type": "string" }
+              }
+            },
+            "colors": {
+              "type": "object",
+              "required": ["primary", "accent", "text", "mutedText", "background", "surface", "border", "success", "warning", "danger"],
+              "properties": {
+                "primary": { "type": "string" },
+                "accent": { "type": "string" },
+                "text": { "type": "string" },
+                "mutedText": { "type": "string" },
+                "background": { "type": "string" },
+                "surface": { "type": "string" },
+                "border": { "type": "string" },
+                "success": { "type": "string" },
+                "warning": { "type": "string" },
+                "danger": { "type": "string" }
+              }
+            },
+            "spacing": {
+              "type": "object",
+              "required": ["xxs", "xs", "sm", "md", "lg", "xl"],
+              "properties": {
+                "xxs": { "type": "string" },
+                "xs": { "type": "string" },
+                "sm": { "type": "string" },
+                "md": { "type": "string" },
+                "lg": { "type": "string" },
+                "xl": { "type": "string" }
+              }
+            },
+            "borders": {
+              "type": "object",
+              "required": ["radius", "width", "divider"],
+              "properties": {
+                "radius": { "type": "string" },
+                "width": { "type": "string" },
+                "divider": { "type": "string" }
+              }
+            },
+            "icons": {
+              "type": "object",
+              "required": ["type", "defaultMap"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["emoji", "text", "none"]
+                },
+                "defaultMap": {
+                  "type": "object",
+                  "additionalProperties": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["displayName", "description", "variants", "defaultVariant", "requiredFields"],
+            "properties": {
+              "displayName": { "type": "string" },
+              "description": { "type": "string" },
+              "variants": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "label": { "type": "string" },
+                    "icon": { "type": "string" },
+                    "style": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": ["string", "number", "boolean"]
+                      }
+                    }
+                  },
+                  "required": ["label"]
+                }
+              },
+              "defaultVariant": { "type": "string" },
+              "requiredFields": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "styleRules": {
+                "type": "object",
+                "additionalProperties": { "type": ["string", "boolean", "number", "object"] }
+              },
+              "allowedChildren": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "compositionRules": {
+          "type": "object",
+          "required": ["allowedTopLevelComponents", "requiredAtLeastOne", "maxInstances", "groupingRules"],
+          "properties": {
+            "allowedTopLevelComponents": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "requiredAtLeastOne": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "maxInstances": {
+              "type": "object",
+              "additionalProperties": { "type": "integer", "minimum": 0 }
+            },
+            "groupingRules": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "maxVisualTreatmentsPerPage": { "type": "integer", "minimum": 0 },
+            "maxAccentBlocksInRow": { "type": "integer", "minimum": 0 },
+            "suggestedSpacing": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            },
+            "minContrastRatio": { "type": "number", "minimum": 1 },
+            "minFontSize": { "type": "string" },
+            "strongHeadingHierarchy": { "type": "boolean" }
+          }
+        },
+        "compatibility": {
+          "type": "object",
+          "required": ["exportMode", "safeElements", "safeStyles", "avoidStyles", "maxImageWidth", "tableFallback", "warningsOnMissingAlt", "warningsOnLowContrast", "warningsOnWideTables", "warningsOnUnsupportedStyles"],
+          "properties": {
+            "exportMode": {
+              "type": "string",
+              "const": "inline-html"
+            },
+            "safeElements": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "safeStyles": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "avoidStyles": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "maxImageWidth": { "type": "string" },
+            "tableFallback": { "type": "boolean" },
+            "warningsOnMissingAlt": { "type": "boolean" },
+            "warningsOnLowContrast": { "type": "boolean" },
+            "warningsOnWideTables": { "type": "boolean" },
+            "warningsOnUnsupportedStyles": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
