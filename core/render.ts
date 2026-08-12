@@ -164,9 +164,19 @@ export function renderHtml(
         `</details>`
       );
 
+    // A card heading is an `<h2>`, not a styled paragraph. Phase 4 decision D3:
+    // the hero's `<h1>` was the only heading in the document, so a screen reader
+    // heard one title and then a wall of paragraphs with no structure to skip
+    // between. `h1`–`h4` are measured surviving on all three surfaces, and the
+    // inline style already fixes size, weight and margin, so the tag changes and
+    // the rendering does not.
+    //
+    // `<summary>` above is deliberately left alone. The spec permits a heading
+    // inside it, but that nesting is unmeasured against Blackbaud, and this
+    // renderer emits only what the probe verified.
     return (
       `<div data-layout="${b.width || "full"}" style="${box}">` +
-      `<p style="${headingStyle}">${icon}${label}</p>` +
+      `<h2 style="${headingStyle}">${icon}${label}</h2>` +
       `<div style="${s([["margin", "0"]])}">${body}</div>` +
       `</div>`
     );

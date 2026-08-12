@@ -325,6 +325,13 @@ export const rows = [
     html: `<details style="border:1px solid #E1E9F2;padding:10px;"><summary style="cursor:pointer;font-weight:700;">[R40] Show the answer &mdash; can you click this?</summary><p style="margin:8px 0 0;">If you can read this after clicking, details works.</p></details>`,
   },
   {
+    id: "R43", tier: 5, name: "<h2> inside <summary>", stakes: "medium",
+    why: "Added 2026-08-12 by Phase 4. Card headings became <h2> so the document has structure below its title, but a collapsible section's heading is its <summary>, and the renderer will not nest one inside the other until this row says the tenant keeps it. The HTML spec allows exactly one heading element as summary's content; whether Blackbaud's sanitizer knows that is the open question. Until it passes, collapsible sections contribute no heading and the compatibility panel says so.",
+    expect: "A clickable 'Answer key' row whose label is still bold and large after saving — and, in the source, still an <h2>.",
+    check: "manual",
+    html: `<details style="border:1px solid #E1E9F2;padding:10px;"><summary style="cursor:pointer;"><h2 style="display:inline;margin:0;font-size:16px;font-weight:700;">[R43] Answer key &mdash; is this still an h2 in the source?</h2></summary><p style="margin:8px 0 0;">If the h2 survived inside summary, collapsible sections can carry headings.</p></details>`,
+  },
+  {
     id: "R41", tier: 5, name: "animated GIF", stakes: "low",
     why: "Always works if images survive at all, and needs no CSS. Not embedded here to keep the probe small.",
     expect: "Manual: drop any animated GIF from your own media library into a post and see whether it still animates.",

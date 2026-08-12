@@ -21,8 +21,13 @@ instructed; it had drifted and said nothing was implemented.)
   `apps/web` is the full editor and `apps/ext` is the quick-post side panel. The
   Cloudflare/Next/Drizzle residue and Tailwind are gone. **Exported HTML did not
   change** — the goldens stayed locked and green throughout, which is the point.
-- **Phase 4 next** — make the compatibility panel's assurances true, and make a
-  teacher's workspace durable.
+- **Phase 4 — half done.** The compatibility panel computes now: `core/checks.ts`
+  does real WCAG contrast, heading order, and per-surface warnings derived from
+  the spec, in three states — `pass | fail | unknown`, where **an unknown can
+  never render as a tick.** Card headings became `<h2>` (decision D3), the one
+  intended change to exported HTML; goldens relocked. **Still to do: versioned
+  storage, workspace export/import, the `chrome.storage.local` adapter, the lint
+  baseline, and carried-forward bugs #5 and #7.**
 
 Decided 2026-08-11: the target audience is other schools (public), both the web
 app and the extension stay, and AI drafting is deferred to a future feature —
@@ -45,6 +50,12 @@ Layout:
     from both and contains no hex or magic pixel value — a test enforces that.
   - `core/degrade.ts` sits between what a profile asks for and what a tenant
     keeps. Small on purpose: Blackbaud turned out permissive.
+  - `core/checks.ts` is what the composer can honestly say about a post. It
+    mirrors `renderHtml`'s parameter order so it cannot drift from what was
+    rendered, and it is where **the hero eyebrow's 2.65:1 failure on every
+    shipped palette** is reported rather than hidden. Its tri-state result is
+    load-bearing: if you find yourself adding a fourth state, or defaulting an
+    uncomputable pair to `pass`, you are rebuilding the bug it replaced.
 - `ui/` — **all the React, shared by both shells.**
   - `state.ts` — `useComposer()`: blocks, selection, undo/redo, the `bcc-workspace`
     localStorage round trip, and the single `renderHtml` call. **A behaviour that
@@ -60,7 +71,7 @@ Layout:
   live under `public/` because Vite copies that directory to the output root,
   which is where the manifest's paths have to resolve.
 - `tests/` — the core contract suite plus golden HTML and corpus snapshots.
-- `tools/probe/` — the Blackbaud compatibility probe generator (42 rows).
+- `tools/probe/` — the Blackbaud compatibility probe generator (43 rows).
 - `docs/` — the plan, the measured compatibility results, the 2026-08-09 class
   style-guide spec, and the deferred AI drafting design.
 
@@ -78,7 +89,7 @@ shell*, and a teacher who wants the same class style in both sets it in both.
 npm run build      # the web build - the real gate, must pass
 npm run build:ext  # the extension build - the other real gate
 npm test           # test:core + probe:test, and it is a usable signal again
-npm run test:core  # 45 tests over core/ - green, keep it that way
+npm run test:core  # 55 tests over core/ - green, keep it that way
 npm run probe:test # 26 tests over the probe analyzer - green, keep it that way
 npm run lint       # see the baseline below before trusting the result
 npm run probe      # regenerate the compatibility kit into docs/
@@ -91,7 +102,10 @@ two suites doing two different jobs:
   are pinned as JSON snapshots in `tests/golden/`; the renderer is checked
   against every rule Phase 0 measured (all styles inline, no `<style>`, no
   `<svg>`, no whitespace between sibling blocks, `data-layout` intact) plus what
-  a *stricter* tenant receives when `conservative` degrades the output.
+  a *stricter* tenant receives when `conservative` degrades the output. Since
+  Phase 4 it also pins `checks-matrix.json` — the verdict of every check across
+  all 54 palette × profile × surface combinations, so a colour tweak that quietly
+  breaks contrast fails here instead of shipping.
 - **`tests/golden.test.mjs`** pins exact bytes, 13 documents across all three
   profiles.
 

@@ -1,4 +1,5 @@
 import type { BlockType } from "../core/model.ts";
+import type { CheckStatus } from "../core/checks.ts";
 import { blockMeta } from "../core/catalog.ts";
 import { RichEditor } from "./richtext.tsx";
 import type { Composer } from "./state.ts";
@@ -12,15 +13,28 @@ export function BlockFields({ c }: { c: Composer }) {
   </>;
 }
 
+const MARKER: Record<CheckStatus, string> = { pass: "✓", fail: "!", unknown: "?" };
+
 /**
- * The compatibility panel — still the decorative 4/4 from the prototype.
+ * The compatibility panel. It computes nothing — `core/checks.ts` does that, and
+ * this draws the answer.
  *
- * Phase 4 replaces it with real WCAG contrast math, heading-order validation and
- * per-surface warnings derived from `core/compat.ts`. It is moved verbatim here
- * rather than fixed, because its "accessible color contrast" ✓ is a claim the
- * custom style editor can already make false, and fixing that is its own change.
+ * The old version was four hardcoded ✓ rows and a hardcoded `4/4`, including an
+ * "accessible color contrast" tick that was false for every palette the tool
+ * ships. So the two rules here are: never render a status the report did not
+ * give, and always show the evidence underneath the claim. A teacher who is told
+ * "2.65:1, needs 4.5:1" can act; one who is told "✓" cannot.
  */
 export function Checks({ c }: { c: Composer }) {
-  const { surface, surfaceKey, blocks } = c;
-  return <div className="checks"><div className="check-head"><div><span className="eyebrow">COMPATIBILITY</span><h3>{surface.name}</h3></div><span className="score">4/4</span></div><p className="surface-note">{surface.note}</p><p><i>✓</i> All export styles are inline</p><p><i>✓</i> Blackbaud-safe structure</p><p><i>✓</i> Strong heading hierarchy</p><p><i>✓</i> Accessible color contrast</p>{blocks.some(b=>b.width==="half")&&<p className="compat-warning"><i>!</i> Preview half-width blocks in your target Blackbaud editor; responsive behavior can vary by surface.</p>}{surfaceKey==="bulletin"&&blocks.some(b=>b.width==="half")&&<p className="compat-warning"><i>!</i> Full-width blocks are recommended for concise bulletin notices.</p>}</div>;
+  const { surface, report, setSelected } = c;
+  return <div className="checks">
+    <div className="check-head"><div><span className="eyebrow">COMPATIBILITY</span><h3>{surface.name}</h3></div><span className={`score ${report.failed?"score-fail":""}`}>{report.passed}/{report.checked}</span></div>
+    <p className="surface-note">{surface.note}</p>
+    {report.checks.map(check=><div key={check.id} className={`check-row check-${check.status}`}>
+      <p><i>{MARKER[check.status]}</i> {check.label}</p>
+      <small>{check.detail}</small>
+      {check.blockIds.length>0&&<button className="check-jump" onClick={()=>setSelected(check.blockIds[0])}>Open the block →</button>}
+    </div>)}
+    <p className="check-provenance">{report.unknown>0&&`${report.unknown} not checked · `}{report.tenantMeasured?`Measured ${report.measured} against ${report.tenant}`:"No tenant measured — run the probe"}</p>
+  </div>;
 }

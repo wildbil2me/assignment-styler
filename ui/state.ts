@@ -6,6 +6,7 @@ import { profiles, defaultProfile, withFonts } from "../core/profiles/index.ts";
 import { surfaces } from "../core/surfaces.ts";
 import { templates, starter } from "../core/templates.ts";
 import { renderHtml } from "../core/render.ts";
+import { runChecks } from "../core/checks.ts";
 
 /**
  * Everything both shells need to be the same program.
@@ -54,6 +55,12 @@ export function useComposer({
   const profile = useMemo(() => withFonts(profiles[profileKey], fonts), [profileKey, fonts]);
   const surface = surfaces[surfaceKey];
   const html = useMemo(() => renderHtml(blocks, profile, palette, surface), [blocks, profile, palette, surface]);
+  // The checks read the same inputs as the render, and are handed the output
+  // they just produced rather than rendering it a second time.
+  const report = useMemo(
+    () => runChecks(blocks, profile, palette, surface, undefined, html),
+    [blocks, profile, palette, surface, html]
+  );
   const active = blocks.find(b => b.id === selected);
 
   useEffect(()=>{try{const raw=localStorage.getItem("bcc-workspace");if(raw){const d=JSON.parse(raw);if(d.blocks)setBlocks(d.blocks.map(({animation,...b}:Block&{animation?:string})=>b));if(d.postTitle)setPostTitle(d.postTitle);if(d.styleKey)setStyleKey(d.styleKey);if(d.surfaceKey&&d.surfaceKey in surfaces)setSurfaceKey(d.surfaceKey);if(d.profileKey&&d.profileKey in profiles)setProfileKey(d.profileKey);if(d.fonts)setFonts({...defaultProfile.fonts,...d.fonts});
@@ -80,7 +87,7 @@ export function useComposer({
     blocks, setBlocks, postTitle, setPostTitle, selected, setSelected, active,
     styleKey, setStyleKey, profileKey, setProfileKey, fonts, setFonts,
     customPalette, setCustomPalette, surfaceKey, setSurfaceKey,
-    savedPosts, setSavedPosts, exportHistory, palette, profile, surface, html,
+    savedPosts, setSavedPosts, exportHistory, palette, profile, surface, html, report,
     copied, dragged,
     update, move, addBlock, deleteBlock, duplicateBlock, dropBlock, copy, undo, redo, useTemplate,
   };

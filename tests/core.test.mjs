@@ -37,6 +37,9 @@ import { templates, templateNames, starter, templateGroups } from "../core/templ
 import { blockMeta, blockTypes } from "../core/catalog.ts";
 import { stJohns, conservative } from "../core/compat.ts";
 import { guard, style, element } from "../core/degrade.ts";
+import {
+  runChecks, contrastRatio, parseHex, isLargeText, requiredRatio, ASSUMED_PAGE_BACKGROUND,
+} from "../core/checks.ts";
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), "golden");
 const UPDATE = process.env.UPDATE_GOLDENS === "1";
@@ -482,4 +485,155 @@ test("surface widths are the ones the renderer emits", () => {
   assert.equal(surfaces.topic.width, 760);
   assert.equal(surfaces.assignment.width, 680);
   for (const key of surfaceKeys) assert.equal(surfaces[key].key, key, "surfaces carry their own key");
+});
+
+/* ---------------------------------------------------------------- checks */
+
+/**
+ * Phase 4. The panel these back used to be four hardcoded ✓ rows and a
+ * hardcoded 4/4; the contrast one was false for all six shipped palettes.
+ *
+ * The rule worth defending here is the tri-state: a check that could not be
+ * computed must never surface as a pass. Everything else follows from it.
+ */
+
+test("contrast maths matches the WCAG reference values", () => {
+  assert.equal(contrastRatio("#000000", "#FFFFFF").toFixed(2), "21.00");
+  assert.equal(contrastRatio("#FFFFFF", "#FFFFFF").toFixed(2), "1.00");
+  assert.equal(contrastRatio("#777777", "#FFFFFF").toFixed(2), "4.48", "the classic just-fails grey");
+  assert.equal(contrastRatio("#000", "#fff").toFixed(2), "21.00", "3-digit hex expands");
+  assert.equal(contrastRatio("#C99700", "#FFFFFF").toFixed(2), "2.65", "English gold on white");
+
+  // Order must not matter: the formula sorts by luminance.
+  assert.equal(contrastRatio("#243B53", "#FFFFFF"), contrastRatio("#FFFFFF", "#243B53"));
+});
+
+test("a colour the formula cannot read is unknown, never a pass", () => {
+  assert.equal(contrastRatio("rgba(15,23,42,0.5)", "#FFFFFF"), null);
+  assert.equal(contrastRatio("cornflowerblue", "#FFFFFF"), null);
+  assert.equal(contrastRatio("", "#FFFFFF"), null);
+  assert.equal(parseHex("#ggghhh"), null);
+
+  // ...and it reaches the report as `unknown`, with no pass anywhere near it.
+  const odd = { ...palettes.english, surface: "rgba(255,255,255,0.6)" };
+  const report = runChecks(
+    [{ id: 1, type: "note", title: "Note", body: "Body" }],
+    profiles.soft,
+    odd,
+    surfaces.bulletin
+  );
+  const body = report.checks.find((c) => c.id === "contrast-body");
+  assert.equal(body.status, "unknown");
+  assert.match(body.detail, /cannot be computed/);
+});
+
+test("large text uses the WCAG thresholds, read from profile tokens", () => {
+  assert.equal(isLargeText(24, 400), true);
+  assert.equal(isLargeText(23.9, 400), false);
+  assert.equal(isLargeText(18.66, 700), true);
+  assert.equal(isLargeText(18.66, 600), false, "bold means 700+");
+  assert.equal(isLargeText(16, 700), false, "soft's card heading is NOT large text");
+  assert.equal(requiredRatio(16, 700), 4.5);
+  assert.equal(requiredRatio(28, 400), 3);
+});
+
+test("the hero eyebrow fails on every shipped palette, and the panel says so", () => {
+  // The finding that motivated the phase. If a palette is ever darkened this
+  // test is the thing that notices — update it deliberately.
+  for (const key of paletteKeys) {
+    const ratio = contrastRatio(palettes[key].accent, ASSUMED_PAGE_BACKGROUND);
+    assert.ok(ratio < 4.5, `${key} accent now passes at ${ratio.toFixed(2)} — update this test on purpose`);
+  }
+
+  const report = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin);
+  const ground = report.checks.find((c) => c.id === "contrast-ground");
+  assert.equal(ground.status, "fail");
+  assert.match(ground.detail, /UNIT UPDATE/, "names the failing element");
+  assert.match(ground.detail, /2\.65:1, needs 4\.5:1/, "shows the evidence");
+  assert.match(ground.detail, /Assumes a white page background/, "states the assumption");
+  assert.deepEqual(ground.blockIds, [1], "points at the block to fix");
+});
+
+test("the score counts passes over checks attempted, unknowns apart", () => {
+  const report = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin);
+  assert.equal(report.checked, report.passed + report.failed);
+  assert.equal(report.checks.length, report.checked + report.unknown);
+  assert.ok(report.failed >= 1, "the starter post has the failing eyebrow");
+  assert.equal(report.tenantMeasured, true);
+  assert.equal(report.tenant, "St John's");
+});
+
+test("an unmeasured tenant is reported as unmeasured, not as safe", () => {
+  const report = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin, conservative);
+  const surface = report.checks.find((c) => c.id === "surface");
+  assert.equal(report.tenantMeasured, false);
+  assert.equal(surface.status, "unknown");
+  assert.match(surface.detail, /Nobody has run the probe/);
+});
+
+test("heading structure follows what the renderer actually emits", () => {
+  const one = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin);
+  const order = one.checks.find((c) => c.id === "heading-order");
+  assert.equal(order.status, "pass");
+  assert.match(order.detail, /One <h1> and 4 <h2>s/);
+
+  const none = runChecks(
+    [{ id: 9, type: "note", title: "Note", body: "Body" }],
+    profiles.soft, palettes.english, surfaces.bulletin
+  );
+  assert.equal(none.checks.find((c) => c.id === "heading-order").status, "fail");
+
+  const two = runChecks(
+    [...starter, { id: 99, type: "hero", title: "Second", body: "" }],
+    profiles.soft, palettes.english, surfaces.bulletin
+  );
+  const twoOrder = two.checks.find((c) => c.id === "heading-order");
+  assert.equal(twoOrder.status, "fail");
+  assert.deepEqual(twoOrder.blockIds, [99], "names the extra title, not the first");
+
+  const late = runChecks(
+    [{ id: 8, type: "note", title: "Note", body: "B" }, { id: 7, type: "hero", title: "Late", body: "" }],
+    profiles.soft, palettes.english, surfaces.bulletin
+  );
+  assert.match(late.checks.find((c) => c.id === "heading-order").detail, /not the first block/);
+
+  // A disclosure is a control, not a heading, and the report says so rather
+  // than counting it as structure.
+  const disclosure = runChecks(
+    [...starter, { id: 50, type: "details", title: "Answer key", body: "A" }],
+    profiles.soft, palettes.english, surfaces.topic
+  );
+  assert.match(
+    disclosure.checks.find((c) => c.id === "heading-order").detail,
+    /announced as a disclosure rather than a heading/
+  );
+});
+
+test("hidden blocks are checked exactly as the renderer treats them", () => {
+  const hidden = runChecks(
+    [...starter, { id: 60, type: "note", title: "Hidden", body: "x", hidden: true }],
+    profiles.soft, palettes.english, surfaces.bulletin
+  );
+  for (const check of hidden.checks)
+    assert.ok(!check.blockIds.includes(60), "a hidden block cannot be the cause of anything");
+});
+
+test("structure is checked against real output, not asserted", () => {
+  const report = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin);
+  const structure = report.checks.find((c) => c.id === "structure");
+  assert.equal(structure.status, "pass");
+  assert.match(structure.detail, /Every style is inline/);
+});
+
+test("every palette x profile x surface verdict is pinned", () => {
+  // 54 combinations. A palette or profile tweak that quietly breaks contrast
+  // fails here instead of shipping.
+  const matrix = {};
+  for (const p of profileKeys)
+    for (const c of paletteKeys)
+      for (const s of surfaceKeys)
+        matrix[`${p}/${c}/${s}`] = runChecks(starter, profiles[p], palettes[c], surfaces[s])
+          .checks.map((x) => `${x.id}:${x.status}`)
+          .join(" ");
+  snapshot("checks-matrix", matrix);
 });

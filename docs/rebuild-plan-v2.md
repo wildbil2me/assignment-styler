@@ -385,20 +385,61 @@ moot — there is no SSR left to diverge under.
 
 ## Phase 4 — make the assurances true, make the data durable
 
-Replace the hardcoded `4/4` compatibility panel (`Checks` in `ui/inspector.tsx` —
-four static ✓ rows, including an "accessible color contrast" claim the custom
-style editor can make actively false):
+### First half — the assurances. Done, 2026-08-12.
 
-- WCAG contrast math, 4.5:1 body / 3:1 large text, computed from the live palette.
-- Heading-order validation.
-- Per-surface warnings derived from `core/compat.ts`.
-- The panel reports what it actually checked, and says so when it can't check.
+`core/checks.ts` replaced four hardcoded ✓ rows and a hardcoded `4/4`. It mirrors
+`renderHtml`'s parameter order and resolves tones through the same
+`resolveTone`, so it cannot drift from what was rendered; the panel in
+`ui/inspector.tsx` now computes nothing and only draws the result.
+
+**What the measurement found before a line was written:** the "accessible color
+contrast" ✓ was false for **every palette the tool ships**, not merely for custom
+ones. The hero eyebrow is `palette.accent` at 12px bold — small text, so 4.5:1 —
+and runs 2.65:1 (English gold) to 3.49:1 (Arts) against a white page. Everything
+else has comfortable headroom: card body text bottoms out at 13.08:1, card
+headings at 5.72:1, the hero title at 8.99:1.
+
+Four decisions, settled before building:
+
+| | Question | Decision |
+| --- | --- | --- |
+| **D1** | What sits behind the post | **Assume white, and say so in the row.** The renderer sets no page background, so the hero and intro sit on Blackbaud's own, which we cannot see. Assuming white keeps the largest text on the page checkable; the alternative marks half the pairs permanently unknown. |
+| **D2** | The failing eyebrow | **Report it, fix it later.** The panel ships showing a real failure on the default palette — which is the demonstration that it works — rather than rushing a six-colour redesign. Exported HTML unchanged by this. |
+| **D3** | Card headings | **Promote `<p>` → `<h2>`.** Only the hero emitted a heading, so a screen reader heard one title and a wall of paragraphs. `h1`–`h4` are measured surviving everywhere and the inline style already fixed size and margin, so the tag changed and the rendering did not. |
+| **D4** | The score | **Passed over *checked*, unknowns counted apart.** An uncomputed check can inflate neither side. |
+
+The tri-state (`pass | fail | unknown`) is the load-bearing idea. A fourth state
+was considered for tenant degradations and rejected: `degrade()` is built so a
+compatibility decision never hides content — a stripped `<details>` becomes an
+open card — so those are passes whose detail names the substitution, not warnings.
+
+`<summary>` was deliberately left alone. The HTML spec permits one heading
+element inside it, but that nesting is unmeasured against Blackbaud, and this
+renderer emits only what the probe verified. **Probe row R43** now isolates it;
+until it passes, collapsible sections contribute no heading and the panel says so
+in words rather than silently.
+
+Tests: 45 → 55. Known-value contrast fixtures (`#000/#fff = 21.00`, the
+just-fails `#777` grey, the six accents), a pinned verdict matrix over all 54
+palette × profile × surface combinations, and an explicit assertion that a colour
+the formula cannot read reaches the report as `unknown` and never as a pass.
+
+The goldens moved, once, by design: `<p style="…">` → `<h2 style="…">` on card
+headings, every style attribute byte-identical.
+
+### Second half — the data. Still to do.
 
 Storage: `version: 1` schema with a migration path, plus whole-workspace JSON
 export/import. Right now a teacher's work lives in `localStorage` under
-`bcc-workspace` and dies with a cleared cache.
+`bcc-workspace` and dies with a cleared cache. Two things belong in that change
+rather than after it: the Phase 2 pre-split migration currently sits inline in
+`useComposer` and wants a home in `core/storage.ts`, and the extension's
+`chrome.storage.local` adapter is one async seam that should be cut once, not
+twice.
 
-Fix the 15 baselined lint errors here rather than carrying them forward.
+Fix the 14 baselined lint errors here rather than carrying them forward, and fold
+in carried-forward bugs #5 and #7 — `nextId()` belongs in `core/` beside storage
+anyway.
 
 ## Phase 5 — publish
 
