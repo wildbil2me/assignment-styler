@@ -427,19 +427,52 @@ the formula cannot read reaches the report as `unknown` and never as a pass.
 The goldens moved, once, by design: `<p style="…">` → `<h2 style="…">` on card
 headings, every style attribute byte-identical.
 
-### Second half — the data. Still to do.
+### Second half — the data. Done, 2026-08-12.
 
-Storage: `version: 1` schema with a migration path, plus whole-workspace JSON
-export/import. Right now a teacher's work lives in `localStorage` under
-`bcc-workspace` and dies with a cleared cache. Two things belong in that change
-rather than after it: the Phase 2 pre-split migration currently sits inline in
-`useComposer` and wants a home in `core/storage.ts`, and the extension's
-`chrome.storage.local` adapter is one async seam that should be cut once, not
-twice.
+`core/storage.ts` is now the only place the workspace shape is known: a
+`version: 1` schema, one `migrate()` that accepts every vintage the prototype
+ever wrote, and an injectable `StorageAdapter`. The migration that used to sit
+inline in a React effect — picking fields defensively off an unversioned blob —
+is a pure function with tests.
 
-Fix the 14 baselined lint errors here rather than carrying them forward, and fold
-in carried-forward bugs #5 and #7 — `nextId()` belongs in `core/` beside storage
-anyway.
+**Where a workspace lives now depends on the shell.** The side panel gets
+`chrome.storage.local`, which browsers do not clear alongside ordinary site data;
+the web app keeps `localStorage`. The panel reads its old `localStorage`
+workspace once on first run so nobody opens it to a blank post, and never writes
+back. The `storage` permission is back in the manifest, now that it is used.
+
+**A workspace can leave the browser.** *Back up to a file* writes the whole
+thing — every post, every saved snapshot, the custom palette — as pretty-printed
+JSON; *Restore from a backup* reads it back through the same migration, so an
+export from any older version still imports. This is the only route by which a
+teacher's work survives a cleared cache or a reimaged school laptop, which is
+what the zero-backend design costs and what this pays.
+
+Two schema decisions worth keeping: `exportHistory` was being persisted and then
+discarded on load, so it is simply not in the v1 schema; and blocks whose `type`
+this build does not have are dropped on the way in rather than crashing
+`blockMeta[b.type]` later.
+
+Carried-forward bugs #5 and #7 are fixed. `core/ids.ts` mints every id,
+monotonic and clock-seeded, so neither a template expansion inside one
+millisecond nor a workspace restored from a machine with a fast clock can
+collide. Deleting a block now selects its neighbour instead of re-selecting the
+block it just removed.
+
+**The lint baseline is gone — `npm run lint` is clean**, and it was not
+suppressed. The `jsx-a11y` errors described a real dead end: block rows were
+`<div onClick>`, so a keyboard user could edit a block's fields but never choose
+which block. Rows are `<button>`s now, with the reorder controls as siblings
+rather than nested inside them.
+
+Tests: 55 → 63, covering the v0 and pre-split migrations, a serialize/parse round
+trip, id uniqueness across 1000 mints in one tick, and an adapter facing storage
+that is missing, corrupt, or throwing on quota.
+
+Verified end to end in a browser rather than only in tests: a seeded v0 workspace
+— fused `customStyle`, an `animation` field, an unknown block type, a stale
+`exportHistory` — loads, renders with the right palette and surface, and is
+written back as `version: 1` with all four of those handled.
 
 ## Phase 5 — publish
 
@@ -539,15 +572,17 @@ Fixed by the phases above, listed so none get lost:
 4. ~~`public/og.png` is 1.05 MB in the Pages artifact.~~ **Deleted in Phase 3**,
    along with the `og:image` tags that referenced it. Phase 5 owns what replaces
    them.
-5. Deleting the first block calls `setSelected(blocks[0]?.id)` against the
-   pre-deletion array, re-selecting the block it just removed. Still open —
-   deliberately untouched by Phase 3, now in `deleteBlock` in `ui/state.ts`.
+5. ~~Deleting the first block calls `setSelected(blocks[0]?.id)` against the
+   pre-deletion array, re-selecting the block it just removed.~~ **Fixed in
+   Phase 4.** It selects the neighbour that slid into its place.
 6. ~~`document.execCommand` is deprecated.~~ **Wrapped in Phase 3** as `exec()`
    in `ui/richtext.tsx`, the only call site. Still deprecated, still fine — the
    sanitizer cleans up after it.
-7. Block ids come from `Date.now()` in some paths and `stamp + i` in others, which
-   can collide. One `nextId()` in core. Still open — the `Date.now()` calls are
-   now in `ui/state.ts` and `ui/composer.tsx`.
+7. ~~Block ids come from `Date.now()` in some paths and `stamp + i` in others,
+   which can collide.~~ **Fixed in Phase 4** — `nextId()` in `core/ids.ts`, and
+   nothing else mints an id.
+
+**All seven are closed.**
 
 ## Open
 

@@ -13,6 +13,11 @@ Two shells over one core:
 Both render through the same `core/`, so the same blocks produce the same bytes
 in either one. Nothing leaves the browser: no backend, no accounts, no telemetry.
 
+Because nothing leaves the browser, nothing is backed up for you either — so the
+composer can write your whole workspace to a JSON file (**⋯ → Back up to a
+file**) and read it back on any machine. That file is the only copy that
+survives a cleared cache.
+
 ## Web app
 
 ```bash
@@ -49,7 +54,7 @@ when you click the button; it never saves or publishes the Blackbaud page.
 
 | Directory | What it is |
 | --- | --- |
-| `core/` | Pure domain logic — model, blocks, profiles, palettes, renderer, sanitizer, importer, measured Blackbaud compat spec. No React. |
+| `core/` | Pure domain logic — model, blocks, profiles, palettes, renderer, sanitizer, importer, accessibility checks, versioned storage, measured Blackbaud compat spec. No React. |
 | `ui/` | Shared React: the composer, the quick-post panel, and the pieces both use. |
 | `apps/web/`, `apps/ext/` | The two shells. Entry point, host page, and for the extension its manifest. |
 | `tests/` | Core contract suite plus golden HTML snapshots. |

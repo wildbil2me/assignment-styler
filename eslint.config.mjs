@@ -29,11 +29,23 @@ const eslintConfig = defineConfig([
         version: "detect",
       },
     },
+    rules: {
+      // `const { animation, ...rest } = block` is how a field is dropped from an
+      // object, and the discarded name is the point of the expression rather
+      // than an oversight.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { ignoreRestSiblings: true, argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
   },
-  // Not added here: a webextension global env for `apps/ext/public/background.js`.
-  // Its three `'chrome' is not defined` errors are part of the 15-error baseline
-  // that Phase 4 owns; fixing them here would quietly move the number this phase
-  // is measured against.
+  // The MV3 service worker. `chrome` is a webextension global and no stock
+  // eslint global set carries it, which is what the three `'chrome' is not
+  // defined` errors in the old baseline were.
+  {
+    files: ["apps/ext/public/background.js"],
+    languageOptions: { globals: { chrome: "readonly" } },
+  },
 ]);
 
 export default eslintConfig;

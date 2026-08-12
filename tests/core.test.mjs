@@ -40,6 +40,10 @@ import { guard, style, element } from "../core/degrade.ts";
 import {
   runChecks, contrastRatio, parseHex, isLargeText, requiredRatio, ASSUMED_PAGE_BACKGROUND,
 } from "../core/checks.ts";
+import { nextId, nextIds, reserveIds } from "../core/ids.ts";
+import {
+  migrate, serialize, parse, backupFilename, localAdapter, STORAGE_KEY,
+} from "../core/storage.ts";
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), "golden");
 const UPDATE = process.env.UPDATE_GOLDENS === "1";
@@ -636,4 +640,114 @@ test("every palette x profile x surface verdict is pinned", () => {
           .checks.map((x) => `${x.id}:${x.status}`)
           .join(" ");
   snapshot("checks-matrix", matrix);
+});
+
+/* --------------------------------------------------------- ids and storage */
+
+test("ids are unique even when minted in the same millisecond", () => {
+  // Carried-forward bug #7. The old code stamped Date.now() per call and
+  // stamp + i per batch, so a template expansion inside one tick could collide
+  // with a block added in the same tick.
+  const ids = [...nextIds(500), ...Array.from({ length: 500 }, () => nextId())];
+  assert.equal(new Set(ids).size, 1000, "1000 ids, no duplicates");
+  for (let i = 1; i < ids.length; i++) assert.ok(ids[i] > ids[i - 1], "ids only ever increase");
+});
+
+test("restored ids are reserved so new blocks cannot land on them", () => {
+  const future = Date.now() + 5_000_000;
+  reserveIds([future]);
+  assert.ok(nextId() > future, "a workspace from a machine with a fast clock still round-trips");
+});
+
+test("a workspace round-trips through serialize and parse", () => {
+  const workspace = migrate({ blocks: starter, postTitle: "Tuesday", styleKey: "arts", profileKey: "bold" });
+  const { workspace: back, message } = parse(serialize(workspace));
+  assert.deepEqual(back, workspace);
+  assert.match(message, /Restored 6 blocks and 0 saved posts/);
+});
+
+test("migration accepts what the prototype wrote and rejects what it didn't", () => {
+  assert.equal(migrate(null), null);
+  assert.equal(migrate("not a workspace"), null);
+  assert.equal(migrate({}), null, "nothing worth restoring leaves the defaults alone");
+  assert.equal(parse("{ broken").workspace, null);
+  assert.match(parse("{}").message, /doesn’t contain any posts/);
+
+  const v0 = migrate({
+    blocks: [{ id: 1, type: "hero", title: "T", body: "B", animation: "fade" }],
+    postTitle: "Old post",
+    styleKey: "science",
+    surfaceKey: "nonsense",
+    profileKey: "nonsense",
+  });
+  assert.equal(v0.version, 1);
+  assert.equal("animation" in v0.blocks[0], false, "the prototype's animation field is dropped");
+  assert.equal(v0.surfaceKey, "bulletin", "an unknown surface falls back rather than throwing");
+  assert.equal(v0.profileKey, "soft");
+  assert.equal(v0.styleKey, "science");
+
+  const junk = migrate({ blocks: [{ id: 1, type: "nonexistent", title: "", body: "" }, ...starter] });
+  assert.equal(junk.blocks.length, starter.length, "a block type this build doesn't have is dropped");
+});
+
+test("the pre-split fused customStyle migrates colour always, fonts only if chosen", () => {
+  // Phase 2 split colour from type. The fused style held both, but its fonts
+  // only ever applied when the teacher had actually selected the custom style —
+  // carrying them over otherwise would silently restyle every class.
+  const fused = { className: "My Class", primary: "#111111", accent: "#222222", surface: "#333333", focus: "#444444", heading: "Verdana, sans-serif", body: "Verdana, sans-serif" };
+
+  const chosen = migrate({ blocks: starter, styleKey: "custom", customStyle: fused });
+  assert.equal(chosen.customPalette.primary, "#111111");
+  assert.equal(chosen.customPalette.className, "My Class");
+  assert.equal(chosen.fonts.heading, "Verdana, sans-serif", "they had picked it, so the fonts come too");
+
+  const notChosen = migrate({ blocks: starter, styleKey: "english", customStyle: fused });
+  assert.equal(notChosen.customPalette.accent, "#222222", "the colours are still preserved");
+  assert.deepEqual(notChosen.fonts, defaultProfile.fonts, "but the fonts are not adopted");
+
+  // A current workspace wins over a legacy one if somehow both are present.
+  const both = migrate({ blocks: starter, customPalette: { ...palettes.arts, className: "New" }, customStyle: fused });
+  assert.equal(both.customPalette.primary, palettes.arts.primary);
+});
+
+test("saved posts survive migration with their blocks cleaned", () => {
+  const w = migrate({
+    blocks: starter,
+    savedPosts: [{ id: 7, title: "Week 1", blocks: [{ id: 2, type: "note", title: "N", body: "B", animation: "x" }] }, "garbage"],
+  });
+  assert.equal(w.savedPosts.length, 1);
+  assert.equal("animation" in w.savedPosts[0].blocks[0], false);
+});
+
+test("the local adapter survives storage that is missing, full or corrupt", async () => {
+  const original = globalThis.localStorage;
+  let store = {};
+  globalThis.localStorage = {
+    getItem: (k) => store[k] ?? null,
+    setItem: (k, v) => { store[k] = v },
+  };
+  try {
+    assert.equal(await localAdapter.load(), null, "nothing stored yet");
+
+    const workspace = migrate({ blocks: starter, postTitle: "Saved" });
+    await localAdapter.save(workspace);
+    assert.deepEqual(await localAdapter.load(), workspace);
+
+    store[STORAGE_KEY] = "{ not json";
+    assert.equal(await localAdapter.load(), null, "corrupt storage starts clean instead of throwing");
+
+    globalThis.localStorage = {
+      getItem: () => { throw new Error("denied") },
+      setItem: () => { throw new Error("quota") },
+    };
+    assert.equal(await localAdapter.load(), null);
+    await localAdapter.save(workspace); // must not throw: losing an autosave beats crashing
+  } finally {
+    globalThis.localStorage = original;
+  }
+});
+
+test("backup filenames are findable six months later", () => {
+  assert.equal(backupFilename("Tuesday’s class post", "2026-08-12"), "content-composer-tuesday-s-class-post-2026-08-12.json");
+  assert.equal(backupFilename("", "2026-08-12"), "content-composer-workspace-2026-08-12.json");
 });

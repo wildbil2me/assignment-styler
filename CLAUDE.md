@@ -21,13 +21,19 @@ instructed; it had drifted and said nothing was implemented.)
   `apps/web` is the full editor and `apps/ext` is the quick-post side panel. The
   Cloudflare/Next/Drizzle residue and Tailwind are gone. **Exported HTML did not
   change** — the goldens stayed locked and green throughout, which is the point.
-- **Phase 4 — half done.** The compatibility panel computes now: `core/checks.ts`
-  does real WCAG contrast, heading order, and per-surface warnings derived from
-  the spec, in three states — `pass | fail | unknown`, where **an unknown can
-  never render as a tick.** Card headings became `<h2>` (decision D3), the one
-  intended change to exported HTML; goldens relocked. **Still to do: versioned
-  storage, workspace export/import, the `chrome.storage.local` adapter, the lint
-  baseline, and carried-forward bugs #5 and #7.**
+- **Phase 4 — done.** Two halves.
+  - *The assurances.* The compatibility panel computes now: `core/checks.ts` does
+    real WCAG contrast, heading order, and per-surface warnings derived from the
+    spec, in three states — `pass | fail | unknown`, where **an unknown can never
+    render as a tick.** Card headings became `<h2>` (decision D3), the one
+    intended change to exported HTML; goldens relocked.
+  - *The data.* `core/storage.ts` owns a versioned workspace and its migration;
+    the side panel keeps its copy in `chrome.storage.local` and the web app in
+    `localStorage`. A whole workspace exports to and imports from a JSON file.
+    `core/ids.ts` is the single id source. Carried-forward bugs #5 and #7 fixed,
+    **and the lint baseline is gone — `npm run lint` is clean.**
+- **Phase 5 next** — publish: LICENSE, README screenshots, semver, CHANGELOG, CI
+  on both shells.
 
 Decided 2026-08-11: the target audience is other schools (public), both the web
 app and the extension stay, and AI drafting is deferred to a future feature —
@@ -56,6 +62,14 @@ Layout:
     shipped palette** is reported rather than hidden. Its tri-state result is
     load-bearing: if you find yourself adding a fourth state, or defaulting an
     uncomputable pair to `pass`, you are rebuilding the bug it replaced.
+  - `core/storage.ts` is the **only** place the workspace shape is known. It is
+    versioned (`version: 1`), migrated in one function, and read through an
+    injectable `StorageAdapter` — `chrome.storage.local` in the side panel,
+    `localStorage` everywhere else. Don't reach for `localStorage` directly in
+    `ui/`; that is what this replaced.
+  - `core/ids.ts` mints every block id. Monotonic and seeded from the clock, so
+    two blocks created in one millisecond cannot collide and a restored
+    workspace cannot collide with new ones.
 - `ui/` — **all the React, shared by both shells.**
   - `state.ts` — `useComposer()`: blocks, selection, undo/redo, the `bcc-workspace`
     localStorage round trip, and the single `renderHtml` call. **A behaviour that
@@ -89,7 +103,7 @@ shell*, and a teacher who wants the same class style in both sets it in both.
 npm run build      # the web build - the real gate, must pass
 npm run build:ext  # the extension build - the other real gate
 npm test           # test:core + probe:test, and it is a usable signal again
-npm run test:core  # 55 tests over core/ - green, keep it that way
+npm run test:core  # 63 tests over core/ - green, keep it that way
 npm run probe:test # 26 tests over the probe analyzer - green, keep it that way
 npm run lint       # see the baseline below before trusting the result
 npm run probe      # regenerate the compatibility kit into docs/
@@ -123,34 +137,31 @@ the extraction changed nothing, and Phase 2 changes the output on purpose.
 Both build outputs are gitignored (`pages-dist/`, `extension-dist/`), so **no
 generated artifact needs committing** — a build never dirties the tree.
 
-### Known-red baseline — do not read this as a regression
+### No known-red baseline any more
 
-- **`npm run lint` → 14 errors, in four files.** 3 in
-  `apps/ext/public/background.js` (`'chrome' is not defined` —
-  `eslint.config.mjs` deliberately has no webextensions global env), and 11
-  across `ui/` (`jsx-a11y/*` on click handlers attached to non-interactive
-  elements, `react-hooks/rules-of-hooks`, `react-hooks/set-state-in-effect` on
-  the storage-restore effect, two unused `animation` rest-destructures, and one
-  empty `catch`).
+**Every check in this file is green. If something is red, you broke it.**
 
-  **It was 15 before Phase 3, and 14 is not a fix.** The error that disappeared
-  was `react-hooks/purity` on the `Date.now()` inside `duplicateBlock`; the rule
-  stopped reporting it when that handler moved from the component body into the
-  `useComposer` hook. The code is unchanged and carried-forward bug #7 (colliding
-  ids from `Date.now()`) is still open. Every other error moved file-for-file.
+This section used to carry two standing failures, and both are gone as of
+Phase 4 — recorded here because the history explains why the config looks the way
+it does:
 
-  Corrected 2026-08-11: this used to read 1681 on any machine that had run a
-  build, because lint was reading minified bundles and the count depended on your
-  build state. Only the two real build outputs are ignored now, so the count is
-  reproducible on a clean clone.
+- **Lint was 15, then 14, now 0.** The `jsx-a11y` errors were not pedantry: the
+  block rows were `<div onClick>`, so a teacher navigating by keyboard could edit
+  a block's fields but never choose *which* block. The select target is a real
+  `<button>` now. The modals close on a backdrop target check rather than a
+  `stopPropagation` hung off a `role="dialog"`. `useTemplate` was renamed
+  `applyTemplate`, since it was a plain callback that every linter and reader had
+  to treat as a hook. `eslint.config.mjs` sets `ignoreRestSiblings` (dropping a
+  field via rest destructuring is the point of the expression, not an oversight)
+  and gives `apps/ext/public/background.js` the `chrome` global it actually runs
+  with.
 
-So: judge lint by whether *your* files are clean and the count is still 14.
-Fixing the baseline is legitimate work — it is Phase 4's — but it is **its own
-change**: don't fold it into an unrelated commit, and don't let it block a sync.
-
-`npm test` was a stale starter script until Phase 3 deleted the file it ran
-(`tests/rendered-html.test.mjs`, which asserted the app was still the placeholder
-loading skeleton). It now runs `test:core` and `probe:test`, and it is green.
+  It read 1681 on any machine that had run a build until 2026-08-11, because lint
+  was reading minified bundles and the count depended on your build state. Only
+  the two real build outputs are ignored now.
+- **`npm test` was a stale starter script** until Phase 3 deleted the file it ran
+  (`tests/rendered-html.test.mjs`, which asserted the app was still the
+  placeholder loading skeleton). It runs `test:core` and `probe:test` now.
 
 ## Notes
 
