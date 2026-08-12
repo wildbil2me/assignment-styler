@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compatibility probe analyzer</title>
+<style>
+:root{
+  --ground:#EAEEF2; --panel:#FFFFFF; --panel-2:#F3F6F9;
+  --ink:#151A20; --ink-2:#3B4652; --muted:#5A6673;
+  --rule:#CFD8E1; --rule-soft:#DFE6ED;
+  --accent:#0A5D57; --on-accent:#FFFFFF; --accent-soft:#DCEBE8;
+  --ok:#2F6B4A; --ok-soft:#DDEBE2;
+  --warn:#9C5A08; --warn-soft:#F6E8D4;
+  --bad:#98202C; --bad-soft:#F6DFE1;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#12161A; --panel:#1A1F25; --panel-2:#21272E;
+  --ink:#E4E9EF; --ink-2:#BCC6D1; --muted:#8A97A4;
+  --rule:#2C343D; --rule-soft:#242B33;
+  --accent:#5CC4B4; --on-accent:#0B1114; --accent-soft:#17322F;
+  --ok:#6FBE90; --ok-soft:#172A20;
+  --warn:#D69B52; --warn-soft:#2E2317;
+  --bad:#E08693; --bad-soft:#2E1A1D;
+}}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 80px;}
+.masthead{padding:48px 0 24px;border-bottom:1px solid var(--rule);}
+.kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1.7px;text-transform:uppercase;color:var(--accent);margin:0 0 12px;}
+h1{font-size:clamp(26px,4vw,34px);line-height:1.12;font-weight:600;letter-spacing:-.5px;margin:0 0 12px;max-width:22ch;text-wrap:balance;}
+.standfirst{font-size:16.5px;line-height:1.65;color:var(--ink-2);margin:0;max-width:64ch;}
+.runline{display:flex;flex-wrap:wrap;gap:9px 24px;margin:22px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--muted);}
+.runline b{color:var(--ink-2);font-weight:600;}
+h2{font-size:20px;font-weight:600;letter-spacing:-.2px;margin:0 0 6px;}
+.section{padding:40px 0 0;}
+.sub{color:var(--muted);font-size:14.5px;margin:0 0 20px;max-width:64ch;}
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.9px;text-transform:uppercase;padding:10px 15px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);cursor:pointer;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.btn.is-done{border-color:var(--ok);color:var(--ok);}
+.btn.primary.is-done{background:var(--ok);border-color:var(--ok);color:var(--on-accent);}
+button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);}
+ol.steps li{counter-increment:s;background:var(--panel);padding:16px 20px 16px 54px;position:relative;font-size:14.5px;color:var(--ink-2);}
+ol.steps li::before{content:counter(s);position:absolute;left:20px;top:16px;font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;}
+ol.steps li strong{color:var(--ink);font-weight:600;display:block;margin:0 0 3px;font-size:15px;}
+code{font-family:var(--mono);font-size:.92em;}
+footer{margin:52px 0 0;padding:20px 0 0;border-top:1px solid var(--rule);font-family:var(--mono);font-size:11.5px;color:var(--muted);}
+.note{margin:24px 0 0;padding:15px 19px;background:var(--panel);border-left:3px solid var(--accent);font-size:14.5px;color:var(--ink-2);}
+.note strong{color:var(--ink);font-weight:600;}
+.note.warn{border-left-color:var(--warn);}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:26px 0 0;}
+select,textarea{font-family:var(--mono);font-size:12px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);padding:9px 11px;}
+textarea#input{width:100%;height:190px;line-height:1.5;margin:14px 0 0;}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 0;}
+.tally div{background:var(--panel);padding:15px 17px;}
+.tally .n{font-size:26px;font-weight:600;letter-spacing:-.5px;font-variant-numeric:tabular-nums;line-height:1.1;}
+.tally .k{font-family:var(--mono);font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin:5px 0 0;}
+.n.ok{color:var(--ok);} .n.warn{color:var(--warn);} .n.bad{color:var(--bad);}
+.res{border:1px solid var(--rule);background:var(--panel);margin:26px 0 0;}
+.res-row{display:grid;grid-template-columns:100px 1fr 116px;gap:14px;padding:13px 17px;border-bottom:1px solid var(--rule-soft);align-items:start;}
+.res-row:last-child{border-bottom:0;}
+.res-row.tierhead{grid-template-columns:1fr;background:var(--panel-2);font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);padding:10px 17px;}
+.rid{font-family:var(--mono);font-size:11.5px;color:var(--muted);}
+.rname{font-weight:600;font-size:14.5px;}
+.rdetail{font-family:var(--mono);font-size:11px;color:var(--muted);margin:5px 0 0;overflow-wrap:anywhere;}
+.rdetail b{color:var(--ink-2);font-weight:600;}
+.verdict{font-family:var(--mono);font-size:10px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;padding:4px 8px;text-align:center;}
+.v-survived{background:var(--ok-soft);color:var(--ok);}
+.v-stripped{background:var(--bad-soft);color:var(--bad);}
+.v-rewritten{background:var(--warn-soft);color:var(--warn);}
+.v-missing{background:var(--bad-soft);color:var(--bad);}
+.v-manual{background:var(--panel-2);color:var(--muted);}
+.manual-pick{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 0;}
+.manual-pick button{font-family:var(--mono);font-size:10px;letter-spacing:.6px;text-transform:uppercase;padding:4px 8px;border:1px solid var(--rule);background:transparent;color:var(--muted);cursor:pointer;}
+.manual-pick button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.empty{padding:40px 17px;text-align:center;color:var(--muted);font-size:14.5px;}
+.out{width:100%;height:200px;margin:14px 0 0;}
+</style></head><body>
+<div class="wrap">
+  <header class="masthead">
+    <p class="kicker">Phase 0a &middot; read the results</p>
+    <h1>Probe analyzer</h1>
+    <p class="standfirst">Paste back whatever Blackbaud stored. This finds each <code>[Rnn]</code> marker in the returned markup and reports what survived around it, what got rewritten, and what vanished &mdash; then exports the result as the compat spec.</p>
+    <div class="runline"><span><b>Runs locally</b> nothing is uploaded</span><span><b>Rows</b> 42</span><span><b>Probe built</b> 2026-08-12</span></div>
+  </header>
+
+  <section class="section">
+    <h2>1 &middot; Paste what Blackbaud gave back</h2>
+    <p class="sub">Open the saved post's HTML/source editor, select all, copy, paste here. Do one surface at a time.</p>
+    <div class="controls">
+      <label style="font-family:var(--mono);font-size:11px;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);">Surface
+        <select id="surface" style="margin-left:8px;">
+          <option value="bulletin">Bulletin Board</option>
+          <option value="topic">Topic</option>
+          <option value="assignment">Assignment</option>
+        </select>
+      </label>
+      <button class="btn primary" id="run" type="button">Analyze</button>
+      <button class="btn" id="clear" type="button">Clear</button>
+    </div>
+    <textarea id="input" placeholder="Paste the returned HTML here&hellip;"></textarea>
+  </section>
+
+  <div class="tally" id="tally" hidden>
+    <div><p class="n ok" id="t-survived">0</p><p class="k">Survived</p></div>
+    <div><p class="n warn" id="t-rewritten">0</p><p class="k">Rewritten</p></div>
+    <div><p class="n bad" id="t-stripped">0</p><p class="k">Stripped</p></div>
+    <div><p class="n bad" id="t-missing">0</p><p class="k">Content gone</p></div>
+    <div><p class="n" id="t-manual">0</p><p class="k">Needs your eyes</p></div>
+  </div>
+
+  <div class="res" id="res"><p class="empty">Results appear here once you analyze a paste.</p></div>
+
+  <section class="section">
+    <h2>2 &middot; Export</h2>
+    <p class="sub">Record every surface first, then export once. Verdicts for surfaces you have already analyzed are kept in this page until you reload it.</p>
+    <div class="controls">
+      <button class="btn" id="ex-json" type="button">Copy JSON</button>
+      <button class="btn" id="ex-ts" type="button">Copy core/compat.ts</button>
+      <button class="btn" id="ex-md" type="button">Copy markdown table</button>
+    </div>
+    <textarea class="out" id="out" readonly placeholder="Export output appears here too, in case the clipboard is blocked."></textarea>
+  </section>
+
+  <footer>Blackbaud Content Composer &middot; tools/probe &middot; regenerate with <code>npm run probe</code></footer>
+</div>
+<script>
+const ROWS = [{"id":"R01","tier":1,"name":"inline style on a div","stakes":"critical","why":"The baseline assumption of the entire design. If this fails, nothing else matters and the project needs a different strategy.","expect":"The box below has a pale blue fill and a visible border.","check":"style:background-color","html":"<div style=\"background-color:#E8F0FA;border:1px solid #9DB8D8;padding:14px;\">[R01] inline style on a div</div>"},{"id":"R02","tier":1,"name":"border-radius","stakes":"critical","why":"Soft cards is built on this. If it is stripped, the chosen direction degrades to flat squares and the pick is worth revisiting.","expect":"The box below has clearly ROUNDED corners.","check":"style:border-radius","html":"<div style=\"background-color:#F1F5FA;border:1px solid #E1E9F2;border-radius:16px;padding:14px;\">[R02] border-radius: 16px &mdash; are these corners round?</div>"},{"id":"R03","tier":1,"name":"box-shadow","stakes":"critical","why":"The other half of soft cards. Provides the layering that reads as modern.","expect":"The box below appears to float, with a soft shadow beneath it.","check":"style:box-shadow","html":"<div style=\"background-color:#FFFFFF;border:1px solid #E4EBF3;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,0.04),0 8px 20px rgba(16,24,40,0.08);\">[R03] box-shadow &mdash; is there a soft shadow under this box?</div>"},{"id":"R04","tier":1,"name":"tinted background-color","stakes":"critical","why":"Every non-hero block is a tinted surface. Also the safest fallback if radius and shadow are stripped.","expect":"Three boxes below, each a different pale tint.","check":"style:background-color","html":"<div style=\"background-color:#FFFBF0;padding:12px;\">[R04a] warm tint</div><div style=\"background-color:#EAF1F9;padding:12px;\">[R04b] cool tint</div><div style=\"background-color:#243B53;color:#FFFFFF;padding:12px;\">[R04c] dark fill with light text</div>"},{"id":"R05","tier":1,"name":"rgba() colour values","stakes":"high","why":"Shadows and subtle overlays depend on alpha. If rgba is rewritten to hex, transparency is lost silently.","expect":"The box below has a semi-transparent dark tint, not a solid block.","check":"style:background-color","html":"<div style=\"background-color:rgba(36,59,83,0.12);padding:14px;\">[R05] rgba(36,59,83,0.12) &mdash; is this a light tint rather than solid navy?</div>"},{"id":"R06","tier":1,"name":"<style> block with a class rule","stakes":"critical","why":"THE architectural question. If a style block survives, the whole inline-only strategy is optional and motion becomes possible.","expect":"The text below is LARGE, BOLD and GREEN. If it looks like ordinary text, the style block was stripped.","check":"doc:.probe-styled","html":"<style>.probe-styled{color:#0A7A3C;font-size:22px;font-weight:700;}</style><p class=\"probe-styled\">[R06] if this is large, bold and green, the style block survived</p>"},{"id":"R07","tier":1,"name":"inline-block + calc() + min-width","stakes":"critical","why":"The current half-width strategy, and the one piece of real cleverness in the renderer: responsive stacking with no media query. Verify before anything is built on it.","expect":"Two boxes SIDE BY SIDE on a wide screen, stacking on a narrow one.","check":"style:width","html":"<div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;margin:0 24px 0 0;background-color:#EEF3F8;padding:14px;\">[R07a] left half &mdash; calc(50% - 16px)</div><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;background-color:#FDF4DC;padding:14px;\">[R07b] right half &mdash; should sit beside R07a</div>"},{"id":"R08","tier":1,"name":"thick border-left accent bar","stakes":"high","why":"Core to the visual identity across all three directions, and the cheapest way to signal block type if fills are stripped.","expect":"A thick gold bar down the left edge of the box.","check":"style:border-left","html":"<div style=\"background-color:#FDF4DC;border-left:6px solid #C99700;padding:14px;\">[R08] border-left: 6px solid &mdash; is there a thick gold bar on the left?</div>"},{"id":"R09","tier":2,"name":"display:flex","stakes":"medium","why":"Would simplify layout enormously if it survives. Would let the half-width strategy stop being a trick.","expect":"Two boxes side by side, sharing the width evenly.","check":"style:display","html":"<div style=\"display:flex;gap:16px;\"><div style=\"flex:1;background-color:#EEF3F8;padding:14px;\">[R09a] flex child</div><div style=\"flex:1;background-color:#FDF4DC;padding:14px;\">[R09b] flex child</div></div>"},{"id":"R42","tier":2,"name":"flex-wrap on a flex row","stakes":"high","why":"Added 2026-08-12 by Phase 2. The renderer's half-width row asks for display:flex so two cards reach equal heights, but flex without wrapping overflows a phone instead of stacking — so the wrapper is only emitted when this row passes. R09 established that display:flex survives and that unknown properties in the same attribute (gap) come back intact, which is why core/compat.ts currently infers this as true. This row settles it.","expect":"Three boxes that WRAP onto a second line rather than squeezing onto one.","check":"style:flex-wrap","html":"<div style=\"display:flex;flex-wrap:wrap;\"><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;margin:0 24px 0 0;background-color:#EEF3F8;padding:14px;\">[R42a] first half</div><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;background-color:#FDF4DC;padding:14px;\">[R42b] should sit beside R42a</div><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;background-color:#E9F2EC;padding:14px;\">[R42c] should wrap onto its own line</div></div>"},{"id":"R10","tier":2,"name":"display:grid","stakes":"medium","why":"Same as flex. Also the only clean way to do a real multi-column study guide.","expect":"Two boxes side by side in equal columns.","check":"style:display","html":"<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;\"><div style=\"background-color:#EEF3F8;padding:14px;\">[R10a] grid cell</div><div style=\"background-color:#FDF4DC;padding:14px;\">[R10b] grid cell</div></div>"},{"id":"R11","tier":2,"name":"two-column <table>","stakes":"high","why":"The conservative fallback if every modern layout method fails. Email HTML has survived on tables for 25 years.","expect":"Two cells side by side.","check":"tag:table","html":"<table style=\"width:100%;border-collapse:collapse;\"><tbody><tr><td style=\"width:50%;background-color:#EEF3F8;padding:14px;vertical-align:top;\">[R11a] table cell</td><td style=\"width:50%;background-color:#FDF4DC;padding:14px;vertical-align:top;\">[R11b] table cell</td></tr></tbody></table>"},{"id":"R12","tier":2,"name":"float:left","stakes":"low","why":"The older conservative fallback. Worth one row in case inline-block is the thing that fails.","expect":"Two boxes side by side.","check":"style:float","html":"<div style=\"overflow:hidden;\"><div style=\"float:left;width:46%;background-color:#EEF3F8;padding:14px;\">[R12a] float left</div><div style=\"float:left;width:46%;margin-left:4%;background-color:#FDF4DC;padding:14px;\">[R12b] float left</div></div>"},{"id":"R13","tier":2,"name":"max-width + margin:0 auto wrapper","stakes":"high","why":"The renderer's outer container. If the wrapper is stripped, every post runs the full width of the surface.","expect":"The box below is narrower than the page and centred.","check":"style:max-width","html":"<div style=\"max-width:420px;margin:0 auto;background-color:#EEF3F8;padding:14px;\">[R13] max-width 420px, centred &mdash; is this narrower than the page?</div>"},{"id":"R14","tier":2,"name":"class attribute retention","stakes":"medium","why":"If classes survive but style blocks do not, a tenant-side stylesheet becomes an option worth knowing about.","expect":"Nothing visual. The analyzer checks whether the attribute is still there.","check":"attr:class","html":"<div class=\"probe-class-marker\" style=\"background-color:#F3F6F9;padding:12px;\">[R14] this div carries class=\"probe-class-marker\"</div>"},{"id":"R15","tier":2,"name":"data-* attribute retention","stakes":"medium","why":"The current renderer emits data-layout on every block. If data attributes are stripped, the importer loses its best round-trip signal.","expect":"Nothing visual. The analyzer checks whether the attribute is still there.","check":"attr:data-layout","html":"<div data-layout=\"half\" style=\"background-color:#F3F6F9;padding:12px;\">[R15] this div carries data-layout=\"half\"</div>"},{"id":"R16","tier":2,"name":"!important in an inline style","stakes":"medium","why":"The escape hatch if Blackbaud injects competing CSS that beats our inline styles.","expect":"The text below is RED.","check":"style:color","html":"<p style=\"color:#C1121F !important;font-weight:700;\">[R16] !important &mdash; is this text red?</p>"},{"id":"R17","tier":3,"name":"letter-spacing","stakes":"medium","why":"Every eyebrow label in all three directions uses it. Its loss is cosmetic but pervasive.","expect":"The label below has visibly W I D E letter spacing.","check":"style:letter-spacing","html":"<p style=\"letter-spacing:3px;font-size:12px;font-weight:700;color:#8A6A1F;\">[R17] UNIT UPDATE &mdash; IS THIS SPACED OUT?</p>"},{"id":"R18","tier":3,"name":"opacity","stakes":"low","why":"Not used today. Would open up layering effects if available.","expect":"The box below is faded, roughly half strength.","check":"style:opacity","html":"<div style=\"opacity:0.45;background-color:#243B53;color:#FFFFFF;padding:14px;\">[R18] opacity 0.45 &mdash; is this faded?</div>"},{"id":"R19","tier":3,"name":"linear-gradient background","stakes":"low","why":"Not used today. A cheap way to add depth if shadows are stripped but gradients are not.","expect":"The box below fades from pale blue on the left to white on the right.","check":"style:background","html":"<div style=\"background:linear-gradient(90deg,#DCE9F7 0%,#FFFFFF 100%);padding:14px;\">[R19] linear-gradient &mdash; does this fade left to right?</div>"},{"id":"R20","tier":3,"name":"websafe font-family","stakes":"high","why":"Every preset pairs a websafe heading and body face. If font-family is stripped, all typographic identity goes with it.","expect":"The first line is a SERIF (Georgia), the second is sans-serif.","check":"style:font-family","html":"<p style=\"font-family:Georgia,&quot;Times New Roman&quot;,serif;font-size:19px;\">[R20a] Georgia &mdash; is this a serif?</p><p style=\"font-family:Arial,Helvetica,sans-serif;font-size:19px;\">[R20b] Arial &mdash; is this sans-serif?</p>"},{"id":"R21","tier":3,"name":"non-websafe font-family","stakes":"low","why":"Confirms whether the websafe-only constraint is real or inherited superstition. It will not render without the font installed, but the declaration surviving is the finding.","expect":"Probably falls back to a default face. The analyzer checks whether the declaration survived.","check":"style:font-family","html":"<p style=\"font-family:Poppins,&quot;Trebuchet MS&quot;,sans-serif;font-size:19px;\">[R21] Poppins requested &mdash; declaration retained?</p>"},{"id":"R22","tier":3,"name":"font-size and line-height","stakes":"critical","why":"The type scale is most of what makes output feel considered rather than pasted.","expect":"Three lines at visibly different sizes, comfortably leaded.","check":"style:font-size","html":"<p style=\"font-size:28px;line-height:1.2;margin:0 0 6px;\">[R22a] 28px</p><p style=\"font-size:19px;line-height:1.4;margin:0 0 6px;\">[R22b] 19px</p><p style=\"font-size:14px;line-height:1.7;margin:0;\">[R22c] 14px with generous line-height</p>"},{"id":"R23","tier":3,"name":"text-transform: uppercase","stakes":"low","why":"Used for eyebrow labels. Cheap to work around by typing caps, but worth knowing.","expect":"The text below appears in CAPITALS despite being typed in lower case.","check":"style:text-transform","html":"<p style=\"text-transform:uppercase;font-weight:700;letter-spacing:1.5px;\">[R23] typed lower case &mdash; shown as caps?</p>"},{"id":"R24","tier":4,"name":"<h1> with inline style","stakes":"high","why":"Decides whether heading-order validation is meaningful, or whether headings get remapped to styled paragraphs.","expect":"A large heading. The analyzer checks whether it is still an h1.","check":"tag:h1","html":"<h1 style=\"font-size:30px;color:#243B53;margin:0;\">[R24] this should still be an h1</h1>"},{"id":"R25","tier":4,"name":"<h2> / <h3> / <h4>","stakes":"medium","why":"Same question, for the subordinate levels the composer uses for block headings. The verdict is asserted on the h2; h3 and h4 render alongside so you can see whether the whole scale survives together.","expect":"Three headings of decreasing size, still their original tags.","check":"tag:h2","at":"R25a","html":"<h2 style=\"margin:0 0 4px;\">[R25a] h2</h2><h3 style=\"margin:0 0 4px;\">[R25b] h3</h3><h4 style=\"margin:0;\">[R25c] h4</h4>"},{"id":"R26","tier":4,"name":"<blockquote>","stakes":"medium","why":"The quote block. Also a good canary for whether semantic elements survive at all.","expect":"An indented, italic quotation.","check":"tag:blockquote","html":"<blockquote style=\"margin:0;padding-left:16px;border-left:3px solid #C99700;font-style:italic;\">[R26] blockquote &mdash; still a blockquote?</blockquote>"},{"id":"R27","tier":4,"name":"<ul> with list-style-type:none","stakes":"medium","why":"The checklist block renders a literal box character and suppresses the bullet. If none is stripped you get a bullet AND a box.","expect":"Two lines each starting with an empty box, and NO bullet points.","check":"style:list-style-type","html":"<ul style=\"margin:0;padding-left:22px;list-style-type:none;\"><li>&#9744; [R27a] should have no bullet</li><li>&#9744; [R27b] should have no bullet</li></ul>"},{"id":"R28","tier":4,"name":"<ol> numbering","stakes":"medium","why":"The steps block.","expect":"A numbered list, 1 through 3.","check":"tag:ol","html":"<ol style=\"margin:0;padding-left:22px;\"><li>[R28a] first</li><li>[R28b] second</li><li>[R28c] third</li></ol>"},{"id":"R29","tier":4,"name":"consecutive <br> runs","stakes":"medium","why":"The rich-text editor emits these constantly. Editors often collapse or multiply them.","expect":"Exactly three blank lines between the two markers below.","check":"manual","html":"<p>[R29a] three &lt;br&gt; follow this line<br><br><br>[R29b] how many blank lines above?</p>"},{"id":"R30","tier":4,"name":"<a href> to https","stakes":"high","why":"The resource block. A link that loses its href is worse than no link.","expect":"A working blue link.","check":"attr:href","html":"<p><a href=\"https://example.org/reading\" style=\"color:#1B4F86;\">[R30] link to example.org &mdash; is this still clickable?</a></p>"},{"id":"R31","tier":4,"name":"link target and rel hardening","stakes":"medium","why":"Whether our link hardening survives, or whether Blackbaud rewrites it to its own policy.","expect":"Nothing visual. The analyzer checks the attributes.","check":"attr:rel","html":"<p><a href=\"https://example.org/pdf\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#1B4F86;\">[R31] target=_blank rel=noopener noreferrer</a></p>"},{"id":"R32","tier":4,"name":"<span style=\"color\">","stakes":"high","why":"The sanitizer's allowlist narrows surviving styles to colour and background-colour on spans. If spans are unwrapped, that work is pointless.","expect":"One red word and one highlighted word inside a normal sentence.","check":"tag:span","html":"<p>Ordinary text with <span style=\"color:#C1121F;\">[R32a] red</span> and <span style=\"background-color:#FEF3C7;\">[R32b] highlighted</span> words.</p>"},{"id":"R33","tier":4,"name":"emoji inside a heading","stakes":"medium","why":"The block-icon feature, and soft cards uses emoji as its section markers.","expect":"A book emoji, then a lightbulb, rendered as colour glyphs.","check":"manual","html":"<h3 style=\"margin:0;\">&#128214; &#128161; [R33] do these emoji render in colour?</h3>"},{"id":"R34","tier":4,"name":"entities and &nbsp;","stakes":"medium","why":"Whether esc() output is stable, or gets double-escaped into visible markup on round trip.","expect":"An ampersand, angle brackets, an em dash, and a non-breaking gap. NOT literal &amp;amp; text.","check":"manual","html":"<p>[R34] &amp; &lt; &gt; &mdash; &nbsp;&nbsp;&nbsp; &quot;quoted&quot; &rsquo;apostrophe&rsquo;</p>"},{"id":"R35","tier":4,"name":"divs nested three deep","stakes":"high","why":"Wrapper, then block, then inner content. Exactly the renderer's structure.","expect":"Three nested boxes, each inset from the last.","check":"style:background-color","html":"<div style=\"background-color:#E3EAF2;padding:14px;\"><div style=\"background-color:#F1F5FA;padding:14px;\"><div style=\"background-color:#FFFFFF;padding:14px;\">[R35] three levels deep &mdash; are all three boxes visible?</div></div></div>"},{"id":"R36","tier":4,"name":"<img> with inline width","stakes":"low","why":"Not used today. Decides whether images are ever viable in generated content.","expect":"A small blue square.","check":"has:img","html":"<p>[R36] image follows: <img src=\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjMkM2RkI1Ii8+PC9zdmc+\" alt=\"blue square\" style=\"width:40px;height:40px;vertical-align:middle;\"></p>"},{"id":"R37","tier":4,"name":"inline <svg>","stakes":"low","why":"Would allow real icons instead of emoji, and is the only non-CSS animation channel that is not an image file.","expect":"A gold circle.","check":"has:svg","html":"<p>[R37] inline svg follows: <svg width=\"34\" height=\"34\" viewBox=\"0 0 34 34\" style=\"vertical-align:middle;\"><circle cx=\"17\" cy=\"17\" r=\"15\" fill=\"#C99700\"></circle></svg></p>"},{"id":"R38","tier":5,"name":"@keyframes in a <style> block","stakes":"medium","why":"The only route to real CSS animation. @keyframes cannot be expressed in an inline style attribute, so this row and R06 decide the whole motion question together.","expect":"A gold square PULSING in and out. Static means no CSS animation, ever.","check":"doc:@keyframes","html":"<style>@keyframes probe-pulse{0%{opacity:1;}50%{opacity:0.15;}100%{opacity:1;}}.probe-pulse{animation:probe-pulse 1.4s ease-in-out infinite;}</style><p>[R38] is the square below pulsing? <span class=\"probe-pulse\" style=\"display:inline-block;width:26px;height:26px;background-color:#C99700;vertical-align:middle;\"></span></p>"},{"id":"R39","tier":5,"name":"SVG SMIL <animate>","stakes":"low","why":"Markup rather than CSS, so it needs no style block. The one motion channel that could work even if R06 and R38 both fail. Note it cannot honour prefers-reduced-motion.","expect":"A circle growing and shrinking continuously.","check":"has:animate","html":"<p>[R39] is the circle below animating? <svg width=\"34\" height=\"34\" viewBox=\"0 0 34 34\" style=\"vertical-align:middle;\"><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#2C6FB5\"><animate attributeName=\"r\" values=\"6;14;6\" dur=\"1.6s\" repeatCount=\"indefinite\"></animate></circle></svg></p>"},{"id":"R40","tier":5,"name":"<details> / <summary>","stakes":"medium","why":"Native progressive disclosure with zero CSS and no accessibility cost. The genuinely useful one for long study guides.","expect":"A clickable 'Show the answer' row that expands when clicked.","check":"tag:details","html":"<details style=\"border:1px solid #E1E9F2;padding:10px;\"><summary style=\"cursor:pointer;font-weight:700;\">[R40] Show the answer &mdash; can you click this?</summary><p style=\"margin:8px 0 0;\">If you can read this after clicking, details works.</p></details>"},{"id":"R41","tier":5,"name":"animated GIF","stakes":"low","why":"Always works if images survive at all, and needs no CSS. Not embedded here to keep the probe small.","expect":"Manual: drop any animated GIF from your own media library into a post and see whether it still animates.","check":"manual","html":"<p>[R41] manual row &mdash; test an animated GIF from your media library separately.</p>"}];
+const TIERS = {"1":"Decides the chosen direction and the architecture","2":"Layout alternatives and style delivery","3":"Typography and modern feel","4":"Elements and structure","5":"Motion (backburner, cheap to answer now)"};
+const results = {};   // surface -> id -> {verdict, detail, expected, found}
+
+/**
+ * Probe analysis — the only real logic in the compatibility kit.
+ *
+ * Pure and DOM-implementation agnostic: every function takes an already-parsed
+ * document, so it runs unchanged in the browser (docs/compat-analyzer.html,
+ * where build.mjs inlines this file) and in Node tests (via linkedom).
+ *
+ * Verdicts:
+ *   survived   the thing under test is still there, unchanged
+ *   rewritten  still there, but Blackbaud changed it
+ *   stripped   the marker survived, the thing under test did not
+ *   missing    the marker itself is gone; the content was removed wholesale
+ *   manual     needs a human; the page offers buttons
+ */
+
+/** Deepest element whose text contains the row's `[Rnn]` marker. */
+function markerEl(doc, id) {
+  const token = "[" + id;
+  let best = null;
+  const all = doc.querySelectorAll("*");
+  for (let i = 0; i < all.length; i++) {
+    const t = all[i].textContent;
+    if (t && t.indexOf(token) !== -1) best = all[i]; // document order: deepest match wins
+  }
+  return best;
+}
+
+/** The element plus up to `n` ancestors, nearest first. */
+function ancestors(el, n) {
+  const out = [];
+  let cur = el;
+  for (let i = 0; i <= n && cur; i++) {
+    out.push(cur);
+    cur = cur.parentElement;
+  }
+  return out;
+}
+
+/** The `prop: value` declaration for `prop` within a style attribute, or null. */
+function declOf(styleText, prop) {
+  if (!styleText) return null;
+  const parts = styleText.split(";");
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i].trim();
+    if (!p) continue;
+    const colon = p.indexOf(":");
+    if (colon === -1) continue;
+    if (p.slice(0, colon).trim().toLowerCase() === prop) return p;
+  }
+  return null;
+}
+
+/**
+ * The specific marker token an element carries — `[R04c]` yields "R04c".
+ * Rows that test several values of one property use lettered sub-markers, and
+ * each must be compared against the declaration it was actually sent with.
+ */
+function subMarker(text, id) {
+  const m = String(text).match(new RegExp("\\[" + id + "([a-z]?)\\]"));
+  return m ? id + m[1] : id;
+}
+
+/**
+ * What we sent for `prop`, read back out of the row's own source.
+ *
+ * With `parse`, this is exact: the original document is parsed and the
+ * declaration is read from the element carrying `sub`. Without it, every value
+ * the row sends for `prop` is returned, and a match against any of them counts
+ * as survival — less precise, but it never reports a false rewrite.
+ */
+function originalDecls(row, prop, sub, parse) {
+  if (parse && sub) {
+    const el = markerEl(parse(row.html), sub);
+    if (el) {
+      const chain = ancestors(el, 3);
+      for (let i = 0; i < chain.length; i++) {
+        const d = declOf(chain[i].getAttribute("style"), prop);
+        if (d) return [d];
+      }
+      return [];
+    }
+  }
+  const out = [];
+  const m = row.html.match(/style="([^"]*)"/g) || [];
+  for (let i = 0; i < m.length; i++) {
+    const d = declOf(m[i].slice(7, -1), prop);
+    if (d && out.indexOf(d) === -1) out.push(d);
+  }
+  return out;
+}
+
+function norm(s) {
+  return s ? s.replace(/\s+/g, "").replace(/"/g, "'").toLowerCase() : s;
+}
+
+function analyze(doc, row, parse) {
+  const kind = row.check.split(":")[0];
+  const arg = row.check.slice(kind.length + 1);
+
+  if (kind === "doc") {
+    const styles = doc.querySelectorAll("style");
+    for (let i = 0; i < styles.length; i++) {
+      if (styles[i].textContent.indexOf(arg) !== -1)
+        return { verdict: "survived", detail: "style element retained, contains " + arg };
+    }
+    return { verdict: "stripped", detail: "no surviving style element contains " + arg };
+  }
+
+  if (kind === "manual") return { verdict: "manual", detail: row.expect };
+
+  // Rows that render several elements can name the one they assert against
+  // (`at: "R25a"`); otherwise the deepest marker for the row wins.
+  const target = row.at || row.id;
+  const el = markerEl(doc, target);
+  if (!el)
+    return {
+      verdict: "missing",
+      detail: "marker " + target + " not found &mdash; the content itself was removed",
+    };
+
+  if (kind === "style") {
+    const sub = subMarker(el.textContent, row.id);
+    const chain = ancestors(el, 3);
+    for (let i = 0; i < chain.length; i++) {
+      const found = declOf(chain[i].getAttribute("style"), arg);
+      if (found) {
+        const sent = originalDecls(row, arg, sub, parse);
+        const where = i === 0 ? "on the element" : "on ancestor +" + i;
+        const matches = sent.some((d) => norm(d) === norm(found));
+        if (sent.length && !matches)
+          return {
+            verdict: "rewritten",
+            detail:
+              "sent <b>" + sent.join(" / ") + "</b> &middot; got <b>" + found + "</b> (" + where + ")",
+          };
+        return { verdict: "survived", detail: found + " &middot; " + where };
+      }
+    }
+    const own = el.getAttribute("style");
+    return {
+      verdict: "stripped",
+      detail: own
+        ? 'element kept style="' + own + '" but lost ' + arg
+        : "no style attribute left on the element",
+    };
+  }
+
+  if (kind === "attr") {
+    const chain = ancestors(el, 3);
+    for (let i = 0; i < chain.length; i++) {
+      if (chain[i].hasAttribute(arg))
+        return { verdict: "survived", detail: arg + '="' + chain[i].getAttribute(arg) + '"' };
+    }
+    return { verdict: "stripped", detail: arg + " attribute removed" };
+  }
+
+  if (kind === "tag") {
+    const chain = ancestors(el, 4);
+    for (let i = 0; i < chain.length; i++) {
+      if (chain[i].tagName.toLowerCase() === arg)
+        return { verdict: "survived", detail: "<" + arg + "> retained" };
+    }
+    return {
+      verdict: "rewritten",
+      detail: "<" + arg + "> gone &middot; marker now sits in <" + el.tagName.toLowerCase() + ">",
+    };
+  }
+
+  if (kind === "has") {
+    const scope = el.parentElement || el;
+    if (scope.querySelector(arg))
+      return { verdict: "survived", detail: "<" + arg + "> retained nearby" };
+    return { verdict: "stripped", detail: "no <" + arg + "> near the marker" };
+  }
+
+  return { verdict: "manual", detail: "unrecognised check" };
+}
+
+function render(surface){
+  const res = results[surface] || {};
+  const host = document.getElementById('res');
+  const counts = { survived:0, rewritten:0, stripped:0, missing:0, manual:0 };
+  let html = '';
+  let tier = null;
+
+  ROWS.forEach(function(row){
+    const r = res[row.id];
+    if (!r) return;
+    counts[r.verdict] = (counts[r.verdict] || 0) + 1;
+    if (row.tier !== tier){
+      tier = row.tier;
+      html += '<div class="res-row tierhead">Tier ' + tier + ' &mdash; ' + TIERS[tier] + '</div>';
+    }
+    html += '<div class="res-row">'
+      + '<div class="rid">' + row.id + '<br><span class="stk">' + row.stakes + '</span></div>'
+      + '<div><div class="rname">' + row.name + '</div><div class="rdetail">' + r.detail + '</div>'
+      + (r.verdict === 'manual'
+          ? '<div class="manual-pick" data-row="' + row.id + '">'
+            + ['survived','rewritten','stripped'].map(function(v){
+                return '<button type="button" data-v="' + v + '" aria-pressed="' + (r.pick === v) + '">' + v + '</button>';
+              }).join('')
+            + '</div>'
+          : '')
+      + '</div>'
+      + '<div class="verdict v-' + (r.pick || r.verdict) + '">' + (r.pick || r.verdict) + '</div>'
+      + '</div>';
+  });
+
+  host.innerHTML = html || '<p class="empty">Results appear here once you analyze a paste.</p>';
+  document.getElementById('tally').hidden = !html;
+  ['survived','rewritten','stripped','missing','manual'].forEach(function(k){
+    document.getElementById('t-' + k).textContent = counts[k] || 0;
+  });
+
+  host.querySelectorAll('.manual-pick button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const id = btn.parentElement.dataset.row;
+      results[surface][id].pick = btn.dataset.v;
+      render(surface);
+    });
+  });
+}
+
+document.getElementById('run').addEventListener('click', function(){
+  const text = document.getElementById('input').value.trim();
+  const surface = document.getElementById('surface').value;
+  if (!text) return;
+  const doc = new DOMParser().parseFromString(text, 'text/html');
+  const parse = function(html){ return new DOMParser().parseFromString(html, 'text/html'); };
+  results[surface] = {};
+  ROWS.forEach(function(row){ results[surface][row.id] = analyze(doc, row, parse); });
+  render(surface);
+});
+document.getElementById('clear').addEventListener('click', function(){
+  document.getElementById('input').value = '';
+});
+document.getElementById('surface').addEventListener('change', function(){
+  render(document.getElementById('surface').value);
+});
+
+function verdictOf(r){ return r.pick || r.verdict; }
+function emit(text){
+  document.getElementById('out').value = text;
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
+}
+document.getElementById('ex-json').addEventListener('click', function(){
+  emit(JSON.stringify({ probeBuilt:'2026-08-12', surfaces:results }, null, 2));
+});
+document.getElementById('ex-md').addEventListener('click', function(){
+  const surfaces = Object.keys(results);
+  if (!surfaces.length) return emit('Analyze at least one surface first.');
+  let md = '| Row | Test | Stakes | ' + surfaces.join(' | ') + ' |\n|---|---|---|' + surfaces.map(function(){ return '---|'; }).join('') + '\n';
+  ROWS.forEach(function(row){
+    md += '| ' + row.id + ' | ' + row.name + ' | ' + row.stakes + ' | '
+       + surfaces.map(function(s){ return results[s][row.id] ? verdictOf(results[s][row.id]) : '&mdash;'; }).join(' | ') + ' |\n';
+  });
+  emit(md);
+});
+document.getElementById('ex-ts').addEventListener('click', function(){
+  const surfaces = Object.keys(results);
+  if (!surfaces.length) return emit('Analyze at least one surface first.');
+  const base = surfaces[0];
+  const safe = ROWS.filter(function(r){ return verdictOf(results[base][r.id] || {}) === 'survived'; });
+  const unsafe = ROWS.filter(function(r){ const v = verdictOf(results[base][r.id] || {}); return v === 'stripped' || v === 'missing'; });
+  emit(
+    '// Generated from the Phase 0 probe on ' + new Date().toISOString().slice(0,10) + '.\n' +
+    '// Baseline surface: ' + base + '. Regenerate with tools/probe + docs/compat-analyzer.html.\n\n' +
+    'export const compat = {\n' +
+    '  surfacesMeasured: ' + JSON.stringify(surfaces) + ',\n\n' +
+    '  /** Verified to survive a paste + visual-editor round trip. */\n' +
+    '  safe: [\n' + safe.map(function(r){ return '    ' + JSON.stringify(r.id) + ', // ' + r.name; }).join('\n') + '\n  ],\n\n' +
+    '  /** Stripped or rewritten. degrade() must route around these. */\n' +
+    '  unsafe: [\n' + unsafe.map(function(r){ return '    ' + JSON.stringify(r.id) + ', // ' + r.name; }).join('\n') + '\n  ],\n' +
+    '} as const;\n'
+  );
+});
+</script>
+</body></html>

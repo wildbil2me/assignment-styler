@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "dist/**",
     "out/**",
     "build/**",
+    // Gitignored build outputs. Absent on a clean clone, so linting them made
+    // the error count depend on whether you had built — 15 vs 1681.
+    "pages-dist/**",
+    "extension-dist/**",
+    ".vinext/**",
+    ".wrangler/**",
     "next-env.d.ts",
   ]),
   eslint.configs.recommended,

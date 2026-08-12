@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blackbaud compatibility probe</title>
+<style>
+:root{
+  --ground:#EAEEF2; --panel:#FFFFFF; --panel-2:#F3F6F9;
+  --ink:#151A20; --ink-2:#3B4652; --muted:#5A6673;
+  --rule:#CFD8E1; --rule-soft:#DFE6ED;
+  --accent:#0A5D57; --on-accent:#FFFFFF; --accent-soft:#DCEBE8;
+  --ok:#2F6B4A; --ok-soft:#DDEBE2;
+  --warn:#9C5A08; --warn-soft:#F6E8D4;
+  --bad:#98202C; --bad-soft:#F6DFE1;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#12161A; --panel:#1A1F25; --panel-2:#21272E;
+  --ink:#E4E9EF; --ink-2:#BCC6D1; --muted:#8A97A4;
+  --rule:#2C343D; --rule-soft:#242B33;
+  --accent:#5CC4B4; --on-accent:#0B1114; --accent-soft:#17322F;
+  --ok:#6FBE90; --ok-soft:#172A20;
+  --warn:#D69B52; --warn-soft:#2E2317;
+  --bad:#E08693; --bad-soft:#2E1A1D;
+}}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 80px;}
+.masthead{padding:48px 0 24px;border-bottom:1px solid var(--rule);}
+.kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1.7px;text-transform:uppercase;color:var(--accent);margin:0 0 12px;}
+h1{font-size:clamp(26px,4vw,34px);line-height:1.12;font-weight:600;letter-spacing:-.5px;margin:0 0 12px;max-width:22ch;text-wrap:balance;}
+.standfirst{font-size:16.5px;line-height:1.65;color:var(--ink-2);margin:0;max-width:64ch;}
+.runline{display:flex;flex-wrap:wrap;gap:9px 24px;margin:22px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--muted);}
+.runline b{color:var(--ink-2);font-weight:600;}
+h2{font-size:20px;font-weight:600;letter-spacing:-.2px;margin:0 0 6px;}
+.section{padding:40px 0 0;}
+.sub{color:var(--muted);font-size:14.5px;margin:0 0 20px;max-width:64ch;}
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.9px;text-transform:uppercase;padding:10px 15px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);cursor:pointer;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.btn.is-done{border-color:var(--ok);color:var(--ok);}
+.btn.primary.is-done{background:var(--ok);border-color:var(--ok);color:var(--on-accent);}
+button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);}
+ol.steps li{counter-increment:s;background:var(--panel);padding:16px 20px 16px 54px;position:relative;font-size:14.5px;color:var(--ink-2);}
+ol.steps li::before{content:counter(s);position:absolute;left:20px;top:16px;font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;}
+ol.steps li strong{color:var(--ink);font-weight:600;display:block;margin:0 0 3px;font-size:15px;}
+code{font-family:var(--mono);font-size:.92em;}
+footer{margin:52px 0 0;padding:20px 0 0;border-top:1px solid var(--rule);font-family:var(--mono);font-size:11.5px;color:var(--muted);}
+.note{margin:24px 0 0;padding:15px 19px;background:var(--panel);border-left:3px solid var(--accent);font-size:14.5px;color:var(--ink-2);}
+.note strong{color:var(--ink);font-weight:600;}
+.note.warn{border-left-color:var(--warn);}
+
+.tier{margin:0 0 26px;}
+.tier-h{font-family:var(--mono);font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--accent);margin:0 0 10px;font-weight:600;display:flex;justify-content:space-between;gap:12px;}
+.tier-h span{color:var(--muted);}
+.rowlist{margin:0;border-top:1px solid var(--rule-soft);}
+.rl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;padding:11px 0;border-bottom:1px solid var(--rule-soft);}
+.rl dt{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:5px;align-items:flex-start;}
+.rl dd{margin:0;font-size:14px;color:var(--ink-2);}
+.rl dd b{color:var(--ink);font-weight:600;}
+.stk{font-family:var(--mono);font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;padding:1px 6px;font-weight:600;}
+.s-critical{background:var(--bad-soft);color:var(--bad);}
+.s-high{background:var(--warn-soft);color:var(--warn);}
+.s-medium{background:var(--accent-soft);color:var(--accent);}
+.s-low{background:var(--panel-2);color:var(--muted);}
+.bar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 0;background:var(--ground);border-bottom:1px solid var(--rule);margin:36px 0 0;}
+.paper{background:#FFFFFF;color:#1F2A36;padding:28px 26px;box-shadow:0 1px 2px rgba(20,30,40,.05),0 10px 28px rgba(20,30,40,.07);max-width:720px;margin:20px 0 0;}
+details.src{margin:18px 0 0;}
+details.src summary{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:6px 0;}
+details.src summary:hover{color:var(--accent);}
+details.src textarea{width:100%;height:260px;margin:8px 0 0;padding:12px;background:var(--panel);border:1px solid var(--rule);color:var(--ink-2);font-family:var(--mono);font-size:11px;line-height:1.5;}
+</style></head><body>
+<div class="wrap">
+  <header class="masthead">
+    <p class="kicker">Phase 0a &middot; measure Blackbaud</p>
+    <h1>Compatibility probe</h1>
+    <p class="standfirst">42 rows, each isolating one property, element, or delivery mechanism, each carrying a plain-text <code>[Rnn]</code> marker that survives whatever Blackbaud does to the styling. Paste it in, save it, copy it back out, and the analyzer will tell you what changed.</p>
+    <div class="runline">
+      <span><b>Built</b> 2026-08-12</span>
+      <span><b>Rows</b> 42</span>
+      <span><b>Order</b> highest stakes first</span>
+      <span><b>Next</b> docs/compat-analyzer.html</span>
+    </div>
+  </header>
+
+  <p class="note warn"><strong>Save as a draft. Do not publish.</strong> This document is deliberately ugly and will confuse a student who stumbles on it. Delete it once you have copied the result back out.</p>
+
+  <section class="section">
+    <h2>How to run it</h2>
+    <p class="sub">Repeat for each surface you care about: bulletin board, topic, assignment. Twenty minutes total.</p>
+    <ol class="steps">
+      <li><strong>Copy the probe</strong>Use the button below. It copies only the probe payload, not this page.</li>
+      <li><strong>Paste into Blackbaud's HTML/source editor</strong>Not the visual editor. Save the draft.</li>
+      <li><strong>Look at it against the reference rendering below</strong>Every row states what you should see. Note anything that differs.</li>
+      <li><strong>Now the important one: open the visual editor, then save again</strong>This is where editors classically mangle markup, and it is the likeliest way a teacher silently loses their formatting.</li>
+      <li><strong>Reopen the source editor and copy everything out</strong>That text is what Blackbaud actually stored.</li>
+      <li><strong>Paste it into docs/compat-analyzer.html</strong>It reports a verdict per row and exports the compat spec.</li>
+    </ol>
+  </section>
+
+  <div class="bar">
+    <button class="btn primary" id="copy" type="button">Copy probe payload</button>
+    <button class="btn" id="copyagain" type="button">Copy again</button>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">17,997 characters</span>
+  </div>
+
+  <details class="src"><summary>Show payload as text (if the copy button is blocked)</summary><textarea id="raw" readonly></textarea></details>
+
+  <section class="section">
+    <h2>Reference rendering</h2>
+    <p class="sub">What the probe looks like when nothing has been stripped. Compare this against what you see in Blackbaud &mdash; the differences are the findings.</p>
+    <div class="paper" id="paper"></div>
+  </section>
+
+  <section class="section">
+    <h2>What each row is for</h2>
+    <p class="sub">Stakes are relative to the chosen soft-cards direction and the zero-backend architecture, not to CSS in general.</p>
+    
+      <div class="tier">
+        <p class="tier-h">Tier 1 &mdash; Decides the chosen direction and the architecture <span>8 rows</span></p>
+        <dl class="rowlist">
+          <div class="rl">
+                <dt>R01<span class="stk s-critical">critical</span></dt>
+                <dd><b>inline style on a div</b><br>The baseline assumption of the entire design. If this fails, nothing else matters and the project needs a different strategy.</dd>
+              </div><div class="rl">
+                <dt>R02<span class="stk s-critical">critical</span></dt>
+                <dd><b>border-radius</b><br>Soft cards is built on this. If it is stripped, the chosen direction degrades to flat squares and the pick is worth revisiting.</dd>
+              </div><div class="rl">
+                <dt>R03<span class="stk s-critical">critical</span></dt>
+                <dd><b>box-shadow</b><br>The other half of soft cards. Provides the layering that reads as modern.</dd>
+              </div><div class="rl">
+                <dt>R04<span class="stk s-critical">critical</span></dt>
+                <dd><b>tinted background-color</b><br>Every non-hero block is a tinted surface. Also the safest fallback if radius and shadow are stripped.</dd>
+              </div><div class="rl">
+                <dt>R05<span class="stk s-high">high</span></dt>
+                <dd><b>rgba() colour values</b><br>Shadows and subtle overlays depend on alpha. If rgba is rewritten to hex, transparency is lost silently.</dd>
+              </div><div class="rl">
+                <dt>R06<span class="stk s-critical">critical</span></dt>
+                <dd><b>&lt;style&gt; block with a class rule</b><br>THE architectural question. If a style block survives, the whole inline-only strategy is optional and motion becomes possible.</dd>
+              </div><div class="rl">
+                <dt>R07<span class="stk s-critical">critical</span></dt>
+                <dd><b>inline-block + calc() + min-width</b><br>The current half-width strategy, and the one piece of real cleverness in the renderer: responsive stacking with no media query. Verify before anything is built on it.</dd>
+              </div><div class="rl">
+                <dt>R08<span class="stk s-high">high</span></dt>
+                <dd><b>thick border-left accent bar</b><br>Core to the visual identity across all three directions, and the cheapest way to signal block type if fills are stripped.</dd>
+              </div>
+        </dl>
+      </div>
+      <div class="tier">
+        <p class="tier-h">Tier 2 &mdash; Layout alternatives and style delivery <span>9 rows</span></p>
+        <dl class="rowlist">
+          <div class="rl">
+                <dt>R09<span class="stk s-medium">medium</span></dt>
+                <dd><b>display:flex</b><br>Would simplify layout enormously if it survives. Would let the half-width strategy stop being a trick.</dd>
+              </div><div class="rl">
+                <dt>R42<span class="stk s-high">high</span></dt>
+                <dd><b>flex-wrap on a flex row</b><br>Added 2026-08-12 by Phase 2. The renderer's half-width row asks for display:flex so two cards reach equal heights, but flex without wrapping overflows a phone instead of stacking — so the wrapper is only emitted when this row passes. R09 established that display:flex survives and that unknown properties in the same attribute (gap) come back intact, which is why core/compat.ts currently infers this as true. This row settles it.</dd>
+              </div><div class="rl">
+                <dt>R10<span class="stk s-medium">medium</span></dt>
+                <dd><b>display:grid</b><br>Same as flex. Also the only clean way to do a real multi-column study guide.</dd>
+              </div><div class="rl">
+                <dt>R11<span class="stk s-high">high</span></dt>
+                <dd><b>two-column &lt;table&gt;</b><br>The conservative fallback if every modern layout method fails. Email HTML has survived on tables for 25 years.</dd>
+              </div><div class="rl">
+                <dt>R12<span class="stk s-low">low</span></dt>
+                <dd><b>float:left</b><br>The older conservative fallback. Worth one row in case inline-block is the thing that fails.</dd>
+              </div><div class="rl">
+                <dt>R13<span class="stk s-high">high</span></dt>
+                <dd><b>max-width + margin:0 auto wrapper</b><br>The renderer's outer container. If the wrapper is stripped, every post runs the full width of the surface.</dd>
+              </div><div class="rl">
+                <dt>R14<span class="stk s-medium">medium</span></dt>
+                <dd><b>class attribute retention</b><br>If classes survive but style blocks do not, a tenant-side stylesheet becomes an option worth knowing about.</dd>
+              </div><div class="rl">
+                <dt>R15<span class="stk s-medium">medium</span></dt>
+                <dd><b>data-* attribute retention</b><br>The current renderer emits data-layout on every block. If data attributes are stripped, the importer loses its best round-trip signal.</dd>
+              </div><div class="rl">
+                <dt>R16<span class="stk s-medium">medium</span></dt>
+                <dd><b>!important in an inline style</b><br>The escape hatch if Blackbaud injects competing CSS that beats our inline styles.</dd>
+              </div>
+        </dl>
+      </div>
+      <div class="tier">
+        <p class="tier-h">Tier 3 &mdash; Typography and modern feel <span>7 rows</span></p>
+        <dl class="rowlist">
+          <div class="rl">
+                <dt>R17<span class="stk s-medium">medium</span></dt>
+                <dd><b>letter-spacing</b><br>Every eyebrow label in all three directions uses it. Its loss is cosmetic but pervasive.</dd>
+              </div><div class="rl">
+                <dt>R18<span class="stk s-low">low</span></dt>
+                <dd><b>opacity</b><br>Not used today. Would open up layering effects if available.</dd>
+              </div><div class="rl">
+                <dt>R19<span class="stk s-low">low</span></dt>
+                <dd><b>linear-gradient background</b><br>Not used today. A cheap way to add depth if shadows are stripped but gradients are not.</dd>
+              </div><div class="rl">
+                <dt>R20<span class="stk s-high">high</span></dt>
+                <dd><b>websafe font-family</b><br>Every preset pairs a websafe heading and body face. If font-family is stripped, all typographic identity goes with it.</dd>
+              </div><div class="rl">
+                <dt>R21<span class="stk s-low">low</span></dt>
+                <dd><b>non-websafe font-family</b><br>Confirms whether the websafe-only constraint is real or inherited superstition. It will not render without the font installed, but the declaration surviving is the finding.</dd>
+              </div><div class="rl">
+                <dt>R22<span class="stk s-critical">critical</span></dt>
+                <dd><b>font-size and line-height</b><br>The type scale is most of what makes output feel considered rather than pasted.</dd>
+              </div><div class="rl">
+                <dt>R23<span class="stk s-low">low</span></dt>
+                <dd><b>text-transform: uppercase</b><br>Used for eyebrow labels. Cheap to work around by typing caps, but worth knowing.</dd>
+              </div>
+        </dl>
+      </div>
+      <div class="tier">
+        <p class="tier-h">Tier 4 &mdash; Elements and structure <span>14 rows</span></p>
+        <dl class="rowlist">
+          <div class="rl">
+                <dt>R24<span class="stk s-high">high</span></dt>
+                <dd><b>&lt;h1&gt; with inline style</b><br>Decides whether heading-order validation is meaningful, or whether headings get remapped to styled paragraphs.</dd>
+              </div><div class="rl">
+                <dt>R25<span class="stk s-medium">medium</span></dt>
+                <dd><b>&lt;h2&gt; / &lt;h3&gt; / &lt;h4&gt;</b><br>Same question, for the subordinate levels the composer uses for block headings. The verdict is asserted on the h2; h3 and h4 render alongside so you can see whether the whole scale survives together.</dd>
+              </div><div class="rl">
+                <dt>R26<span class="stk s-medium">medium</span></dt>
+                <dd><b>&lt;blockquote&gt;</b><br>The quote block. Also a good canary for whether semantic elements survive at all.</dd>
+              </div><div class="rl">
+                <dt>R27<span class="stk s-medium">medium</span></dt>
+                <dd><b>&lt;ul&gt; with list-style-type:none</b><br>The checklist block renders a literal box character and suppresses the bullet. If none is stripped you get a bullet AND a box.</dd>
+              </div><div class="rl">
+                <dt>R28<span class="stk s-medium">medium</span></dt>
+                <dd><b>&lt;ol&gt; numbering</b><br>The steps block.</dd>
+              </div><div class="rl">
+                <dt>R29<span class="stk s-medium">medium</span></dt>
+                <dd><b>consecutive &lt;br&gt; runs</b><br>The rich-text editor emits these constantly. Editors often collapse or multiply them.</dd>
+              </div><div class="rl">
+                <dt>R30<span class="stk s-high">high</span></dt>
+                <dd><b>&lt;a href&gt; to https</b><br>The resource block. A link that loses its href is worse than no link.</dd>
+              </div><div class="rl">
+                <dt>R31<span class="stk s-medium">medium</span></dt>
+                <dd><b>link target and rel hardening</b><br>Whether our link hardening survives, or whether Blackbaud rewrites it to its own policy.</dd>
+              </div><div class="rl">
+                <dt>R32<span class="stk s-high">high</span></dt>
+                <dd><b>&lt;span style="color"&gt;</b><br>The sanitizer's allowlist narrows surviving styles to colour and background-colour on spans. If spans are unwrapped, that work is pointless.</dd>
+              </div><div class="rl">
+                <dt>R33<span class="stk s-medium">medium</span></dt>
+                <dd><b>emoji inside a heading</b><br>The block-icon feature, and soft cards uses emoji as its section markers.</dd>
+              </div><div class="rl">
+                <dt>R34<span class="stk s-medium">medium</span></dt>
+                <dd><b>entities and &amp;nbsp;</b><br>Whether esc() output is stable, or gets double-escaped into visible markup on round trip.</dd>
+              </div><div class="rl">
+                <dt>R35<span class="stk s-high">high</span></dt>
+                <dd><b>divs nested three deep</b><br>Wrapper, then block, then inner content. Exactly the renderer's structure.</dd>
+              </div><div class="rl">
+                <dt>R36<span class="stk s-low">low</span></dt>
+                <dd><b>&lt;img&gt; with inline width</b><br>Not used today. Decides whether images are ever viable in generated content.</dd>
+              </div><div class="rl">
+                <dt>R37<span class="stk s-low">low</span></dt>
+                <dd><b>inline &lt;svg&gt;</b><br>Would allow real icons instead of emoji, and is the only non-CSS animation channel that is not an image file.</dd>
+              </div>
+        </dl>
+      </div>
+      <div class="tier">
+        <p class="tier-h">Tier 5 &mdash; Motion (backburner, cheap to answer now) <span>4 rows</span></p>
+        <dl class="rowlist">
+          <div class="rl">
+                <dt>R38<span class="stk s-medium">medium</span></dt>
+                <dd><b>@keyframes in a &lt;style&gt; block</b><br>The only route to real CSS animation. @keyframes cannot be expressed in an inline style attribute, so this row and R06 decide the whole motion question together.</dd>
+              </div><div class="rl">
+                <dt>R39<span class="stk s-low">low</span></dt>
+                <dd><b>SVG SMIL &lt;animate&gt;</b><br>Markup rather than CSS, so it needs no style block. The one motion channel that could work even if R06 and R38 both fail. Note it cannot honour prefers-reduced-motion.</dd>
+              </div><div class="rl">
+                <dt>R40<span class="stk s-medium">medium</span></dt>
+                <dd><b>&lt;details&gt; / &lt;summary&gt;</b><br>Native progressive disclosure with zero CSS and no accessibility cost. The genuinely useful one for long study guides.</dd>
+              </div><div class="rl">
+                <dt>R41<span class="stk s-low">low</span></dt>
+                <dd><b>animated GIF</b><br>Always works if images survive at all, and needs no CSS. Not embedded here to keep the probe small.</dd>
+              </div>
+        </dl>
+      </div>
+  </section>
+
+  <footer>Blackbaud Content Composer &middot; tools/probe &middot; regenerate with <code>npm run probe</code></footer>
+</div>
+<script>
+const PAYLOAD = document.getElementById('raw');
+const P = "<div style=\"font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#1F2A36;\"><p style=\"font-size:20px;font-weight:700;margin:0 0 4px;\">Blackbaud compatibility probe</p><p style=\"margin:0 0 4px;\">Built 2026-08-12. Every row is labelled in plain text, so the labels survive even when the styling does not.</p><p style=\"margin:0 0 18px;\"><b>Do not publish this to students.</b> Save it as a draft, look at it, then delete it.</p><hr style=\"border:0;border-top:3px solid #1D3247;margin:26px 0 14px;\"><p style=\"margin:0 0 14px;font-size:15px;font-weight:700;\">TIER 1 &mdash; Decides the chosen direction and the architecture</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R01 &middot; inline style on a div</b><br>Expect: The box below has a pale blue fill and a visible border.</p><div style=\"background-color:#E8F0FA;border:1px solid #9DB8D8;padding:14px;\">[R01] inline style on a div</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R02 &middot; border-radius</b><br>Expect: The box below has clearly ROUNDED corners.</p><div style=\"background-color:#F1F5FA;border:1px solid #E1E9F2;border-radius:16px;padding:14px;\">[R02] border-radius: 16px &mdash; are these corners round?</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R03 &middot; box-shadow</b><br>Expect: The box below appears to float, with a soft shadow beneath it.</p><div style=\"background-color:#FFFFFF;border:1px solid #E4EBF3;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,0.04),0 8px 20px rgba(16,24,40,0.08);\">[R03] box-shadow &mdash; is there a soft shadow under this box?</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R04 &middot; tinted background-color</b><br>Expect: Three boxes below, each a different pale tint.</p><div style=\"background-color:#FFFBF0;padding:12px;\">[R04a] warm tint</div><div style=\"background-color:#EAF1F9;padding:12px;\">[R04b] cool tint</div><div style=\"background-color:#243B53;color:#FFFFFF;padding:12px;\">[R04c] dark fill with light text</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R05 &middot; rgba() colour values</b><br>Expect: The box below has a semi-transparent dark tint, not a solid block.</p><div style=\"background-color:rgba(36,59,83,0.12);padding:14px;\">[R05] rgba(36,59,83,0.12) &mdash; is this a light tint rather than solid navy?</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R06 &middot; <style> block with a class rule</b><br>Expect: The text below is LARGE, BOLD and GREEN. If it looks like ordinary text, the style block was stripped.</p><style>.probe-styled{color:#0A7A3C;font-size:22px;font-weight:700;}</style><p class=\"probe-styled\">[R06] if this is large, bold and green, the style block survived</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R07 &middot; inline-block + calc() + min-width</b><br>Expect: Two boxes SIDE BY SIDE on a wide screen, stacking on a narrow one.</p><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;margin:0 24px 0 0;background-color:#EEF3F8;padding:14px;\">[R07a] left half &mdash; calc(50% - 16px)</div><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;background-color:#FDF4DC;padding:14px;\">[R07b] right half &mdash; should sit beside R07a</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R08 &middot; thick border-left accent bar</b><br>Expect: A thick gold bar down the left edge of the box.</p><div style=\"background-color:#FDF4DC;border-left:6px solid #C99700;padding:14px;\">[R08] border-left: 6px solid &mdash; is there a thick gold bar on the left?</div><hr style=\"border:0;border-top:3px solid #1D3247;margin:26px 0 14px;\"><p style=\"margin:0 0 14px;font-size:15px;font-weight:700;\">TIER 2 &mdash; Layout alternatives and style delivery</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R09 &middot; display:flex</b><br>Expect: Two boxes side by side, sharing the width evenly.</p><div style=\"display:flex;gap:16px;\"><div style=\"flex:1;background-color:#EEF3F8;padding:14px;\">[R09a] flex child</div><div style=\"flex:1;background-color:#FDF4DC;padding:14px;\">[R09b] flex child</div></div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R42 &middot; flex-wrap on a flex row</b><br>Expect: Three boxes that WRAP onto a second line rather than squeezing onto one.</p><div style=\"display:flex;flex-wrap:wrap;\"><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;margin:0 24px 0 0;background-color:#EEF3F8;padding:14px;\">[R42a] first half</div><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;background-color:#FDF4DC;padding:14px;\">[R42b] should sit beside R42a</div><div style=\"display:inline-block;vertical-align:top;width:calc(50% - 16px);min-width:250px;background-color:#E9F2EC;padding:14px;\">[R42c] should wrap onto its own line</div></div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R10 &middot; display:grid</b><br>Expect: Two boxes side by side in equal columns.</p><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;\"><div style=\"background-color:#EEF3F8;padding:14px;\">[R10a] grid cell</div><div style=\"background-color:#FDF4DC;padding:14px;\">[R10b] grid cell</div></div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R11 &middot; two-column <table></b><br>Expect: Two cells side by side.</p><table style=\"width:100%;border-collapse:collapse;\"><tbody><tr><td style=\"width:50%;background-color:#EEF3F8;padding:14px;vertical-align:top;\">[R11a] table cell</td><td style=\"width:50%;background-color:#FDF4DC;padding:14px;vertical-align:top;\">[R11b] table cell</td></tr></tbody></table><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R12 &middot; float:left</b><br>Expect: Two boxes side by side.</p><div style=\"overflow:hidden;\"><div style=\"float:left;width:46%;background-color:#EEF3F8;padding:14px;\">[R12a] float left</div><div style=\"float:left;width:46%;margin-left:4%;background-color:#FDF4DC;padding:14px;\">[R12b] float left</div></div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R13 &middot; max-width + margin:0 auto wrapper</b><br>Expect: The box below is narrower than the page and centred.</p><div style=\"max-width:420px;margin:0 auto;background-color:#EEF3F8;padding:14px;\">[R13] max-width 420px, centred &mdash; is this narrower than the page?</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R14 &middot; class attribute retention</b><br>Expect: Nothing visual. The analyzer checks whether the attribute is still there.</p><div class=\"probe-class-marker\" style=\"background-color:#F3F6F9;padding:12px;\">[R14] this div carries class=\"probe-class-marker\"</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R15 &middot; data-* attribute retention</b><br>Expect: Nothing visual. The analyzer checks whether the attribute is still there.</p><div data-layout=\"half\" style=\"background-color:#F3F6F9;padding:12px;\">[R15] this div carries data-layout=\"half\"</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R16 &middot; !important in an inline style</b><br>Expect: The text below is RED.</p><p style=\"color:#C1121F !important;font-weight:700;\">[R16] !important &mdash; is this text red?</p><hr style=\"border:0;border-top:3px solid #1D3247;margin:26px 0 14px;\"><p style=\"margin:0 0 14px;font-size:15px;font-weight:700;\">TIER 3 &mdash; Typography and modern feel</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R17 &middot; letter-spacing</b><br>Expect: The label below has visibly W I D E letter spacing.</p><p style=\"letter-spacing:3px;font-size:12px;font-weight:700;color:#8A6A1F;\">[R17] UNIT UPDATE &mdash; IS THIS SPACED OUT?</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R18 &middot; opacity</b><br>Expect: The box below is faded, roughly half strength.</p><div style=\"opacity:0.45;background-color:#243B53;color:#FFFFFF;padding:14px;\">[R18] opacity 0.45 &mdash; is this faded?</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R19 &middot; linear-gradient background</b><br>Expect: The box below fades from pale blue on the left to white on the right.</p><div style=\"background:linear-gradient(90deg,#DCE9F7 0%,#FFFFFF 100%);padding:14px;\">[R19] linear-gradient &mdash; does this fade left to right?</div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R20 &middot; websafe font-family</b><br>Expect: The first line is a SERIF (Georgia), the second is sans-serif.</p><p style=\"font-family:Georgia,&quot;Times New Roman&quot;,serif;font-size:19px;\">[R20a] Georgia &mdash; is this a serif?</p><p style=\"font-family:Arial,Helvetica,sans-serif;font-size:19px;\">[R20b] Arial &mdash; is this sans-serif?</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R21 &middot; non-websafe font-family</b><br>Expect: Probably falls back to a default face. The analyzer checks whether the declaration survived.</p><p style=\"font-family:Poppins,&quot;Trebuchet MS&quot;,sans-serif;font-size:19px;\">[R21] Poppins requested &mdash; declaration retained?</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R22 &middot; font-size and line-height</b><br>Expect: Three lines at visibly different sizes, comfortably leaded.</p><p style=\"font-size:28px;line-height:1.2;margin:0 0 6px;\">[R22a] 28px</p><p style=\"font-size:19px;line-height:1.4;margin:0 0 6px;\">[R22b] 19px</p><p style=\"font-size:14px;line-height:1.7;margin:0;\">[R22c] 14px with generous line-height</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R23 &middot; text-transform: uppercase</b><br>Expect: The text below appears in CAPITALS despite being typed in lower case.</p><p style=\"text-transform:uppercase;font-weight:700;letter-spacing:1.5px;\">[R23] typed lower case &mdash; shown as caps?</p><hr style=\"border:0;border-top:3px solid #1D3247;margin:26px 0 14px;\"><p style=\"margin:0 0 14px;font-size:15px;font-weight:700;\">TIER 4 &mdash; Elements and structure</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R24 &middot; <h1> with inline style</b><br>Expect: A large heading. The analyzer checks whether it is still an h1.</p><h1 style=\"font-size:30px;color:#243B53;margin:0;\">[R24] this should still be an h1</h1><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R25 &middot; <h2> / <h3> / <h4></b><br>Expect: Three headings of decreasing size, still their original tags.</p><h2 style=\"margin:0 0 4px;\">[R25a] h2</h2><h3 style=\"margin:0 0 4px;\">[R25b] h3</h3><h4 style=\"margin:0;\">[R25c] h4</h4><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R26 &middot; <blockquote></b><br>Expect: An indented, italic quotation.</p><blockquote style=\"margin:0;padding-left:16px;border-left:3px solid #C99700;font-style:italic;\">[R26] blockquote &mdash; still a blockquote?</blockquote><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R27 &middot; <ul> with list-style-type:none</b><br>Expect: Two lines each starting with an empty box, and NO bullet points.</p><ul style=\"margin:0;padding-left:22px;list-style-type:none;\"><li>&#9744; [R27a] should have no bullet</li><li>&#9744; [R27b] should have no bullet</li></ul><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R28 &middot; <ol> numbering</b><br>Expect: A numbered list, 1 through 3.</p><ol style=\"margin:0;padding-left:22px;\"><li>[R28a] first</li><li>[R28b] second</li><li>[R28c] third</li></ol><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R29 &middot; consecutive <br> runs</b><br>Expect: Exactly three blank lines between the two markers below.</p><p>[R29a] three &lt;br&gt; follow this line<br><br><br>[R29b] how many blank lines above?</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R30 &middot; <a href> to https</b><br>Expect: A working blue link.</p><p><a href=\"https://example.org/reading\" style=\"color:#1B4F86;\">[R30] link to example.org &mdash; is this still clickable?</a></p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R31 &middot; link target and rel hardening</b><br>Expect: Nothing visual. The analyzer checks the attributes.</p><p><a href=\"https://example.org/pdf\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#1B4F86;\">[R31] target=_blank rel=noopener noreferrer</a></p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R32 &middot; <span style=\"color\"></b><br>Expect: One red word and one highlighted word inside a normal sentence.</p><p>Ordinary text with <span style=\"color:#C1121F;\">[R32a] red</span> and <span style=\"background-color:#FEF3C7;\">[R32b] highlighted</span> words.</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R33 &middot; emoji inside a heading</b><br>Expect: A book emoji, then a lightbulb, rendered as colour glyphs.</p><h3 style=\"margin:0;\">&#128214; &#128161; [R33] do these emoji render in colour?</h3><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R34 &middot; entities and &nbsp;</b><br>Expect: An ampersand, angle brackets, an em dash, and a non-breaking gap. NOT literal &amp;amp; text.</p><p>[R34] &amp; &lt; &gt; &mdash; &nbsp;&nbsp;&nbsp; &quot;quoted&quot; &rsquo;apostrophe&rsquo;</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R35 &middot; divs nested three deep</b><br>Expect: Three nested boxes, each inset from the last.</p><div style=\"background-color:#E3EAF2;padding:14px;\"><div style=\"background-color:#F1F5FA;padding:14px;\"><div style=\"background-color:#FFFFFF;padding:14px;\">[R35] three levels deep &mdash; are all three boxes visible?</div></div></div><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R36 &middot; <img> with inline width</b><br>Expect: A small blue square.</p><p>[R36] image follows: <img src=\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjMkM2RkI1Ii8+PC9zdmc+\" alt=\"blue square\" style=\"width:40px;height:40px;vertical-align:middle;\"></p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R37 &middot; inline <svg></b><br>Expect: A gold circle.</p><p>[R37] inline svg follows: <svg width=\"34\" height=\"34\" viewBox=\"0 0 34 34\" style=\"vertical-align:middle;\"><circle cx=\"17\" cy=\"17\" r=\"15\" fill=\"#C99700\"></circle></svg></p><hr style=\"border:0;border-top:3px solid #1D3247;margin:26px 0 14px;\"><p style=\"margin:0 0 14px;font-size:15px;font-weight:700;\">TIER 5 &mdash; Motion (backburner, cheap to answer now)</p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R38 &middot; @keyframes in a <style> block</b><br>Expect: A gold square PULSING in and out. Static means no CSS animation, ever.</p><style>@keyframes probe-pulse{0%{opacity:1;}50%{opacity:0.15;}100%{opacity:1;}}.probe-pulse{animation:probe-pulse 1.4s ease-in-out infinite;}</style><p>[R38] is the square below pulsing? <span class=\"probe-pulse\" style=\"display:inline-block;width:26px;height:26px;background-color:#C99700;vertical-align:middle;\"></span></p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R39 &middot; SVG SMIL <animate></b><br>Expect: A circle growing and shrinking continuously.</p><p>[R39] is the circle below animating? <svg width=\"34\" height=\"34\" viewBox=\"0 0 34 34\" style=\"vertical-align:middle;\"><circle cx=\"17\" cy=\"17\" r=\"6\" fill=\"#2C6FB5\"><animate attributeName=\"r\" values=\"6;14;6\" dur=\"1.6s\" repeatCount=\"indefinite\"></animate></circle></svg></p><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R40 &middot; <details> / <summary></b><br>Expect: A clickable 'Show the answer' row that expands when clicked.</p><details style=\"border:1px solid #E1E9F2;padding:10px;\"><summary style=\"cursor:pointer;font-weight:700;\">[R40] Show the answer &mdash; can you click this?</summary><p style=\"margin:8px 0 0;\">If you can read this after clicking, details works.</p></details><hr style=\"border:0;border-top:1px solid #C9D2DB;margin:20px 0 10px;\"><p style=\"margin:0 0 8px;\"><b>R41 &middot; animated GIF</b><br>Expect: Manual: drop any animated GIF from your own media library into a post and see whether it still animates.</p><p>[R41] manual row &mdash; test an animated GIF from your media library separately.</p><hr style=\"border:0;border-top:3px solid #1D3247;margin:26px 0 14px;\"><p style=\"margin:0;\">End of probe. 42 rows.</p></div>";
+PAYLOAD.value = P;
+document.getElementById('paper').innerHTML = P;
+function wire(id){
+  const b = document.getElementById(id);
+  b.addEventListener('click', function(){
+    const done = function(){
+      const was = b.textContent;
+      b.textContent = 'Copied';
+      b.classList.add('is-done');
+      setTimeout(function(){ b.textContent = was; b.classList.remove('is-done'); }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(P).then(done, function(){ fb(done); });
+    } else { fb(done); }
+  });
+}
+function fb(done){ PAYLOAD.closest('details').open = true; PAYLOAD.select(); try{ document.execCommand('copy'); done(); }catch(e){} }
+wire('copy'); wire('copyagain');
+</script>
+</body></html>
