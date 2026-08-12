@@ -15,7 +15,8 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "probe": "node tools/probe/build.mjs",
-    "probe:test": "node --test tools/probe/analyze.test.mjs"
+    "probe:test": "node --test tools/probe/analyze.test.mjs",
+    "test:core": "node --test tests/core.test.mjs tests/golden.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
@@ -38,6 +39,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "16.4.0",
+    "linkedom": "^0.18.13",
     "react-server-dom-webpack": "19.2.6",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",

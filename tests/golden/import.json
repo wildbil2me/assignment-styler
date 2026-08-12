@@ -1,0 +1,635 @@
+{
+  "": {
+    "blocks": [],
+    "message": "No readable content was found in that HTML.",
+    "postTitle": null
+  },
+  "   ": {
+    "blocks": [],
+    "message": "No readable content was found in that HTML.",
+    "postTitle": null
+  },
+  "<p></p>": {
+    "blocks": [],
+    "message": "No readable content was found in that HTML.",
+    "postTitle": null
+  },
+  "<div></div>": {
+    "blocks": [],
+    "message": "No readable content was found in that HTML.",
+    "postTitle": null
+  },
+  "<h1>Just a title</h1>": {
+    "blocks": [
+      {
+        "id": 1000,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "Just a title",
+        "body": ""
+      }
+    ],
+    "message": "1 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<p>Leading paragraph becomes the intro</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "Leading paragraph becomes the intro"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<p>First</p><p>Second stays a note</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "First"
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "Note",
+        "body": "Second stays a note"
+      }
+    ],
+    "message": "3 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<h1>Title</h1><p>Intro</p><h2>Homework</h2><ul><li>a</li><li>b</li></ul>": {
+    "blocks": [
+      {
+        "id": 1000,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "Title",
+        "body": ""
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "Note",
+        "body": "Intro"
+      },
+      {
+        "id": 1002,
+        "type": "homework",
+        "title": "Homework",
+        "body": ""
+      },
+      {
+        "id": 1003,
+        "type": "checklist",
+        "title": "Checklist",
+        "body": "a\nb"
+      }
+    ],
+    "message": "4 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<blockquote>Quoted text</blockquote>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "quote",
+        "title": "Quote",
+        "body": "Quoted text"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<ol><li>one</li><li>two</li><li>three</li></ol>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "steps",
+        "title": "Steps",
+        "body": "one\ntwo\nthree"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<ul><li>alpha</li></ul>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "checklist",
+        "title": "Checklist",
+        "body": "alpha"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<h2>Upcoming quiz</h2>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "quiz",
+        "title": "Upcoming quiz",
+        "body": ""
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<h3>Exam review</h3>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "exam",
+        "title": "Exam review",
+        "body": ""
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<h4>Announcement</h4>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "announcement",
+        "title": "Announcement",
+        "body": ""
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div><strong>Reading</strong> Chapter 4, pages 20-30</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "reading",
+        "title": "Reading",
+        "body": "Chapter 4, pages 20-30"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div><b>Vocabulary</b> key term list</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "vocabulary",
+        "title": "Vocabulary",
+        "body": "key term list"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div>Learning target: I can explain the theme</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "targets",
+        "title": "Learning targets",
+        "body": "Learning target: I can explain the theme"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div>Resource link to the website</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "resource",
+        "title": "Resource link",
+        "body": "Resource link to the website"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div>Questions to consider before you think about it</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "focus",
+        "title": "Focus questions",
+        "body": "Questions to consider before you think about it"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div>Homework due Friday</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "homework",
+        "title": "Homework",
+        "body": "Homework due Friday"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div>Deadline coming up</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "deadline",
+        "title": "Deadline",
+        "body": "Deadline coming up"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<section><p>one</p><p>two</p><p>three</p></section>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "one"
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "Note",
+        "body": "two"
+      },
+      {
+        "id": 1002,
+        "type": "note",
+        "title": "Note",
+        "body": "three"
+      }
+    ],
+    "message": "4 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div><p>single wrapper child</p></div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "note",
+        "title": "Note",
+        "body": "<p>single wrapper child</p>"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<main><h1>Wrapped</h1><p>body</p></main>": {
+    "blocks": [
+      {
+        "id": 1000,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "Wrapped",
+        "body": ""
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "Note",
+        "body": "body"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<article><h2>A</h2><h2>B</h2></article>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "note",
+        "title": "A",
+        "body": ""
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "B",
+        "body": ""
+      }
+    ],
+    "message": "3 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<script>evil()</script><p>after script</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "after script"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<style>.x{}</style><p>after style</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "after style"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<form><input></form><p>after form</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "after form"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<iframe src='x'></iframe><p>after iframe</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "after iframe"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<p>text with <strong>bold</strong> inside</p><div>next</div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "text with <strong>bold</strong> inside"
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "Note",
+        "body": "next"
+      }
+    ],
+    "message": "3 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<h1>A</h1><h1>B</h1>": {
+    "blocks": [
+      {
+        "id": 1000,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "A",
+        "body": ""
+      },
+      {
+        "id": 1001,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "B",
+        "body": ""
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div>   </div><p>whitespace-only sibling skipped</p>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "intro",
+        "title": "",
+        "body": "whitespace-only sibling skipped"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<div><h2>Heading</h2><p>and body</p></div>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "note",
+        "title": "Heading",
+        "body": ""
+      },
+      {
+        "id": 1001,
+        "type": "note",
+        "title": "Note",
+        "body": "and body"
+      }
+    ],
+    "message": "3 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  },
+  "<ul><li>   </li><li>kept</li></ul>": {
+    "blocks": [
+      {
+        "id": 999,
+        "type": "hero",
+        "label": "IMPORTED POST",
+        "title": "IMPORTED BLACKBAUD CONTENT",
+        "body": "Review and rename this page"
+      },
+      {
+        "id": 1000,
+        "type": "checklist",
+        "title": "Checklist",
+        "body": "kept"
+      }
+    ],
+    "message": "2 editable blocks created.",
+    "postTitle": "Imported Blackbaud post"
+  }
+}
