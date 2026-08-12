@@ -1,6 +1,17 @@
 # Blackbaud Content Composer
 
-Create structured, student-facing class content, preview it, and export conservative HTML for Blackbaud.
+Create structured, student-facing class content, preview it, and export HTML that
+survives Blackbaud's editor.
+
+Two shells over one core:
+
+- **Web app** — the full editor. Templates, HTML import, the style editor, saved
+  posts, desktop and mobile preview.
+- **Extension** — an MV3 side panel in quick-post mode. Open on your last post,
+  edit, copy, done.
+
+Both render through the same `core/`, so the same blocks produce the same bytes
+in either one. Nothing leaves the browser: no backend, no accounts, no telemetry.
 
 ## Web app
 
@@ -9,14 +20,15 @@ npm ci
 npm run dev
 ```
 
-The static GitHub Pages build is produced with `npm run pages:build` and deployed automatically from `main`.
+`npm run build` produces the static GitHub Pages build in `pages-dist/`, and
+deploys automatically from `main`.
 
 ## Chrome or Edge extension
 
 Build the unpacked extension:
 
 ```bash
-npm run extension:build
+npm run build:ext
 ```
 
 Then:
@@ -29,10 +41,26 @@ Then:
 6. Compose content in the side panel and choose **Copy to clipboard**.
 7. Open Blackbaud's HTML/source editor and paste.
 
-The extension does not request access to page contents. It only creates the HTML and copies it when you click the button; it never saves or publishes the Blackbaud page.
+The extension requests `sidePanel` and nothing else — no host permissions, no
+content script. It cannot read the page you are on. It creates HTML and copies it
+when you click the button; it never saves or publishes the Blackbaud page.
 
-## Builds
+## Layout
 
-- `npm run build`: full vinext build
-- `npm run pages:build`: static GitHub Pages build
-- `npm run extension:build`: unpacked Manifest V3 extension
+| Directory | What it is |
+| --- | --- |
+| `core/` | Pure domain logic — model, blocks, profiles, palettes, renderer, sanitizer, importer, measured Blackbaud compat spec. No React. |
+| `ui/` | Shared React: the composer, the quick-post panel, and the pieces both use. |
+| `apps/web/`, `apps/ext/` | The two shells. Entry point, host page, and for the extension its manifest. |
+| `tests/` | Core contract suite plus golden HTML snapshots. |
+| `tools/probe/` | The Blackbaud compatibility probe, so another school can measure its own tenant. |
+| `docs/` | The rebuild plan, the compatibility results, the class style-guide spec. |
+
+## Checks
+
+```bash
+npm run build      # the web build - the real gate
+npm run build:ext  # the extension build
+npm test           # core contract suite, goldens, and the probe analyzer
+npm run lint
+```

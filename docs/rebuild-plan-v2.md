@@ -88,7 +88,13 @@ docs/
   ai-drafting.md                deferred design, prompt + schema preserved
 ```
 
-### Dependencies: 30 → 8
+### Dependencies: 30 → 8, in the event 16
+
+Phase 3 landed at 16 rather than 8. The eight below are the runtime and build
+essentials; the other eight are the lint stack this repo already had
+(`@eslint/js`, `eslint-plugin-react`, `globals`, `typescript-eslint`, …) plus
+`@types/*`, none of which the count anticipated. No dependency survived that the
+plan named for deletion.
 
 Delete `worker/`, `db/`, `drizzle/`, `examples/`, `.openai/`,
 `app/chatgpt-auth.ts`, `app/api/`, `next.config.ts`, `next-env.d.ts`,
@@ -305,18 +311,83 @@ UPDATE_GOLDENS=1 node --test tests/core.test.mjs tests/golden.test.mjs
 
 ## Phase 3 — two shells, one core
 
-`apps/web` and `apps/ext` become thin. Delete the residue and its dependency tree.
+**Done, 2026-08-12.** Both shells are thin, and the residue is gone.
 
-Extension stays clipboard-only. The side panel gets a **quick-post mode**: open
-on last-used template, edit, copy, done — no template picker, no style editor, no
-import. The full editor lives on Pages. Same core, same storage format, different
-amount of chrome. That split is what makes "quick posting" quick.
+`app/page.tsx` — one 145-line file that was the entire UI — became `ui/`, and the
+two shells are now 8 lines each:
+
+| Module | Contents |
+| --- | --- |
+| `ui/state.ts` | `useComposer()` — blocks, selection, undo/redo, the `bcc-workspace` round trip, one `renderHtml` call |
+| `ui/composer.tsx` | the full editor: topbar, style editor, HTML import, saved posts, templates, stage |
+| `ui/quickpost.tsx` | the side panel |
+| `ui/blocklist.tsx`, `inspector.tsx`, `preview.tsx`, `export.tsx` | what both screens draw |
+| `ui/richtext.tsx` | `RichEditor`, and `exec()` — the one call site of `document.execCommand` (carried-forward bug #6) |
+| `apps/web/`, `apps/ext/` | `index.html` + `main.tsx`, and for the extension `public/manifest.json` + `public/background.js` |
+
+Deleted: `worker/`, `db/`, `drizzle/`, `examples/`, `.openai/`, `build/`,
+`app/api/`, `app/chatgpt-auth.ts`, `app/layout.tsx`, `next.config.ts`,
+`next-env.d.ts`, `drizzle.config.ts`, `tests/rendered-html.test.mjs`,
+`public/og.png` and three unused starter SVGs. **30 top-level dependencies became
+16** — `react`, `react-dom`, and 14 dev — and 490 installed packages became 317.
+`npx tsc --noEmit` is clean now: its three pre-existing errors were `worker/` and
+`db/` importing Cloudflare types that were never installed.
+
+### What the panel keeps, and why each thing is there
+
+Decided 2026-08-12. Quick-post drops the template picker, the style editor, HTML
+import, saved posts and export history. It keeps the **surface** picker, because
+surface changes what `render.ts` emits and a post composed for the wrong one is
+wrong; and it keeps the **class palette and profile**, because the panel cannot
+inherit them — clipboard-only means no host permissions, which means the two
+shells are separate origins and neither can read the other's `localStorage`.
+"Last used" is per shell. Cold start opens on the first bulletin template rather
+than the Macbeth sample.
+
+Storage stayed on `localStorage` rather than moving to `chrome.storage.local`:
+one synchronous load path serves a side panel and a Pages app identically, and
+Phase 4 already owns versioning and migration, which is when an async adapter
+earns its cost. The manifest's unused `storage` permission was dropped —
+a permission a school can see and we don't use is worth more gone.
+
+### Tailwind is gone, and the preview got more honest
+
+`app/globals.css` imported `tailwindcss` on line 1 for preflight and used no
+utility class. It is ~20 lines of reset now, with two of preflight's rules
+deliberately not reproduced: `ol,ul{list-style:none}` and
+`img{display:block;max-width:100%}` also applied **inside `.paper`**, where the
+exported Blackbaud HTML renders — so the preview showed lists with no bullets and
+laid images out in a way no browser would. Everything `render.ts` emits carries
+its own inline `margin`, so the reset's margin rules cannot reach the preview;
+those two could, and did. Dropping them means the preview now shows what a
+browser shows, which is the entire job of a preview.
+
+This is the one intended visual change in the phase, and it is in the composer's
+preview, not in the export.
+
+### Gates
+
+Exported HTML did not change, so the goldens were **supposed to stay green** —
+the inverse of Phase 2. They did: 45 core tests pass with the goldens untouched.
+Both builds pass, `tsc` is clean, and both shells were smoke-rendered through
+`react-dom/server` to prove the split didn't break mounting.
+
+Lint went 15 → 14, which is **not** a fix. The error that vanished was
+`react-hooks/purity` on the `Date.now()` in `duplicateBlock`; the rule stopped
+reporting it once that handler moved into a custom hook. Same code, same
+carried-forward bug #7. Bugs #5 and #7 were deliberately left alone so that a
+changed id or a failing golden would mean something had broken.
+
+Carried-forward bug #1 is closed: `/api/draft` and the `localGenerate()` fallback
+that answered every teacher's notes with hardcoded Macbeth are both gone, and the
+prompt and schema are preserved in [ai-drafting.md](ai-drafting.md). Bug #3 is
+moot — there is no SSR left to diverge under.
 
 ## Phase 4 — make the assurances true, make the data durable
 
-Replace the hardcoded `4/4` compatibility panel (`app/page.tsx:233` — four static
-✓ rows, including an "accessible color contrast" claim the custom style editor can
-make actively false):
+Replace the hardcoded `4/4` compatibility panel (`Checks` in `ui/inspector.tsx` —
+four static ✓ rows, including an "accessible color contrast" claim the custom
+style editor can make actively false):
 
 - WCAG contrast math, 4.5:1 body / 3:1 large text, computed from the live palette.
 - Heading-order validation.
@@ -416,20 +487,26 @@ the spec's `compatibility` block, superseded by the *measured* `core/compat.ts`.
 
 Fixed by the phases above, listed so none get lost:
 
-1. **AI drafting silently degrades to Macbeth.** `generate()` posts to
-   `/api/draft`, which only exists in the deleted Cloudflare build; the `catch`
-   falls through to `localGenerate()`, which emits hardcoded `MACBETH · ACT II`
-   after scraping three regexes. Deferring AI removes the endpoint — **the
-   fallback has to go too**, not just the server.
+1. ~~**AI drafting silently degrades to Macbeth.**~~ **Fixed in Phase 3.**
+   `generate()` posted to `/api/draft`, which only existed in the deleted
+   Cloudflare build; the `catch` fell through to `localGenerate()`, which emitted
+   hardcoded `MACBETH · ACT II` after scraping three regexes. Endpoint, fallback
+   and the UI that offered them are all gone; the prompt and schema live in
+   [ai-drafting.md](ai-drafting.md).
 2. Compatibility panel is decorative — Phase 4.
-3. `safeRich()` diverges under SSR — moot once vinext is gone.
-4. `public/og.png` is 1.05 MB in the Pages artifact.
+3. ~~`safeRich()` diverges under SSR~~ — **moot since Phase 3.** No SSR left.
+4. ~~`public/og.png` is 1.05 MB in the Pages artifact.~~ **Deleted in Phase 3**,
+   along with the `og:image` tags that referenced it. Phase 5 owns what replaces
+   them.
 5. Deleting the first block calls `setSelected(blocks[0]?.id)` against the
-   pre-deletion array, re-selecting the block it just removed.
-6. `document.execCommand` is deprecated. Keep it — the sanitizer cleans up after
-   it anyway — but wrap it in `ui/richtext.ts` so it's swappable.
+   pre-deletion array, re-selecting the block it just removed. Still open —
+   deliberately untouched by Phase 3, now in `deleteBlock` in `ui/state.ts`.
+6. ~~`document.execCommand` is deprecated.~~ **Wrapped in Phase 3** as `exec()`
+   in `ui/richtext.tsx`, the only call site. Still deprecated, still fine — the
+   sanitizer cleans up after it.
 7. Block ids come from `Date.now()` in some paths and `stamp + i` in others, which
-   can collide. One `nextId()` in core.
+   can collide. One `nextId()` in core. Still open — the `Date.now()` calls are
+   now in `ui/state.ts` and `ui/composer.tsx`.
 
 ## Open
 

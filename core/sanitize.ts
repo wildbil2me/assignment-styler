@@ -46,9 +46,10 @@ export const cssSafe = (value: string): string => value.replace(/[<>"]/g, "");
 export function safeRich(value: string): string {
   if (!value.includes("<")) return esc(value).replace(/\n/g, "<br>");
 
-  // Preserved from the prototype. Dead once vinext is deleted — nothing else
-  // renders this without a DOM — but removing it would be a behaviour change,
-  // and Phase 1 promises none. Plan bug #3.
+  // Preserved from the prototype. Phase 3 deleted vinext, so plan bug #3 (this
+  // diverging under SSR) is moot and both shells always have a real DOM. Kept
+  // anyway: it is the guard that lets core run outside a browser at all, and
+  // removing it would be a behaviour change no phase has asked for.
   if (typeof document === "undefined") return esc(value);
 
   const root = document.createElement("div");

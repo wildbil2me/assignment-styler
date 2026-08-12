@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-## Current state: rebuild in progress, phases 0–2 done
+## Current state: rebuild in progress, phases 0–3 done
 
 The plan is [docs/rebuild-plan-v2.md](docs/rebuild-plan-v2.md) — read it before
 starting work. (v1, `docs/rebuild-plan.md`, was deleted in Phase 2 as v1 itself
@@ -17,7 +17,12 @@ instructed; it had drifted and said nothing was implemented.)
   (feel) × palettes (colour)**, `render.ts` emits nothing hardcoded, half-width
   rows carry flex and inline-block in one markup, and `<details>` is a block
   type. This changed the exported HTML on purpose.
-- **Phase 3 next** — two thin shells over one core, and deleting the residue.
+- **Phase 3 — done.** Two shells over one core. `app/page.tsx` became `ui/`;
+  `apps/web` is the full editor and `apps/ext` is the quick-post side panel. The
+  Cloudflare/Next/Drizzle residue and Tailwind are gone. **Exported HTML did not
+  change** — the goldens stayed locked and green throughout, which is the point.
+- **Phase 4 next** — make the compatibility panel's assurances true, and make a
+  teacher's workspace durable.
 
 Decided 2026-08-11: the target audience is other schools (public), both the web
 app and the extension stay, and AI drafting is deferred to a future feature —
@@ -40,33 +45,42 @@ Layout:
     from both and contains no hex or magic pixel value — a test enforces that.
   - `core/degrade.ts` sits between what a profile asks for and what a tenant
     keeps. Small on purpose: Blackbaud turned out permissive.
-- `app/` — the vinext (Vite + React 19 RSC) app. Now UI only; it imports
-  everything else from `core/`.
-- `src/main.tsx`, `vite.config.ts` — the Vite entry.
+- `ui/` — **all the React, shared by both shells.**
+  - `state.ts` — `useComposer()`: blocks, selection, undo/redo, the `bcc-workspace`
+    localStorage round trip, and the single `renderHtml` call. **A behaviour that
+    lives here cannot drift between the web app and the panel.**
+  - `composer.tsx` — the full editor. `quickpost.tsx` — the side panel.
+  - `blocklist.tsx`, `inspector.tsx`, `preview.tsx`, `export.tsx`,
+    `richtext.tsx` — the pieces both screens draw. `richtext.tsx` is the one
+    place `document.execCommand` is called.
+  - `styles.css` — one stylesheet, both shells. Its first 20 lines are the reset
+    that replaced Tailwind.
+- `apps/web/` — the Pages shell: `index.html`, `main.tsx`, `public/`.
+- `apps/ext/` — the MV3 shell. `public/manifest.json` and `public/background.js`
+  live under `public/` because Vite copies that directory to the output root,
+  which is where the manifest's paths have to resolve.
 - `tests/` — the core contract suite plus golden HTML and corpus snapshots.
 - `tools/probe/` — the Blackbaud compatibility probe generator (42 rows).
-- `docs/` — the plan, the measured compatibility results, and the 2026-08-09
-  class style-guide spec folded in from the repo root in Phase 2.
-- `worker/` — Cloudflare Worker entry; `db/` + `drizzle/` are Drizzle + D1.
-- `extension/` — browser extension that pastes composed HTML into Blackbaud.
-- `examples/d1/` — reference example, not part of the app build.
+- `docs/` — the plan, the measured compatibility results, the 2026-08-09 class
+  style-guide spec, and the deferred AI drafting design.
 
-`worker/`, `db/`, `drizzle/`, `examples/` and `app/api/` are starter-template
-residue on the Phase 3 delete list. They are also the source of the three
-pre-existing `npx tsc --noEmit` errors (`cloudflare:workers`, `Fetcher`,
-`D1Database` — no `@cloudflare/workers-types` installed). `app/` and `core/` are
-clean.
+Two builds, one per shell: `npm run build` (web → `pages-dist/`) and
+`npm run build:ext` (→ `extension-dist/`). `npx tsc --noEmit` is clean — the
+three pre-existing errors left with `worker/` and `db/` in Phase 3.
 
-Three separate builds: `npm run build` (app), `pages:build`, `extension:build`.
+**The two shells cannot see each other's storage.** Separate origins, no host
+permissions, nothing reads across by design. "Last used" means last used *in that
+shell*, and a teacher who wants the same class style in both sets it in both.
 
 ## Checks
 
 ```bash
-npm run build      # the real gate - must pass
+npm run build      # the web build - the real gate, must pass
+npm run build:ext  # the extension build - the other real gate
+npm test           # test:core + probe:test, and it is a usable signal again
 npm run test:core  # 45 tests over core/ - green, keep it that way
 npm run probe:test # 26 tests over the probe analyzer - green, keep it that way
 npm run lint       # see the baseline below before trusting the result
-npm test           # still the stale starter script, see below
 npm run probe      # regenerate the compatibility kit into docs/
 ```
 
@@ -92,46 +106,48 @@ Phase 1's differential suite (`equivalence.test.mjs` against the frozen
 `legacy-reference.mjs`) was deleted in Phase 2, as planned — it existed to prove
 the extraction changed nothing, and Phase 2 changes the output on purpose.
 
-All build outputs are gitignored (`dist/`, `pages-dist/`, `extension-dist/`,
-`.vinext/`, `.wrangler/`), so **no generated artifact needs committing** — a
-build never dirties the tree.
+Both build outputs are gitignored (`pages-dist/`, `extension-dist/`), so **no
+generated artifact needs committing** — a build never dirties the tree.
 
-### Known-red baseline — do not read these as regressions
+### Known-red baseline — do not read this as a regression
 
-Both were already failing at commit `3c98f56`, before any local work:
+- **`npm run lint` → 14 errors, in four files.** 3 in
+  `apps/ext/public/background.js` (`'chrome' is not defined` —
+  `eslint.config.mjs` deliberately has no webextensions global env), and 11
+  across `ui/` (`jsx-a11y/*` on click handlers attached to non-interactive
+  elements, `react-hooks/rules-of-hooks`, `react-hooks/set-state-in-effect` on
+  the storage-restore effect, two unused `animation` rest-destructures, and one
+  empty `catch`).
 
-- **`npm run lint` → 15 errors, in two files.** 12 in `app/page.tsx`
-  (`jsx-a11y/*` on click handlers attached to non-interactive elements, plus
-  `react-hooks/rules-of-hooks`), and 3 in `extension/background.js` (`'chrome' is
-  not defined` — `eslint.config.mjs` has no webextensions/browser global env for
-  `extension/`).
+  **It was 15 before Phase 3, and 14 is not a fix.** The error that disappeared
+  was `react-hooks/purity` on the `Date.now()` inside `duplicateBlock`; the rule
+  stopped reporting it when that handler moved from the component body into the
+  `useComposer` hook. The code is unchanged and carried-forward bug #7 (colliding
+  ids from `Date.now()`) is still open. Every other error moved file-for-file.
 
   Corrected 2026-08-11: this used to read 1681 on any machine that had run a
-  build, because `globalIgnores` covered `dist/` but not `pages-dist/`,
-  `extension-dist/`, `.vinext/`, or `.wrangler/` — so lint was reading minified
-  bundles and the count depended on your build state. Those are ignored now. The
-  real baseline of 15 is unchanged; it is just reproducible.
-- **`npm test` → fails.** It runs `npm run build && node --test
-  tests/rendered-html.test.mjs`, and the build passes; the test file is stale
-  scaffolding from the starter template. It asserts the app is still the
-  placeholder loading skeleton — `app/_sites-preview/SkeletonPreview.tsx`, a
-  `<meta name="codex-preview" content="development">` tag, and a
-  `react-loading-skeleton` dependency — none of which exist now that the composer
-  is built out. The failure output shows the real page server-rendering correctly.
+  build, because lint was reading minified bundles and the count depended on your
+  build state. Only the two real build outputs are ignored now, so the count is
+  reproducible on a clean clone.
 
-So: judge lint by whether *your* files are clean and the count is still 15. Fixing
-either baseline is legitimate work, but it is **its own change** — don't fold it
-into an unrelated commit, and don't let it block a sync.
+So: judge lint by whether *your* files are clean and the count is still 14.
+Fixing the baseline is legitimate work — it is Phase 4's — but it is **its own
+change**: don't fold it into an unrelated commit, and don't let it block a sync.
 
-`tests/rendered-html.test.mjs` should eventually be either deleted or rewritten
-against the actual composer output. Until then `npm test` is not a usable signal.
+`npm test` was a stale starter script until Phase 3 deleted the file it ran
+(`tests/rendered-html.test.mjs`, which asserted the app was still the placeholder
+loading skeleton). It now runs `test:core` and `probe:test`, and it is green.
 
 ## Notes
 
 - Node `>=22.13.0`, ESM (`"type": "module"`).
-- `npm install` leaves 6 postinstall scripts ungated by npm's allow-scripts
-  (`esbuild`, `sharp`, `workerd`). The platform binaries install as optional deps
-  anyway and the build works; approving them is not required.
+- **16 packages: `react`, `react-dom`, and 14 dev.** Phase 3 took it from 30 top
+  level (317 total) by deleting the Cloudflare/Next/Drizzle residue and Tailwind.
+  `esbuild`, `sharp` and `workerd` all left with it, so the postinstall-scripts
+  note that used to live here no longer applies — nothing needs approving.
+- `core/` and `ui/` use explicit `.ts`/`.tsx` import extensions
+  (`allowImportingTsExtensions`), so Node's type stripping runs the tests with no
+  build step.
 ## Session sync — check this on a machine you haven't used before
 
 Session git sync is **not** in this repo. It is shared user-level config living in
