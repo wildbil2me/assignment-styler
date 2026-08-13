@@ -169,7 +169,7 @@ export function parse(text: string): { workspace: Workspace | null; message: str
   if (!workspace)
     return {
       workspace: null,
-      message: "That file doesn’t contain any posts. Check it’s a Content Composer backup rather than a class style.",
+      message: "That file doesn’t contain any posts. Check it’s a Betterbaud backup rather than a class style.",
     };
   const count = workspace.blocks.length;
   return {

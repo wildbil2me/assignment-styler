@@ -586,10 +586,15 @@ Fixed by the phases above, listed so none get lost:
 
 ## Open
 
-1. **Three names**: repo `blackbaud-styler`, app "Blackbaud Content Composer",
-   package `blackbaud-content-composer`. Pick one before publishing.
-2. **Someone else's trademark.** "Composer for Blackbaud" reads very differently
-   from a name implying it *is* a Blackbaud product. Cheaper to decide now than
-   after people bookmark it.
+1. ~~**Three names**~~ **Settled 2026-08-12 as a working name: Betterbaud.** The
+   app, the package and the extension all say it; the repo and the Pages base
+   path still say `blackbaud-styler`, deliberately, because renaming the repo
+   moves a URL that is now live. [naming.md](naming.md) is the inventory, and it
+   exists so the next change is a checklist rather than a search.
+2. **Someone else's trademark.** Still open, and the working name sharpens it:
+   "Betterbaud" is a closer play on "Blackbaud" than the old name was, and it
+   reads as a comparative claim rather than a description. The audience is
+   schools who are themselves Blackbaud customers. Decide deliberately before
+   announcing anywhere.
 3. **Tenant variation.** Unknown until a second school runs the probe. Design
    `core/compat.ts` to be overridable rather than assuming one answer.

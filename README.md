@@ -1,7 +1,10 @@
-# Blackbaud Content Composer
+# Betterbaud
 
 Create structured, student-facing class content, preview it, and export HTML that
 survives Blackbaud's editor.
+
+Not affiliated with, endorsed by, or produced by Blackbaud. It is a tool for
+people who have to use Blackbaud.
 
 Two shells over one core:
 
