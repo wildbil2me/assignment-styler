@@ -37,6 +37,3 @@ export const blockMeta: Record<BlockType, { label: string; icon: string; tone: T
 };
 
 export const blockTypes = Object.keys(blockMeta) as BlockType[];
-
-/** Types whose body is rendered as a list, one item per line. */
-export const listTypes = ["steps", "checklist", "targets"] as const;

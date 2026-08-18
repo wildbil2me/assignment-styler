@@ -178,10 +178,18 @@ export function parse(text: string): { workspace: Workspace | null; message: str
   };
 }
 
-/** A filename a teacher can find again in six months. */
+/**
+ * A filename a teacher can find again in six months.
+ *
+ * The prefix is **our name**, so it moves with a rename — it is a row in
+ * docs/naming.md. It said `content-composer-` until 2026-08-18, which was the
+ * app's name two renames ago and meant a teacher's backup was labelled with a
+ * product that no longer exists. Note that `STORAGE_KEY` above is the opposite
+ * case and must never change: it is a lookup key, not a label.
+ */
 export function backupFilename(postTitle: string, today: string): string {
   const slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `content-composer-${slug || "workspace"}-${today}.json`;
+  return `betterbaud-${slug || "workspace"}-${today}.json`;
 }
 
 /* ---------------------------------------------------------------- adapters */

@@ -21,7 +21,7 @@
  * `prefers-reduced-motion`).
  */
 
-import { supportsElement, supportsStyle, type CompatSpec, type SurfaceKey } from "./compat.ts";
+import { supportsStyle, type CompatSpec, type SurfaceKey } from "./compat.ts";
 import { cssSafe } from "./sanitize.ts";
 
 /** A declaration list, built by the renderer and serialized through the spec. */
@@ -72,21 +72,11 @@ export function style(
 }
 
 /**
- * Can this tenant keep an element? Used for `<details>`, which is the one
- * element the renderer will substitute for: where disclosure is unsupported the
- * block renders as an ordinary always-open card, so no content is ever hidden by
- * a compatibility decision.
- */
-export function element(spec: CompatSpec, tag: string, surface: SurfaceKey): boolean {
-  return supportsElement(spec, tag, surface);
-}
-
-/**
  * The structural rules, checked rather than trusted.
  *
- * Returns a list of violations — empty means clean. Tests assert on it, and the
- * Phase 4 compatibility panel can report it instead of the current hardcoded
- * four ticks.
+ * Returns a list of violations — empty means clean. Tests assert on it, and
+ * `checks.ts` reports it to the teacher as the "Blackbaud-safe structure" row —
+ * which is what replaced the four hardcoded ticks the old panel showed.
  */
 export function guard(html: string, spec: CompatSpec): string[] {
   const problems: string[] = [];

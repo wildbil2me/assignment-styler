@@ -35,8 +35,8 @@ import { profiles, profileKeys, defaultProfile, fontStack, resolveTone, withFont
 import { surfaces, surfaceKeys } from "../core/surfaces.ts";
 import { templates, templateNames, starter, templateGroups } from "../core/templates.ts";
 import { blockMeta, blockTypes } from "../core/catalog.ts";
-import { stJohns, conservative } from "../core/compat.ts";
-import { guard, style, element } from "../core/degrade.ts";
+import { stJohns, conservative, supportsElement } from "../core/compat.ts";
+import { guard, style } from "../core/degrade.ts";
 import {
   runChecks, contrastRatio, parseHex, isLargeText, requiredRatio, ASSUMED_PAGE_BACKGROUND,
 } from "../core/checks.ts";
@@ -302,8 +302,8 @@ test("degrade skips empty values, so a profile opts out with an empty token", ()
 
 test("degrade resolves per-surface support", () => {
   // Assignment strips inline <svg>; bulletin and topic keep it (probe R37).
-  assert.equal(element(stJohns, "svg", "bulletin"), true);
-  assert.equal(element(stJohns, "svg", "assignment"), false);
+  assert.equal(supportsElement(stJohns, "svg", "bulletin"), true);
+  assert.equal(supportsElement(stJohns, "svg", "assignment"), false);
 });
 
 /* ---------------------------------------------------------------- render */
@@ -748,6 +748,8 @@ test("the local adapter survives storage that is missing, full or corrupt", asyn
 });
 
 test("backup filenames are findable six months later", () => {
-  assert.equal(backupFilename("Tuesday’s class post", "2026-08-12"), "content-composer-tuesday-s-class-post-2026-08-12.json");
-  assert.equal(backupFilename("", "2026-08-12"), "content-composer-workspace-2026-08-12.json");
+  // The prefix is our name, and a row in docs/naming.md — if a rename lands and
+  // this assertion is not updated with it, that is the rename being incomplete.
+  assert.equal(backupFilename("Tuesday’s class post", "2026-08-12"), "betterbaud-tuesday-s-class-post-2026-08-12.json");
+  assert.equal(backupFilename("", "2026-08-12"), "betterbaud-workspace-2026-08-12.json");
 });

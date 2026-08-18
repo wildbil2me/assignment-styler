@@ -1,5 +1,5 @@
 /**
- * Rich-text sanitizing, lifted verbatim from app/page.tsx.
+ * Rich-text sanitizing, lifted verbatim from the prototype's single-file UI.
  *
  * The allowlist is the contract: 11 inline tags survive, everything else is
  * unwrapped with its children kept, every attribute is dropped except `style`

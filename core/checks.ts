@@ -76,8 +76,8 @@ export function parseHex(value: string): [number, number, number] | null {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-/** WCAG 2.x relative luminance. */
-export function relativeLuminance(rgb: [number, number, number]): number {
+/** WCAG 2.x relative luminance. Internal — `contrastRatio` is the entry point. */
+function relativeLuminance(rgb: [number, number, number]): number {
   const [r, g, b] = rgb.map((v) => {
     const s = v / 255;
     return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);

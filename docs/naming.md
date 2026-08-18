@@ -36,6 +36,7 @@ column says otherwise.
 | `apps/ext/public/manifest.json` | extension `name`, and `action.default_title` | **public** — shown in the browser's extension list | free before publishing to a store; a store listing is a rename with users attached |
 | `ui/composer.tsx` | the brand block in the top bar: mark letter, wordmark, "for Blackbaud" strapline | **public** — the most visible instance | free |
 | `core/storage.ts` | the failed-import message, "a Betterbaud backup" | public, at the moment something goes wrong | free |
+| `core/storage.ts` → `backupFilename` | the prefix on every workspace backup file, `betterbaud-<post>-<date>.json` | **public, and durable** — it is the filename sitting in a teacher's Downloads folder for years | free in code; already-downloaded files keep the old name, and `parse()` reads any of them regardless of filename. Pinned by two assertions in `tests/core.test.mjs` — update them in the same commit or the rename is incomplete. Said `content-composer-` until 2026-08-18. |
 | `tools/probe/build.mjs` | footer of both generated probe pages | public — other schools receive these | free, but **regenerate the kit** (`npm run probe`) or `docs/*.html` keeps the old name |
 | `README.md` | title and prose | **public** | free |
 | `CLAUDE.md` | the "What this is" line | internal | free |
@@ -46,6 +47,7 @@ column says otherwise.
 | --- | --- | --- |
 | The GitHub repo | `blackbaud-styler` | Renaming it changes the live Pages URL, `https://toomey-sj.github.io/blackbaud-styler/`, which is already deployed. GitHub redirects the old repo path, but any bookmark or link people have keeps working only through that redirect. **Cheap now, expensive after other schools have the link.** |
 | `vite.config.ts` → `base` | `/blackbaud-styler/` | Must match the repo name exactly or Pages serves a blank page with 404s on every asset. Change it in the same commit as the repo rename, never separately. |
+| `core/storage.ts` → `STORAGE_KEY` | `bcc-workspace` | `bcc` is **B**lackbaud **C**ontent **C**omposer, the name two renames ago. It is a `localStorage` / `chrome.storage.local` lookup key, not a label: changing it orphans every workspace already saved on every teacher's machine, silently, with no error and no way back. Nobody sees this string, so there is nothing to gain and a teacher's whole post history to lose. **Leave it wrong.** |
 | `docs/style-guide-spec.md`, `docs/style-guide-schema.json` | "Blackbaud Content Composer" | Dated 2026-08-09 and folded in as a historical record. They describe what was decided then; editing them to say something else makes them a worse record. |
 | `docs/rebuild-plan-v2.md` | mentions all three old names | It is the log of how the decision was reached, including the three-way split this name resolves. |
 | `CLAUDE.md` session-sync section | `blackbaud-styler: already up to date` | Quotes what the shared git hook actually prints, which is keyed to the repo name. |

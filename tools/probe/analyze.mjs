@@ -26,7 +26,7 @@ export function markerEl(doc, id) {
 }
 
 /** The element plus up to `n` ancestors, nearest first. */
-export function ancestors(el, n) {
+function ancestors(el, n) {
   const out = [];
   let cur = el;
   for (let i = 0; i <= n && cur; i++) {
@@ -89,7 +89,7 @@ export function originalDecls(row, prop, sub, parse) {
   return out;
 }
 
-export function norm(s) {
+function norm(s) {
   return s ? s.replace(/\s+/g, "").replace(/"/g, "'").toLowerCase() : s;
 }
 

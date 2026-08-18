@@ -40,8 +40,8 @@ import type { Block, Palette, Profile, Surface } from "./model.ts";
 import { blockMeta } from "./catalog.ts";
 import { esc, safeRich } from "./sanitize.ts";
 import { fontStack, resolveTone } from "./profiles/index.ts";
-import { style, element } from "./degrade.ts";
-import { stJohns, supportsStyle, type CompatSpec } from "./compat.ts";
+import { style } from "./degrade.ts";
+import { stJohns, supportsElement, supportsStyle, type CompatSpec } from "./compat.ts";
 
 export function renderHtml(
   blocks: Block[],
@@ -156,7 +156,7 @@ export function renderHtml(
 
     // Disclosure where the tenant keeps it (R40), an ordinary open card where it
     // does not — a compatibility decision must never hide a teacher's content.
-    if (b.type === "details" && element(spec, "details", surface.key))
+    if (b.type === "details" && supportsElement(spec, "details", surface.key))
       return (
         `<details data-layout="${b.width || "full"}" style="${box}">` +
         `<summary style="${headingStyle}">${icon}${label}</summary>` +

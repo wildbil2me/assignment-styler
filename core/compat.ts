@@ -42,15 +42,22 @@ export interface CompatSpec {
   readonly unlistedStyles: "allow" | "deny";
   /** Elements safe to emit. */
   readonly elements: Readonly<Record<string, Support>>;
-  /** Attributes that survive. */
-  readonly attributes: Readonly<Record<string, Support>>;
 
   /**
+   * The three fields below are **measured facts, not switches.** Nothing reads
+   * them; they are here so the spec records what the probe found rather than
+   * leaving it implied by omission. Don't add a fourth without a consumer — see
+   * the note on attributes at the foot of this comment block.
+   *
    * Stripped on every surface measured so far, and the reason the renderer
-   * inlines everything. Kept explicit rather than implied by omission.
+   * inlines everything. Enforced by `guard()`, which greps the output for
+   * `<style` rather than consulting this field.
    */
   readonly styleBlocks: false;
-  /** No @keyframes without a style block, and SMIL cannot honour reduced-motion. */
+  /**
+   * No @keyframes without a style block, and SMIL cannot honour reduced-motion.
+   * The one fact here that *is* read: `guard()` checks `spec.animation`.
+   */
   readonly animation: false;
 
   /**
@@ -58,6 +65,20 @@ export interface CompatSpec {
    * standalone colour longhands lowercased, double quotes normalized to single.
    * Nothing is semantically altered, but byte-exact comparison against stored
    * HTML will always differ — compare normalized, never raw.
+   *
+   * ---
+   *
+   * **Attributes are deliberately not modelled.** There used to be an
+   * `attributes` map here, and a `supportsAttribute()` to read it, and nothing
+   * ever called either — while `render.ts` emitted `style` and `data-layout`
+   * unconditionally. So the spec advertised a safety net that did not exist,
+   * which is worse than not advertising one. Every attribute the renderer emits
+   * (`style`, `href`, `alt`, `target`, `rel`, `class`, `data-layout`) measured
+   * true on all three surfaces — `data-layout` is R15, and it surviving a round
+   * trip is what the importer's structural signal depends on. If a school ever
+   * probes a tenant that strips one, add the map *and* the branch in `render.ts`
+   * in the same change. Per `degrade.ts`: building fallbacks nothing currently
+   * needs is the mistake.
    */
   readonly reserializesStyles: true;
 }
@@ -133,18 +154,6 @@ export const stJohns: CompatSpec = {
     style: false,
   },
 
-  attributes: {
-    style: true,
-    href: true,
-    src: true,
-    alt: true,
-    target: true,
-    rel: true,
-    class: true,
-    /** The importer's best structural signal survives a round trip. */
-    "data-layout": true,
-  },
-
   styleBlocks: false,
   animation: false,
   reserializesStyles: true,
@@ -210,8 +219,4 @@ export function supportsStyle(spec: CompatSpec, prop: string, surface: SurfaceKe
 
 export function supportsElement(spec: CompatSpec, tag: string, surface: SurfaceKey): boolean {
   return resolve(spec.elements[tag.toLowerCase()], surface);
-}
-
-export function supportsAttribute(spec: CompatSpec, name: string, surface: SurfaceKey): boolean {
-  return resolve(spec.attributes[name.toLowerCase()], surface);
 }

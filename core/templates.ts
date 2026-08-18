@@ -3,10 +3,10 @@ import type { Block, SurfaceKey } from "./model.ts";
 /**
  * Fifteen post templates, five per surface, plus the Macbeth starter document.
  *
- * Copied verbatim from app/page.tsx — the punctuation matters. Curly
+ * Copied verbatim from the prototype — the punctuation matters. Curly
  * apostrophes, en dashes in scene ranges, em dashes in "Term — definition", and
  * the middle dot in "Vocabulary quiz · Thursday" all appear in exported HTML, so
- * the differential tests compare these byte for byte.
+ * `tests/golden.test.mjs` compares these byte for byte.
  */
 
 export const templateGroups: Record<SurfaceKey, string[]> = {

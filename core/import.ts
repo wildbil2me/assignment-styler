@@ -1,7 +1,7 @@
 /**
  * Existing Blackbaud HTML -> editable blocks.
  *
- * Lifted from app/page.tsx's `importExistingHtml`, with the React state writes
+ * Lifted from the prototype's `importExistingHtml`, with the React state writes
  * pulled out so the heuristics are testable. Behaviour is otherwise identical,
  * including the quirk that the reported block count is taken *after* a synthetic
  * hero is prepended.
@@ -48,8 +48,6 @@ const inferType = (text: string): BlockType =>
                     : /learning target|objective|i can/i.test(text)
                       ? "targets"
                       : "note";
-
-export { inferType };
 
 export function importHtml(source: string, stamp: number = Date.now()): ImportResult {
   const doc = new DOMParser().parseFromString(source, "text/html");
