@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 /**
  * The one place `document.execCommand` is called.
@@ -20,6 +20,23 @@ export function RichEditor({ value, onChange }: { value:string; onChange:(v:stri
   const ref = useRef<HTMLDivElement>(null);
   const command = (name:string, arg?:string) => onChange(exec(ref.current, name, arg));
   const emojis = ["📘","📖","✏️","💡","❓","✅","⚠️","📅","🔬","🎨","🌎","✦"];
+
+  /**
+   * The editable div is deliberately *not* rendered from `value`. React would
+   * re-set its innerHTML after every keystroke, replacing the text node the caret
+   * sits in and dropping the caret to offset 0 — which is why "test" used to come
+   * out "tset". While a teacher types the DOM holds the live copy and `value`
+   * follows it; this writes back into the DOM only when `value` arrived from
+   * somewhere else (another block, undo/redo, a template) and so genuinely
+   * disagrees with what is on screen. A layout effect, not `useEffect`, so
+   * switching blocks never paints the outgoing block's body.
+   */
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const html = value.replace(/\n/g, "<br>");
+    if (html !== el.innerHTML) el.innerHTML = html;
+  }, [value]);
   return <div className="rich-editor"><div className="formatbar">
     <button type="button" onMouseDown={e=>e.preventDefault()} onClick={()=>command("bold")} aria-label="Bold"><b>B</b></button>
     <button type="button" onMouseDown={e=>e.preventDefault()} onClick={()=>command("italic")} aria-label="Italic"><i>I</i></button>
@@ -31,5 +48,5 @@ export function RichEditor({ value, onChange }: { value:string; onChange:(v:stri
     <label title="Font color"><span>A</span><input type="color" defaultValue="#243B53" onChange={e=>command("foreColor",e.target.value)}/></label>
     <label title="Highlight"><span className="highlight-a">A</span><input type="color" defaultValue="#FEF3C7" onChange={e=>command("hiliteColor",e.target.value)}/></label>
     <details className="emoji-menu"><summary title="Insert emoji">☺</summary><div>{emojis.map(x=><button type="button" key={x} onMouseDown={e=>e.preventDefault()} onClick={()=>command("insertText",x)}>{x}</button>)}</div></details>
-  </div><div key={value === "" ? "empty" : "filled"} ref={ref} className="editable" contentEditable suppressContentEditableWarning dangerouslySetInnerHTML={{__html:value.replace(/\n/g,"<br>")}} onInput={e=>onChange(e.currentTarget.innerHTML)} /></div>;
+  </div><div ref={ref} className="editable" contentEditable suppressContentEditableWarning onInput={e=>onChange(e.currentTarget.innerHTML)} /></div>;
 }
