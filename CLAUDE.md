@@ -107,7 +107,7 @@ npm run build:ext  # the extension build - the other real gate
 npm test           # test:core + probe:test, and it is a usable signal again
 npm run test:core  # 63 tests over core/ - green, keep it that way
 npm run probe:test # 26 tests over the probe analyzer - green, keep it that way
-npm run lint       # see the baseline below before trusting the result
+npm run lint       # 0 errors - anything else is yours, or stale build output
 npm run probe      # regenerate the compatibility kit into docs/
 ```
 
@@ -194,5 +194,25 @@ when a session opens, or `/wrap-up` isn't offered — clone that repo and run
 `install.ps1`. Its README covers the rest.
 
 This file is where the shared `/wrap-up` looks for this project's checks, so keep
-the known-red baseline above current. If your lint count isn't 15, update it here
-rather than working around it.
+the Checks section above current. Every check there is green; if one of them goes
+red for a reason that is *expected* rather than broken, say so here rather than
+working around it.
+
+### Stale output from the pre-Phase-3 stack blocks the auto-pull
+
+On 2026-08-18 a machine that had last built at Phase 0 pulled Phase 4 and found
+`dist/`, `.next/` and `.wrangler/` sitting untracked: Phase 3 narrowed
+`.gitignore` to the two output directories that still exist, and those three are
+no longer among them. Nothing regenerates them — the toolchain that wrote them is
+deleted — but while they are present they break two things at once:
+
+- the auto-pull hook reads the tree as dirty and declines with `uncommitted
+  changes - auto-pull skipped`, so the session silently starts out of date;
+- `npm run lint` reads their minified bundles and reports thousands of errors
+  instead of 0, the same trap as the old 1681 count.
+
+Deleting them fixes both, and is safe:
+
+```powershell
+Remove-Item -Recurse -Force .next, dist, .wrangler -ErrorAction SilentlyContinue
+```
