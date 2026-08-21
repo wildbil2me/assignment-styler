@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-## Current state: rebuild in progress, phases 0–3 done
+## Current state: rebuild complete, phases 0–5 implemented
 
 The plan is [docs/rebuild-plan-v2.md](docs/rebuild-plan-v2.md) — read it before
 starting work. (v1, `docs/rebuild-plan.md`, was deleted in Phase 2 as v1 itself
@@ -10,7 +10,8 @@ instructed; it had drifted and said nothing was implemented.)
 
 - **Phase 0 — done.** Blackbaud measured across three surfaces:
   [docs/blackbaud-compatibility.md](docs/blackbaud-compatibility.md), encoded as
-  data in `core/compat.ts`. Five rows still need a human.
+  data in `core/compat.ts`. Four measured rows need manual observations; R42 and
+  R43 were added later and need a new tenant probe run.
 - **Phase 1 — done.** Domain logic extracted from `app/page.tsx` into `core/`,
   proven byte-identical at the time.
 - **Phase 2 — done.** Tokenized: the fused subject presets became **profiles
@@ -32,8 +33,11 @@ instructed; it had drifted and said nothing was implemented.)
     `localStorage`. A whole workspace exports to and imports from a JSON file.
     `core/ids.ts` is the single id source. Carried-forward bugs #5 and #7 fixed,
     **and the lint baseline is gone — `npm run lint` is clean.**
-- **Phase 5 next** — publish: LICENSE, README screenshots, semver, CHANGELOG, CI
-  on both shells.
+- **Phase 5 — implemented.** MIT license, real screenshots, a privacy-first
+  README, SemVer release policy, changelog, synchronized release metadata, and
+  CI over lint + tests + typecheck + both shells. The Pages deployment runs the
+  same gates before publishing. Creating the `v0.1.0` tag remains an explicit
+  release action, not something a local build does automatically.
 
 Decided 2026-08-11: the target audience is other schools (public), both the web
 app and the extension stay, and AI drafting is deferred to a future feature —
@@ -102,6 +106,7 @@ shell*, and a teacher who wants the same class style in both sets it in both.
 ## Checks
 
 ```bash
+npm run check:release # package, lockfile, extension and changelog agree
 npm run build      # the web build - the real gate, must pass
 npm run build:ext  # the extension build - the other real gate
 npm test           # test:core + probe:test, and it is a usable signal again

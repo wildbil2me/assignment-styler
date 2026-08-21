@@ -31,7 +31,7 @@ column says otherwise.
 | Where | What it is | Audience | Cost to change |
 | --- | --- | --- | --- |
 | `package.json` → `name` | npm package identity, `betterbaud` | internal | free |
-| `apps/web/index.html` | `<title>` and `og:title` | **public** — browser tab, link previews | free |
+| `apps/web/index.html` | `<title>`, social metadata and `og.png` | **public** — browser tab, link previews | free |
 | `apps/ext/index.html` | `<title>` of the side panel | public | free |
 | `apps/ext/public/manifest.json` | extension `name`, and `action.default_title` | **public** — shown in the browser's extension list | free before publishing to a store; a store listing is a rename with users attached |
 | `ui/composer.tsx` | the brand block in the top bar: mark letter, wordmark, "for Blackbaud" strapline | **public** — the most visible instance | free |

@@ -476,9 +476,23 @@ written back as `version: 1` with all four of those handled.
 
 ## Phase 5 — publish
 
-LICENSE, README with screenshots, semver, CHANGELOG, CI running lint + test +
-build on both shells. State prominently, because for schools it's a feature:
-**no data leaves the browser.**
+**Implemented 2026-08-21.** The repository is release-ready; merging and tagging
+remain explicit publication actions.
+
+- MIT license attributed to Betterbaud contributors.
+- Privacy-first README with real captures of both running shells and prominent
+  disclosure that no data leaves the browser.
+- Semantic Versioning policy and a `0.1.0` changelog, with a release check that
+  keeps `package.json`, `package-lock.json`, the extension manifest and the
+  changelog synchronized.
+- CI running release validation, lint, all tests, TypeScript and both production
+  builds. The extension output is retained as a workflow artifact.
+- Pages deployment runs the same gates before publishing, and the deleted social
+  image has been replaced by a 1200 × 630 capture of the real composer.
+
+The remaining release operation is deliberately human-triggered: merge the
+release commit, smoke-test the deployed site and unpacked extension, then create
+the `v0.1.0` tag and matching GitHub release. See `docs/releasing.md`.
 
 ## Later — motion
 
@@ -567,11 +581,12 @@ Fixed by the phases above, listed so none get lost:
    hardcoded `MACBETH · ACT II` after scraping three regexes. Endpoint, fallback
    and the UI that offered them are all gone; the prompt and schema live in
    [ai-drafting.md](ai-drafting.md).
-2. Compatibility panel is decorative — Phase 4.
+2. ~~Compatibility panel is decorative.~~ **Fixed in Phase 4** with computed,
+   tri-state accessibility and compatibility checks.
 3. ~~`safeRich()` diverges under SSR~~ — **moot since Phase 3.** No SSR left.
-4. ~~`public/og.png` is 1.05 MB in the Pages artifact.~~ **Deleted in Phase 3**,
-   along with the `og:image` tags that referenced it. Phase 5 owns what replaces
-   them.
+4. ~~`public/og.png` is 1.05 MB in the Pages artifact.~~ **Fixed in Phases 3 and
+   5.** The starter image was deleted, then replaced for publication with a
+   compact 1200 × 630 capture of the real composer and restored social metadata.
 5. ~~Deleting the first block calls `setSelected(blocks[0]?.id)` against the
    pre-deletion array, re-selecting the block it just removed.~~ **Fixed in
    Phase 4.** It selects the neighbour that slid into its place.

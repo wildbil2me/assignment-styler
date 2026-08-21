@@ -10,6 +10,7 @@
     "build": "vite build",
     "dev:ext": "vite --config vite.ext.config.ts",
     "build:ext": "vite build --config vite.ext.config.ts",
+    "check:release": "node tools/check-release.mjs",
     "lint": "eslint .",
     "test": "npm run test:core && npm run probe:test",
     "test:core": "node --test tests/core.test.mjs tests/golden.test.mjs",

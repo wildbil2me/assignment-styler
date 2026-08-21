@@ -1,7 +1,7 @@
 # Blackbaud compatibility
 
 Measured 2026-08-12 with `docs/compat-probe.html` (41 rows measured; the kit now
-carries 42 — see R42), analyzed with `docs/compat-analyzer.html`. Procedure: paste into the
+carries 43 — see R42 and R43), analyzed with `docs/compat-analyzer.html`. Procedure: paste into the
 HTML/source editor, save, switch to the visual editor, save again, reopen the
 source editor, copy out.
 
@@ -12,8 +12,8 @@ designed to be overridden, not assumed.
 ## Headline
 
 **Blackbaud is far more permissive than the prototype assumed.** 37 of 41 rows
-survive on bulletin and topic; 35 on assignment. Four rows still need eyes (see
-Outstanding).
+survive on bulletin and topic; 35 on assignment. Four measured rows still need
+eyes, and two rows added later remain unmeasured (see Outstanding).
 
 Three findings change the plan:
 
@@ -72,6 +72,7 @@ Three findings change the plan:
 | R40 | `<details>` / `<summary>` | survived | survived | survived |
 | R41 | animated GIF | *manual* | *manual* | *manual* |
 | R42 | `flex-wrap` on a flex row | *unmeasured* | *unmeasured* | *unmeasured* |
+| R43 | `<h2>` inside `<summary>` | *unmeasured* | *unmeasured* | *unmeasured* |
 
 R42 was added by Phase 2, after the paste session — the renderer's half-width row
 asks for `display:flex` so two cards reach equal heights, and flex without
@@ -80,6 +81,12 @@ records it as true by inference (see below); the next probe run settles it.
 Until then the renderer only emits the flex wrapper when the spec says so, and
 falls back to the inline-block strategy when it does not, so a wrong inference
 costs equal-height cards and nothing else.
+
+R43 was added by Phase 4 after card headings became semantic `<h2>` elements.
+The HTML standard permits a heading inside `<summary>`, but the renderer does
+not emit that nesting until Blackbaud is measured preserving it. Until then a
+collapsible section remains accessible disclosure content but contributes no
+heading to the document outline, and the compatibility panel says so.
 
 ### The only per-surface difference
 
@@ -198,10 +205,15 @@ importer's best structural signal is intact.
 
 ## Outstanding
 
-Five rows need a human. Two of them affect the chosen direction:
+Six rows need a human. Three of them affect the chosen direction or document
+structure:
 
 - **R42 flex-wrap** — added after the paste session; currently inferred rather
   than measured. Decides whether half-width cards reach equal heights.
+
+- **R43 heading inside summary** — added after the paste session; currently
+  unmeasured. Decides whether collapsible sections can contribute a semantic
+  heading without Blackbaud rewriting the structure.
 
 - **R33 emoji in a heading** — soft cards uses emoji as its section markers. If
   they render as monochrome glyphs or boxes rather than colour, the direction
@@ -212,5 +224,5 @@ Five rows need a human. Two of them affect the chosen direction:
 - **R41 animated GIF** — moot now that motion is off; answer it only out of
   curiosity.
 
-Re-open the saved probe, look at those four rows, and record them in the
-analyzer.
+Re-open the saved probe to record the four manual rows. Run the current 43-row
+kit through the same three surfaces to settle R42 and R43.

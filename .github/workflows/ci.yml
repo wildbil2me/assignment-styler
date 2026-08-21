@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check:release
+      - run: npm run lint
+      - run: npm test
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - run: npm run build:ext
+      - uses: actions/upload-artifact@v4
+        with:
+          name: betterbaud-extension-${{ github.sha }}
+          path: extension-dist
+          if-no-files-found: error
