@@ -8,12 +8,16 @@ All notable changes to this project are documented here. Versions follow
 ### Changed
 
 - Adopted the educator suite admin UI style guide across the web composer and
-  extension without changing exported Blackbaud HTML.
+  extension.
 - Added suite tokens, responsive/touch behavior, reduced-motion handling,
   accessible dialogs and menus, consistent interaction states, and inline SVG
   controls.
 - Replaced the unconditional autosave claim with verified saving, saved, and
   failure states backed by the active browser storage adapter.
+- Revalidated compatibility with a 50-row probe across all three Blackbaud
+  surfaces, including rich formatting, alignment, nested lists, and flex wrap.
+- Normalized strikethrough to Blackbaud's stored line-through span and added
+  measured semantic headings to collapsible sections.
 
 ### Added
 

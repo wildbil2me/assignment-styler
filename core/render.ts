@@ -41,7 +41,7 @@ import { blockMeta } from "./catalog.ts";
 import { esc, safeRich } from "./sanitize.ts";
 import { fontStack, resolveTone } from "./profiles/index.ts";
 import { style } from "./degrade.ts";
-import { stJohns, supportsElement, supportsStyle, type CompatSpec } from "./compat.ts";
+import { stJohns, supportsElement, supportsHeadingInSummary, supportsStyle, type CompatSpec } from "./compat.ts";
 
 export function renderHtml(
   blocks: Block[],
@@ -159,13 +159,26 @@ export function renderHtml(
 
     // Disclosure where the tenant keeps it (R40), an ordinary open card where it
     // does not — a compatibility decision must never hide a teacher's content.
-    if (b.type === "details" && supportsElement(spec, "details", surface.key))
+    if (b.type === "details" && supportsElement(spec, "details", surface.key)) {
+      const summary = supportsHeadingInSummary(spec, surface.key)
+        ? `<summary style="${s([["cursor", "pointer"]])}"><h2 style="${s([
+            ["display", "inline"],
+            ["margin", "0"],
+            ["color", tone.label],
+            ["font-family", fontStack(profile.fonts.heading)],
+            ["font-size", head.size],
+            ["font-weight", head.weight],
+            ["letter-spacing", head.letterSpacing === "0" ? "" : head.letterSpacing],
+            ["text-transform", head.transform === "none" ? "" : head.transform],
+          ])}">${icon}${label}</h2></summary>`
+        : `<summary style="${headingStyle}">${icon}${label}</summary>`;
       return (
         `<details data-layout="${b.width || "full"}" style="${box}">` +
-        `<summary style="${headingStyle}">${icon}${label}</summary>` +
+        summary +
         `<div style="${s([["margin", `${spacing.xs} 0 0`]])}">${body}</div>` +
         `</details>`
       );
+    }
 
     // A card heading is an `<h2>`, not a styled paragraph. Phase 4 decision D3:
     // the hero's `<h1>` was the only heading in the document, so a screen reader
@@ -174,9 +187,6 @@ export function renderHtml(
     // inline style already fixes size, weight and margin, so the tag changes and
     // the rendering does not.
     //
-    // `<summary>` above is deliberately left alone. The spec permits a heading
-    // inside it, but that nesting is unmeasured against Blackbaud, and this
-    // renderer emits only what the probe verified.
     return (
       `<div data-layout="${b.width || "full"}" style="${box}">` +
       `<h2 style="${headingStyle}">${icon}${label}</h2>` +

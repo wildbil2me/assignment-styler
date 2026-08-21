@@ -22,10 +22,12 @@ branch at `65bc4f5d3bbabd280724ee66f2c473f98cc9747a`, recorded with file hashes 
   exceptions, documents upgrades, and produces 0-violation/0-warning source
   and built conformance results.
 
-The exported HTML goldens remain unchanged, workspace schema remains version 1,
-and extension permissions remain unchanged. Final browser review captures and
-the real unpacked-extension handoff are recorded separately from the automated
-implementation gates.
+The style-guide migration itself left exported HTML unchanged; workspace schema
+remains version 1 and extension permissions remain unchanged. A subsequent
+2026-08-21 Blackbaud probe deliberately updated the disclosure goldens and
+strikethrough sanitizer snapshot based on newly measured behavior. Final browser
+review captures and the real unpacked-extension handoff are recorded separately
+from the automated implementation gates.
 
 ## Goal
 

@@ -272,6 +272,15 @@ textarea#input{width:100%;height:190px;line-height:1.5;margin:14px 0 0;}
 .tally .n{font-size:26px;font-weight:600;letter-spacing:-.5px;font-variant-numeric:tabular-nums;line-height:1.1;}
 .tally .k{font-family:var(--mono);font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin:5px 0 0;}
 .n.ok{color:var(--ok);} .n.warn{color:var(--warn);} .n.bad{color:var(--bad);}
+.findings{margin:26px 0 0;padding:20px;border:1px solid var(--rule);background:var(--panel);}
+.findings h2{font-size:17px;}
+.findings-list{display:grid;gap:10px;margin:14px 0 0;}
+.finding{display:grid;grid-template-columns:88px 1fr;gap:12px;padding:12px;border-left:3px solid var(--warn);background:var(--panel-2);color:var(--ink-2);text-decoration:none;}
+.finding:hover{border-left-color:var(--accent);}
+.finding.bad{border-left-color:var(--bad);}
+.finding.manual{border-left-color:var(--muted);}
+.finding b{display:block;color:var(--ink);font-size:14px;}
+.finding p{margin:3px 0 0;color:var(--muted);font-size:12px;line-height:1.45;}
 .res{border:1px solid var(--rule);background:var(--panel);margin:26px 0 0;}
 .res-row{display:grid;grid-template-columns:100px 1fr 116px;gap:14px;padding:13px 17px;border-bottom:1px solid var(--rule-soft);align-items:start;}
 .res-row:last-child{border-bottom:0;}
@@ -279,7 +288,12 @@ textarea#input{width:100%;height:190px;line-height:1.5;margin:14px 0 0;}
 .rid{font-family:var(--mono);font-size:11.5px;color:var(--muted);}
 .rname{font-weight:600;font-size:14.5px;}
 .rdetail{font-family:var(--mono);font-size:11px;color:var(--muted);margin:5px 0 0;overflow-wrap:anywhere;}
-.rdetail b{color:var(--ink-2);font-weight:600;}
+.evidence{margin:10px 0 0;border-top:1px solid var(--rule-soft);padding:9px 0 0;}
+.evidence summary{color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.evidence dl{display:grid;grid-template-columns:90px minmax(0,1fr);gap:6px 10px;margin:10px 0 0;font-size:12px;}
+.evidence dt{color:var(--muted);font-family:var(--mono);}
+.evidence dd{margin:0;color:var(--ink-2);overflow-wrap:anywhere;}
+.evidence code{display:block;max-height:130px;overflow:auto;padding:8px;background:var(--ground);color:var(--ink-2);font-size:10.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word;}
 .verdict{font-family:var(--mono);font-size:10px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;padding:4px 8px;text-align:center;}
 .v-survived{background:var(--ok-soft);color:var(--ok);}
 .v-stripped{background:var(--bad-soft);color:var(--bad);}
@@ -291,6 +305,7 @@ textarea#input{width:100%;height:190px;line-height:1.5;margin:14px 0 0;}
 .manual-pick button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
 .empty{padding:40px 17px;text-align:center;color:var(--muted);font-size:14.5px;}
 .out{width:100%;height:200px;margin:14px 0 0;}
+@media(max-width:640px){.res-row{grid-template-columns:62px minmax(0,1fr);}.verdict{grid-column:1/-1;}.finding{grid-template-columns:1fr;}.evidence dl{grid-template-columns:1fr;}}
 </style></head><body>
 <div class="wrap">
   <header class="masthead">
@@ -325,6 +340,12 @@ textarea#input{width:100%;height:190px;line-height:1.5;margin:14px 0 0;}
     <div><p class="n" id="t-manual">0</p><p class="k">Needs your eyes</p></div>
   </div>
 
+  <section class="findings" id="findings" hidden>
+    <h2>What needs attention</h2>
+    <p class="sub">Each item says what changed or what you need to inspect. Select one to jump to its evidence.</p>
+    <div class="findings-list" id="findings-list"></div>
+  </section>
+
   <div class="res" id="res"><p class="empty">Results appear here once you analyze a paste.</p></div>
 
   <section class="section">
@@ -347,24 +368,44 @@ const results = {};   // surface -> id -> {verdict, detail, expected, found}
 
 ${ANALYZE_SRC}
 
+function escapeHtml(value){
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];
+  });
+}
+
+function attentionText(row, result){
+  if (result.verdict === 'rewritten') return 'Blackbaud kept the marked content but changed ' + row.name + '.';
+  if (result.verdict === 'stripped') return 'Blackbaud kept the marked content but removed ' + row.name + '.';
+  if (result.verdict === 'missing') return 'Blackbaud removed the marked content for ' + row.name + '.';
+  return 'Needs your eyes: ' + row.expect;
+}
+
 function render(surface){
   const res = results[surface] || {};
   const host = document.getElementById('res');
   const counts = { survived:0, rewritten:0, stripped:0, missing:0, manual:0 };
   let html = '';
+  let findings = '';
   let tier = null;
 
   ROWS.forEach(function(row){
     const r = res[row.id];
     if (!r) return;
     counts[r.verdict] = (counts[r.verdict] || 0) + 1;
+    if (r.verdict !== 'survived'){
+      const tone = r.verdict === 'missing' || r.verdict === 'stripped' ? 'bad' : r.verdict === 'manual' ? 'manual' : '';
+      findings += '<a class="finding ' + tone + '" href="#result-' + row.id + '">'
+        + '<span class="verdict v-' + r.verdict + '">' + escapeHtml(r.verdict) + '</span>'
+        + '<span><b>' + escapeHtml(row.id + ' · ' + row.name) + '</b><p>' + escapeHtml(attentionText(row, r)) + '</p></span></a>';
+    }
     if (row.tier !== tier){
       tier = row.tier;
       html += '<div class="res-row tierhead">Tier ' + tier + ' &mdash; ' + TIERS[tier] + '</div>';
     }
-    html += '<div class="res-row">'
+    html += '<div class="res-row" id="result-' + row.id + '">'
       + '<div class="rid">' + row.id + '<br><span class="stk">' + row.stakes + '</span></div>'
-      + '<div><div class="rname">' + row.name + '</div><div class="rdetail">' + r.detail + '</div>'
+      + '<div><div class="rname">' + escapeHtml(row.name) + '</div><div class="rdetail">' + escapeHtml(r.detail) + '</div>'
       + (r.verdict === 'manual'
           ? '<div class="manual-pick" data-row="' + row.id + '">'
             + ['survived','rewritten','stripped'].map(function(v){
@@ -372,12 +413,21 @@ function render(surface){
               }).join('')
             + '</div>'
           : '')
+      + '<details class="evidence"' + (r.verdict === 'survived' ? '' : ' open') + '><summary>Evidence and next check</summary><dl>'
+      + '<dt>Expected</dt><dd>' + escapeHtml(row.expect) + '</dd>'
+      + '<dt>Why it matters</dt><dd>' + escapeHtml(row.why) + '</dd>'
+      + '<dt>Analyzer found</dt><dd>' + escapeHtml(r.detail) + '</dd>'
+      + '<dt>Sent</dt><dd><code>' + escapeHtml(row.html) + '</code></dd>'
+      + '<dt>Returned</dt><dd><code>' + escapeHtml(r.found) + '</code></dd>'
+      + '</dl></details>'
       + '</div>'
       + '<div class="verdict v-' + (r.pick || r.verdict) + '">' + (r.pick || r.verdict) + '</div>'
       + '</div>';
   });
 
   host.innerHTML = html || '<p class="empty">Results appear here once you analyze a paste.</p>';
+  document.getElementById('findings-list').innerHTML = findings;
+  document.getElementById('findings').hidden = !findings;
   document.getElementById('tally').hidden = !html;
   ['survived','rewritten','stripped','missing','manual'].forEach(function(k){
     document.getElementById('t-' + k).textContent = counts[k] || 0;
@@ -399,7 +449,15 @@ document.getElementById('run').addEventListener('click', function(){
   const doc = new DOMParser().parseFromString(text, 'text/html');
   const parse = function(html){ return new DOMParser().parseFromString(html, 'text/html'); };
   results[surface] = {};
-  ROWS.forEach(function(row){ results[surface][row.id] = analyze(doc, row, parse); });
+  ROWS.forEach(function(row){
+    const result = analyzeRow(doc, row, parse);
+    const targets = markerTargets(row);
+    result.found = targets.map(function(target){
+      const found = markerEl(doc, target);
+      return found ? target + ': ' + found.outerHTML : target + ': no returned element contains this marker.';
+    }).join('\n');
+    results[surface][row.id] = result;
+  });
   render(surface);
 });
 document.getElementById('clear').addEventListener('click', function(){

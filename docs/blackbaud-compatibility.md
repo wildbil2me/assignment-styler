@@ -1,7 +1,7 @@
 # Blackbaud compatibility
 
-Measured 2026-08-12 with `docs/compat-probe.html` (41 rows measured; the kit now
-carries 43 — see R42 and R43), analyzed with `docs/compat-analyzer.html`. Procedure: paste into the
+Measured 2026-08-21 with the 50-row `docs/compat-probe.html`, analyzed with
+`docs/compat-analyzer.html`. Procedure: paste into the
 HTML/source editor, save, switch to the visual editor, save again, reopen the
 source editor, copy out.
 
@@ -11,9 +11,10 @@ designed to be overridden, not assumed.
 
 ## Headline
 
-**Blackbaud is far more permissive than the prototype assumed.** 37 of 41 rows
-survive on bulletin and topic; 35 on assignment. Four measured rows still need
-eyes, and two rows added later remain unmeasured (see Outstanding).
+**Blackbaud is far more permissive than the prototype assumed.** The current
+results match across bulletin, topic, and assignment. Style blocks and CSS
+keyframes are stripped as expected; strikethrough is normalized without visual
+loss; R48 still needs reanalysis with the corrected multi-marker analyzer.
 
 Three findings change the plan:
 
@@ -58,45 +59,49 @@ Three findings change the plan:
 | R26 | `<blockquote>` | survived | survived | survived |
 | R27 | `<ul>` + `list-style-type:none` | survived | survived | survived |
 | R28 | `<ol>` | survived | survived | survived |
-| R29 | consecutive `<br>` runs | *manual* | *manual* | *manual* |
+| R29 | consecutive `<br>` runs | survived | survived | survived |
 | R30 | `<a href>` | survived | survived | survived |
 | R31 | `target` / `rel` hardening | survived | survived | survived |
 | R32 | `<span style="color">` | survived | survived | survived |
-| R33 | emoji in a heading | *manual* | *manual* | *manual* |
-| R34 | entities and `&nbsp;` | *manual* | *manual* | *manual* |
+| R33 | emoji in a heading | survived | survived | survived |
+| R34 | entities and `&nbsp;` | survived | survived | survived |
 | R35 | divs nested three deep | survived | survived | survived |
 | R36 | `<img>` with inline width | survived | survived | survived |
-| R37 | **inline `<svg>`** | survived | survived | **stripped** |
+| R37 | inline `<svg>` | survived | survived | survived |
 | R38 | **`@keyframes` in `<style>`** | **stripped** | **stripped** | **stripped** |
-| R39 | **SVG SMIL `<animate>`** | survived | survived | **stripped** |
+| R39 | SVG SMIL `<animate>` | survived | survived | survived |
 | R40 | `<details>` / `<summary>` | survived | survived | survived |
 | R41 | animated GIF | *manual* | *manual* | *manual* |
-| R42 | `flex-wrap` on a flex row | *unmeasured* | *unmeasured* | *unmeasured* |
-| R43 | `<h2>` inside `<summary>` | *unmeasured* | *unmeasured* | *unmeasured* |
+| R42 | `flex-wrap` on a flex row | survived | survived | survived |
+| R43 | `<h2>` inside `<summary>` | survived | survived | survived |
+| R44 | `<b>` bold text | survived | survived | survived |
+| R45 | `<i>` italic text | survived | survived | survived |
+| R46 | `<u>` underlined text | survived | survived | survived |
+| R47 | `<strike>` struck text | rewritten to line-through span | rewritten to line-through span | rewritten to line-through span |
+| R48 | `text-align` values | justify survived; reanalyze others | justify survived; reanalyze others | justify survived; reanalyze others |
+| R49 | combined rich inline formatting | survived | survived | survived |
+| R50 | list nested inside a rendered card | survived | survived | survived |
 
-R42 was added by Phase 2, after the paste session — the renderer's half-width row
-asks for `display:flex` so two cards reach equal heights, and flex without
-wrapping overflows a phone instead of stacking. `core/compat.ts` currently
-records it as true by inference (see below); the next probe run settles it.
-Until then the renderer only emits the flex wrapper when the spec says so, and
-falls back to the inline-block strategy when it does not, so a wrong inference
-costs equal-height cards and nothing else.
+R42 confirms that the renderer's half-width flex row wraps on all three
+surfaces. The inline-block declarations remain in the same markup as a fallback
+for stricter, unmeasured tenants.
 
-R43 was added by Phase 4 after card headings became semantic `<h2>` elements.
-The HTML standard permits a heading inside `<summary>`, but the renderer does
-not emit that nesting until Blackbaud is measured preserving it. Until then a
-collapsible section remains accessible disclosure content but contributes no
-heading to the document outline, and the compatibility panel says so.
+R43 confirms that Blackbaud preserves an `<h2>` inside `<summary>` on all three
+surfaces. Measured tenants now receive that semantic heading; conservative
+tenants retain the prior plain-summary fallback.
 
-### The only per-surface difference
+R44–R46, R49, and R50 survive unchanged. R47 is visually preserved but
+Blackbaud rewrites `<strike>` to `<span style="text-decoration: line-through;">`;
+the renderer and importer normalize to that measured form. The original
+analyzer checked only R48d, so justify is confirmed while the other alignment
+values await reanalysis with the corrected analyzer.
 
-**Assignment strips inline `<svg>`** (R37), and SMIL with it (R39). Bulletin and
-topic keep both.
+### No current per-surface difference
 
-Note the workaround already sitting in the data: R36 passes an SVG as
-`<img src="data:image/svg+xml;base64,…">` and it survives on *all three*
-surfaces. So vector graphics are available everywhere — as data-URI images, not
-as inline `<svg>`. If icons ever replace emoji, that is the route.
+The 2026-08-21 run retained inline SVG and SMIL on Assignment as well as
+Bulletin Board and Topic, unlike the 2026-08-12 baseline. Exported motion remains
+disabled because it cannot honor reduced-motion preferences. Data-URI images
+remain the more portable vector route for unmeasured tenants.
 
 ### Styles are re-serialized, not passed through
 
@@ -205,24 +210,15 @@ importer's best structural signal is intact.
 
 ## Outstanding
 
-Six rows need a human. Three of them affect the chosen direction or document
-structure:
+Two narrow items remain:
 
-- **R42 flex-wrap** — added after the paste session; currently inferred rather
-  than measured. Decides whether half-width cards reach equal heights.
+- **R48 alignment variants** — the original analyzer reported only the last
+  lettered marker, confirming justify but not independently reporting left,
+  center, and right. The corrected analyzer now evaluates all four markers; the
+  same stored HTML can be pasted into it again without rerunning the probe.
+- **R41 animated GIF** — intentionally left unanswered because exported motion
+  is disabled. It has no product impact.
 
-- **R43 heading inside summary** — added after the paste session; currently
-  unmeasured. Decides whether collapsible sections can contribute a semantic
-  heading without Blackbaud rewriting the structure.
-
-- **R33 emoji in a heading** — soft cards uses emoji as its section markers. If
-  they render as monochrome glyphs or boxes rather than colour, the direction
-  needs different markers.
-- **R34 entities and `&nbsp;`** — decides whether `esc()` output is stable, or
-  double-escapes into visible `&amp;amp;` on a round trip.
-- **R29 consecutive `<br>` runs** — the rich editor emits these constantly.
-- **R41 animated GIF** — moot now that motion is off; answer it only out of
-  curiosity.
-
-Re-open the saved probe to record the four manual rows. Run the current 43-row
-kit through the same three surfaces to settle R42 and R43.
+R29's original instruction was also corrected: three consecutive `<br>`
+elements produce two empty visual lines between the surrounding text lines, so
+the observed result is a pass rather than a discrepancy.

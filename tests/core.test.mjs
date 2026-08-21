@@ -195,6 +195,8 @@ test("safeRich enforces the allowlist", () => {
   assert.equal(safeRich('<a href="javascript:x">t</a>'), "<a>t</a>", "bad scheme dropped");
   assert.equal(safeRich('<a href="/rel">t</a>'), "<a>t</a>", "relative href dropped");
   assert.doesNotMatch(safeRich('<span style="font-size:99px">t</span>'), /font-size/);
+  assert.match(safeRich("<strike>t</strike>"), /^<span style="text-decoration:line-through;?">t<\/span>$/);
+  assert.match(safeRich('<span style="text-decoration: line-through; font-size:99px">t</span>'), /^<span style="text-decoration:line-through;?">t<\/span>$/);
   assert.doesNotMatch(safeRich('<span title="x">t</span>'), /title/);
   assert.doesNotMatch(safeRich('<p onclick="x()">t</p>'), /onclick/);
 });
@@ -300,10 +302,10 @@ test("degrade skips empty values, so a profile opts out with an empty token", ()
   assert.equal(style([["box-shadow", ""], ["padding", "16px"]], stJohns, "topic"), "padding:16px;");
 });
 
-test("degrade resolves per-surface support", () => {
-  // Assignment strips inline <svg>; bulletin and topic keep it (probe R37).
+test("the latest probe records inline svg on every surface", () => {
+  // The 2026-08-21 R37 rerun supersedes the earlier Assignment-only strip.
   assert.equal(supportsElement(stJohns, "svg", "bulletin"), true);
-  assert.equal(supportsElement(stJohns, "svg", "assignment"), false);
+  assert.equal(supportsElement(stJohns, "svg", "assignment"), true);
 });
 
 /* ---------------------------------------------------------------- render */
@@ -388,7 +390,10 @@ test("details renders as disclosure where it survives, as a card where it does n
 
   const open = render(block);
   assert.match(open, /<details data-layout="full"/);
-  assert.match(open, /<summary style="[^"]+">Answers<\/summary>/);
+  assert.match(open, /<summary style="[^"]+"><h2 style="[^"]+">Answers<\/h2><\/summary>/);
+
+  const plainSummary = render(block, { spec: { ...stJohns, headingInSummary: false } });
+  assert.match(plainSummary, /<summary style="[^"]+">Answers<\/summary>/, "unmeasured nesting keeps the plain-summary fallback");
 
   const flat = render(block, { spec: conservative });
   assert.doesNotMatch(flat, /<details/, "unsupported disclosure degrades to a card");
@@ -608,16 +613,13 @@ test("heading structure follows what the renderer actually emits", () => {
   );
   assert.match(late.checks.find((c) => c.id === "heading-order").detail, /not the first block/);
 
-  // A disclosure is a control, not a heading, and the report says so rather
-  // than counting it as structure.
+  // R43 measured a heading surviving inside the disclosure control, so it now
+  // contributes to the document outline.
   const disclosure = runChecks(
     [...starter, { id: 50, type: "details", title: "Answer key", body: "A" }],
     profiles.soft, palettes.english, surfaces.topic
   );
-  assert.match(
-    disclosure.checks.find((c) => c.id === "heading-order").detail,
-    /announced as a disclosure rather than a heading/
-  );
+  assert.match(disclosure.checks.find((c) => c.id === "heading-order").detail, /One <h1> and 5 <h2>s/);
 });
 
 test("hidden blocks are checked exactly as the renderer treats them", () => {

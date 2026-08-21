@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import packageJson from "../package.json";
 import { contrastRatio, requiredRatio, ASSUMED_PAGE_BACKGROUND } from "../core/checks.ts";
 import { importHtml } from "../core/import.ts";
 import { nextId, nextIds } from "../core/ids.ts";
@@ -44,6 +45,7 @@ export function Composer() {
   const [postMenu, setPostMenu] = useState(false);
   const [device, setDevice] = useState<Device>("desktop");
   const [styleEditor, setStyleEditor] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [styleDraft, setStyleDraft] = useState<Palette>(customPalette);
   const [fontDraft, setFontDraft] = useState<Profile["fonts"]>(defaultProfile.fonts);
   const [importOpen, setImportOpen] = useState(false);
@@ -56,6 +58,7 @@ export function Composer() {
   const backupFileRef = useRef<HTMLInputElement>(null);
   const closeStyleEditor = useCallback(() => setStyleEditor(false), []);
   const closeImport = useCallback(() => setImportOpen(false), []);
+  const closeAbout = useCallback(() => setAboutOpen(false), []);
 
   useEffect(() => {
     if (!postMenu) return;
@@ -72,7 +75,7 @@ export function Composer() {
   const savePost = () => {
     setSavedPosts(value => [{ id: Date.now(), title: postTitle, blocks: blocks.map(block => ({ ...block })) }, ...value].slice(0, 12));
     setPostMenu(false);
-    announce(`Saved a snapshot of ${postTitle} to My posts.`);
+    announce(`Temporarily saved a snapshot of ${postTitle} to My posts.`);
   };
   const loadPost = (post: SavedPost) => {
     setPostTitle(post.title);
@@ -149,7 +152,7 @@ export function Composer() {
     anchor.click();
     URL.revokeObjectURL(url);
     setPostMenu(false);
-    announce("Downloaded a backup of the complete workspace.");
+    announce("Downloaded a permanent backup of the complete workspace.");
   };
   const restoreWorkspace = async (file?: File) => {
     if (!file) return;
@@ -173,7 +176,7 @@ export function Composer() {
 
   if (!ready) return <main className="app-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">B</span><strong>Betterbaud</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading the composer</span></main>;
 
-  const saveLabel = saveStatus === "saving" ? "SAVING" : saveStatus === "error" ? "SAVE FAILED" : "SAVED LOCALLY";
+  const saveLabel = saveStatus === "saving" ? "SAVING TEMPORARILY" : saveStatus === "error" ? "TEMPORARY SAVE FAILED" : "TEMPORARILY SAVED";
 
   return <main className="app-shell">
     <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
@@ -186,8 +189,20 @@ export function Composer() {
         <label className="class-picker"><select value={profileKey} onChange={event => setProfileKey(event.target.value as ProfileKey)} aria-label="Visual style">{profileKeys.map(key => <option key={key} value={key}>{profiles[key].name}</option>)}</select></label>
         <button className="style-edit-button" onClick={() => { setStyleDraft({ ...palette, name: "Custom" }); setFontDraft(fonts); setStyleEditor(true) }}>Style editor</button>
       </div>
-      <button className="avatar" aria-label="Account" title="Account">WB</button>
+      <button className="about-button" onClick={() => setAboutOpen(true)}>About</button>
     </header>
+
+    {aboutOpen && <Dialog labelledBy="about-title" onClose={closeAbout} className="about-modal">
+      <header><div><span className="eyebrow">ABOUT</span><h2 id="about-title">Betterbaud</h2></div><button onClick={closeAbout} aria-label="Close About dialog" title="Close About dialog"><Icon name="close" /></button></header>
+      <div className="about-content">
+        <p className="about-version">Version {packageJson.version}</p>
+        <p>Betterbaud helps educators create structured class content and export inline-styled HTML designed to survive Blackbaud’s editor.</p>
+        <section><h3>Private by design</h3><p>There are no accounts, analytics, or backend services. Browser saves are temporary because clearing browser data can erase them. Back up your workspace often for a permanent copy.</p></section>
+        <section><h3>Independent software</h3><p>Betterbaud is not affiliated with, endorsed by, or produced by Blackbaud.</p></section>
+        <a className="about-source" href="https://github.com/toomey-sj/blackbaud-styler" target="_blank" rel="noreferrer">View source on GitHub ↗</a>
+      </div>
+      <footer><button className="apply-style" onClick={closeAbout}>Done</button></footer>
+    </Dialog>}
 
     {styleEditor && <Dialog labelledBy="style-editor-title" onClose={closeStyleEditor}>
       <header><div><span className="eyebrow">CLASS STYLE</span><h2 id="style-editor-title">Create a custom style</h2></div><button onClick={closeStyleEditor} aria-label="Close style editor" title="Close style editor"><Icon name="close" /></button></header>
@@ -234,16 +249,16 @@ export function Composer() {
           {postMenu && <div ref={menuRef} className="post-menu-popover" role="menu">
             <button role="menuitem" onClick={newPost}><span aria-hidden="true"><Icon name="add" /></span><div><strong>New post</strong><small>Start with a blank composition</small></div></button>
             <button role="menuitem" onClick={duplicatePost}><span aria-hidden="true"><Icon name="duplicate" /></span><div><strong>Duplicate draft</strong><small>Make an editable copy</small></div></button>
-            <button role="menuitem" onClick={savePost}><span aria-hidden="true"><Icon name="save" /></span><div><strong>Save to My posts</strong><small>Keep a named snapshot</small></div></button>
+            <button role="menuitem" onClick={savePost}><span aria-hidden="true"><Icon name="save" /></span><div><strong>Save temporarily to My posts</strong><small>Browser data can erase this snapshot</small></div></button>
             <button role="menuitem" onClick={restoreExample}><span aria-hidden="true"><Icon name="restore" /></span><div><strong>Restore example</strong><small>Return to the Macbeth sample</small></div></button>
-            <div className="saved-heading">EVERYTHING</div>
-            <button role="menuitem" onClick={backupWorkspace}><span aria-hidden="true"><Icon name="download" /></span><div><strong>Back up to a file</strong><small>Every post and style, as JSON</small></div></button>
-            <button role="menuitem" onClick={() => backupFileRef.current?.click()}><span aria-hidden="true"><Icon name="upload" /></span><div><strong>Restore from a backup</strong><small>Replaces what’s in the composer</small></div></button>
-            {/* conformance-ignore FORM-05 The adjacent Restore from a backup menu item names and opens this hidden input. */}
+            <div className="saved-heading">PERMANENT WORKSPACE BACKUP</div>
+            <button role="menuitem" onClick={backupWorkspace}><span aria-hidden="true"><Icon name="download" /></span><div><strong>Back up workspace</strong><small>Download every post and style permanently</small></div></button>
+            <button role="menuitem" onClick={() => backupFileRef.current?.click()}><span aria-hidden="true"><Icon name="upload" /></span><div><strong>Restore workspace backup</strong><small>Replaces this browser’s temporary workspace</small></div></button>
+            {/* conformance-ignore FORM-05 The adjacent Restore workspace backup menu item names and opens this hidden input. */}
             <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore Betterbaud backup" type="file" accept="application/json,.json" onChange={event => restoreWorkspace(event.target.files?.[0])} />
-            <div className="saved-heading">MY POSTS</div>
-            {savedPosts.length === 0 && <p className="empty-state compact">No saved snapshots yet. Choose “Save to My posts” to keep one.</p>}
-            {savedPosts.slice(0, 5).map(post => <button role="menuitem" key={post.id} onClick={() => loadPost(post)}><span aria-hidden="true">□</span><div><strong>{post.title}</strong><small>Open saved snapshot</small></div></button>)}
+            <div className="saved-heading">TEMPORARY MY POSTS</div>
+            {savedPosts.length === 0 && <p className="empty-state compact">No temporary snapshots yet. Save one to My posts for reuse in this browser.</p>}
+            {savedPosts.slice(0, 5).map(post => <button role="menuitem" key={post.id} onClick={() => loadPost(post)}><span aria-hidden="true">□</span><div><strong>{post.title}</strong><small>Open temporary snapshot</small></div></button>)}
           </div>}
         </div></div>
         <div className="purpose-picker"><span className="eyebrow">CREATE FOR</span><div role="tablist" aria-label="Blackbaud destination">{(Object.keys(surfaces) as SurfaceKey[]).map(key => <button key={key} role="tab" aria-selected={surfaceKey === key} className={surfaceKey === key ? "active" : ""} onClick={() => setSurfaceKey(key)}><strong>{surfaces[key].name}</strong><small>{surfaceDescriptions[key]}</small></button>)}</div></div>
