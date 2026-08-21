@@ -21,7 +21,7 @@ import { blockMeta } from "./catalog.ts";
 import { resolveTone } from "./profiles/index.ts";
 import { guard } from "./degrade.ts";
 import { renderHtml } from "./render.ts";
-import { stJohns, supportsElement, supportsStyle, type CompatSpec } from "./compat.ts";
+import { stJohns, supportsElement, supportsHeadingInSummary, supportsStyle, type CompatSpec } from "./compat.ts";
 
 /* ------------------------------------------------------------------ types */
 
@@ -321,10 +321,10 @@ function headingOrder(visible: Block[], spec: CompatSpec, surface: Surface): Che
     };
 
   const cards = visible.filter((b) => b.type !== "hero" && b.type !== "intro");
-  // A `<summary>` is a disclosure control, not a heading, and this renderer will
-  // not nest one inside the other until the probe measures that combination.
+  // A disclosure contributes a heading only where R43 measured that nesting.
   const disclosures = cards.filter(
-    (b) => b.type === "details" && supportsElement(spec, "details", surface.key)
+    (b) => b.type === "details" && supportsElement(spec, "details", surface.key) &&
+      !supportsHeadingInSummary(spec, surface.key)
   );
   const detail = `One <h1> and ${cards.length - disclosures.length} <h2>${cards.length - disclosures.length === 1 ? "" : "s"}, in order.`;
 

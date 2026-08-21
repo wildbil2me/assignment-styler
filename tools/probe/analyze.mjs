@@ -60,6 +60,19 @@ export function subMarker(text, id) {
   return m ? id + m[1] : id;
 }
 
+/** Every lettered marker a row carries, or its base id when it has only one. */
+export function markerTargets(row) {
+  if (row.at) return [row.at];
+  const found = [];
+  const re = new RegExp("\\[" + row.id + "([a-z])\\]", "g");
+  let match;
+  while ((match = re.exec(row.html))) {
+    const id = row.id + match[1];
+    if (found.indexOf(id) === -1) found.push(id);
+  }
+  return found.length ? found : [row.id];
+}
+
 /**
  * What we sent for `prop`, read back out of the row's own source.
  *
@@ -115,7 +128,7 @@ export function analyze(doc, row, parse) {
   if (!el)
     return {
       verdict: "missing",
-      detail: "marker " + target + " not found &mdash; the content itself was removed",
+      detail: "marker " + target + " not found — the content itself was removed",
     };
 
   if (kind === "style") {
@@ -131,9 +144,9 @@ export function analyze(doc, row, parse) {
           return {
             verdict: "rewritten",
             detail:
-              "sent <b>" + sent.join(" / ") + "</b> &middot; got <b>" + found + "</b> (" + where + ")",
+              "sent " + sent.join(" / ") + " · got " + found + " (" + where + ")",
           };
-        return { verdict: "survived", detail: found + " &middot; " + where };
+        return { verdict: "survived", detail: found + " · " + where };
       }
     }
     const own = el.getAttribute("style");
@@ -162,7 +175,7 @@ export function analyze(doc, row, parse) {
     }
     return {
       verdict: "rewritten",
-      detail: "<" + arg + "> gone &middot; marker now sits in <" + el.tagName.toLowerCase() + ">",
+      detail: "<" + arg + "> gone · marker now sits in <" + el.tagName.toLowerCase() + ">",
     };
   }
 
@@ -174,4 +187,18 @@ export function analyze(doc, row, parse) {
   }
 
   return { verdict: "manual", detail: "unrecognised check" };
+}
+
+/** Analyze every lettered specimen and report the worst result for the row. */
+export function analyzeRow(doc, row, parse) {
+  const targets = row.check === "manual" ? [row.at || row.id] : markerTargets(row);
+  if (targets.length === 1) return analyze(doc, { ...row, at: targets[0] }, parse);
+
+  const rank = { survived: 0, manual: 1, rewritten: 2, stripped: 3, missing: 4 };
+  const parts = targets.map((target) => ({ target, result: analyze(doc, { ...row, at: target }, parse) }));
+  const worst = parts.reduce((a, b) => rank[b.result.verdict] > rank[a.result.verdict] ? b : a);
+  return {
+    verdict: worst.result.verdict,
+    detail: parts.map(({ target, result }) => `${target}: ${result.detail}`).join(" | "),
+  };
 }

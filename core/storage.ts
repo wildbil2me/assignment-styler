@@ -61,12 +61,16 @@ function cleanBlocks(value: unknown): Block[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((b): b is Block & { animation?: string } => isObject(b) && typeof b.type === "string" && b.type in blockMeta)
-    .map(({ animation, ...b }) => ({
-      ...b,
-      id: Number(b.id),
-      title: str(b.title, ""),
-      body: str(b.body, ""),
-    }));
+    .map(({ animation, align, ...b }) => {
+      const safeAlign = ["left", "center", "right", "justify"].includes(String(align)) ? align : undefined;
+      return {
+        ...b,
+        id: Number(b.id),
+        title: str(b.title, ""),
+        body: str(b.body, ""),
+        ...(safeAlign ? { align: safeAlign } : {}),
+      };
+    });
 }
 
 /**
@@ -196,7 +200,8 @@ export function backupFilename(postTitle: string, today: string): string {
 
 export interface StorageAdapter {
   load(): Promise<Workspace | null>;
-  save(workspace: Workspace): Promise<void>;
+  /** True only when the workspace reached its durable browser store. */
+  save(workspace: Workspace): Promise<boolean>;
 }
 
 /** The web app. Synchronous underneath, promised here so both shells match. */
@@ -211,10 +216,13 @@ export const localAdapter: StorageAdapter = {
   },
   async save(workspace) {
     try {
-      globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(workspace));
+      if (!globalThis.localStorage) return false;
+      globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
+      return true;
     } catch {
       // Quota or private mode. Losing an autosave is survivable; crashing the
       // composer mid-sentence is not.
+      return false;
     }
   },
 };
@@ -248,11 +256,13 @@ export const chromeAdapter: StorageAdapter = {
   },
   async save(workspace) {
     const area = chromeArea();
-    if (!area) return;
+    if (!area) return false;
     try {
       await area.set({ [STORAGE_KEY]: workspace });
+      return true;
     } catch {
       // See localAdapter.save.
+      return false;
     }
   },
 };

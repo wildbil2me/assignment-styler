@@ -10,7 +10,7 @@
   "a<br>b<br/>c<br />d": "a<br>b<br>c<br>d",
   "<BR>uppercase break": "<br>uppercase break",
   "<strong>bold</strong> and <em>italic</em>": "<strong>bold</strong> and <em>italic</em>",
-  "<b>b</b><i>i</i><u>u</u><s>s</s><strike>strike</strike>": "<b>b</b><i>i</i><u>u</u><s>s</s><strike>strike</strike>",
+  "<b>b</b><i>i</i><u>u</u><s>s</s><strike>strike</strike>": "<b>b</b><i>i</i><u>u</u><span style=\"text-decoration:line-through\">s</span><span style=\"text-decoration:line-through\">strike</span>",
   "<span>span</span>": "<span>span</span>",
   "<ul><li>one</li><li>two</li></ul>": "<ul><li>one</li><li>two</li></ul>",
   "<ol><li>first</li></ol>": "<ol><li>first</li></ol>",

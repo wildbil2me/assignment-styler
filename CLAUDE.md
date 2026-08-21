@@ -107,10 +107,13 @@ shell*, and a teacher who wants the same class style in both sets it in both.
 
 ```bash
 npm run check:release # package, lockfile, extension and changelog agree
+npm run design:check # vendored authority integrity + source conformance, 0/0
 npm run build      # the web build - the real gate, must pass
 npm run build:ext  # the extension build - the other real gate
+npm run design:check:built # run after both builds, 0/0
 npm test           # test:core + probe:test, and it is a usable signal again
 npm run test:core  # 63 tests over core/ - green, keep it that way
+npm run test:design # admin chrome contrast, suppressions and permissions
 npm run probe:test # 26 tests over the probe analyzer - green, keep it that way
 npm run lint       # 0 errors - anything else is yours, or stale build output
 npm run probe      # regenerate the compatibility kit into docs/
@@ -221,3 +224,19 @@ Deleting them fixes both, and is safe:
 ```powershell
 Remove-Item -Recurse -Force .next, dist, .wrangler -ErrorAction SilentlyContinue
 ```
+
+## Design
+
+This app follows the educator suite style book, vendored in `design/`:
+
+- `design/RULES.md` — every rule, as text. Start here.
+- `design/tokens.json` — every value. Authoritative; never eyeball a hex.
+- `design/style-guide.html` — live specimens and rationale. Open in a browser to *see* a component.
+- `design/conformance.schema.json` and `design/tools/conformance.mjs` — bundled config contract and checker.
+
+Rules have stable IDs (`ARCH-01`, `COLOR-08`, `FORM-05`). Cite them in commits.
+Audit this app from the style book repo: `node tools/conformance.mjs <path-to-this-app>`
+
+Five invariants: no CSS custom properties, no dark mode, responsive blocks last
+(coarse → 1024 → 640), file-platform apps have no build or dependencies, and px not
+rem. Bundled apps declare their platform and obey §19.

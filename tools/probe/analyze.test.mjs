@@ -10,7 +10,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseHTML } from "linkedom";
-import { analyze, declOf, originalDecls, markerEl, subMarker } from "./analyze.mjs";
+import { analyze, analyzeRow, declOf, markerTargets, originalDecls, markerEl, subMarker } from "./analyze.mjs";
 import { rows } from "./rows.mjs";
 
 const parse = (html) => parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
@@ -67,6 +67,17 @@ test("each sub-marker is compared against its own declaration, not the row's fir
   assert.equal(analyze(pristine("R22"), row("R22"), parse).verdict, "survived");
 });
 
+test("a multi-value row evaluates every marker and reports the failing value", () => {
+  assert.deepEqual(markerTargets(row("R48")), ["R48a", "R48b", "R48c", "R48d"]);
+  assert.equal(analyzeRow(pristine("R48"), row("R48"), parse).verdict, "survived");
+
+  const changed = row("R48").html.replace("text-align:center", "text-align:left");
+  const result = analyzeRow(parse(changed), row("R48"), parse);
+  assert.equal(result.verdict, "rewritten");
+  assert.match(result.detail, /R48b: sent text-align:center · got text-align:left/);
+  assert.match(result.detail, /R48d: text-align:justify/);
+});
+
 test("without a parser, any value the row sent counts — never a false rewrite", () => {
   assert.equal(analyze(pristine("R04"), row("R04")).verdict, "survived");
   assert.deepEqual(originalDecls(row("R22"), "font-size"), [
@@ -80,7 +91,7 @@ test("without a parser, any value the row sent counts — never a false rewrite"
 
 test("every row reports survived (or manual) against its own pristine html", () => {
   for (const r of rows) {
-    const { verdict, detail } = analyze(parse(r.html), r, parse);
+    const { verdict, detail } = analyzeRow(parse(r.html), r, parse);
     const expected = r.check === "manual" ? "manual" : "survived";
     assert.equal(verdict, expected, `${r.id} ${r.name}: got ${verdict} — ${detail}`);
   }

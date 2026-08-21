@@ -55,8 +55,12 @@ export function useComposer({
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>([]);
   const [copied, setCopied] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const [ready, setReady] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">("saved");
   const past = useRef<Block[][]>([]), future = useRef<Block[][]>([]), previous = useRef<Block[]>(initialBlocks), historyAction = useRef(false);
   const dragged = useRef<number | null>(null);
+  const formatterRef = useRef<(command: string, argument?: string) => void>(() => undefined);
   const palette = styleKey === "custom" ? customPalette : palettes[styleKey];
   // Profile is the feel, palette is the subject. The teacher's font choice is a
   // profile override rather than a fourth profile.
@@ -101,8 +105,10 @@ export function useComposer({
   useEffect(() => {
     let live = true;
     store.current.load().then(w => {
-      hydrated.current = true;
       if (live && w) restore(w);
+    }).finally(() => {
+      hydrated.current = true;
+      if (live) setReady(true);
     });
     return () => { live = false };
   }, []);
@@ -114,11 +120,24 @@ export function useComposer({
   // with the defaults that were on screen while it was still loading.
   useEffect(() => {
     if (!hydrated.current) return;
-    const timer = setTimeout(() => { store.current.save(workspace) }, 250);
+    setSaveStatus("saving");
+    const timer = setTimeout(() => {
+      store.current.save(workspace).then(saved => setSaveStatus(saved ? "saved" : "error"));
+    }, 250);
     return () => clearTimeout(timer);
   }, [workspace]);
 
-  const update = (patch: Partial<Block>) => setBlocks(v => v.map(b => b.id === selected ? { ...b, ...patch } : b));
+  const updateBlock = (id: number, patch: Partial<Block>) => setBlocks(value => {
+    let changed = false;
+    const next = value.map(block => {
+      if (block.id !== id || Object.entries(patch).every(([key, field]) => block[key as keyof Block] === field)) return block;
+      changed = true;
+      return { ...block, ...patch };
+    });
+    return changed ? next : value;
+  });
+  const update = (patch: Partial<Block>) => updateBlock(selected, patch);
+  const format = (command: string, argument?: string) => formatterRef.current(command, argument);
   const move = (id: number, by: number) => setBlocks(v => { const i=v.findIndex(b=>b.id===id), j=i+by; if(j<0||j>=v.length)return v; const n=[...v]; [n[i],n[j]]=[n[j],n[i]]; return n; });
   const addBlock = () => {const id=nextId();setBlocks(v=>[...v,{id,type:"note",title:"Note",body:"Add your note here."}]);setSelected(id)};
   // Carried-forward bug #5: this used to call `setSelected(blocks[0]?.id)` against
@@ -134,7 +153,11 @@ export function useComposer({
   };
   const duplicateBlock = (id:number) => {const i=blocks.findIndex(b=>b.id===id);if(i<0)return;const copy={...blocks[i],id:nextId(),title:`${blocks[i].title} copy`};setBlocks(v=>[...v.slice(0,i+1),copy,...v.slice(i+1)]);setSelected(copy.id)};
   const dropBlock = (target:number) => {const source=dragged.current;if(source===null||source===target)return;setBlocks(v=>{const n=[...v],from=n.findIndex(b=>b.id===source),to=n.findIndex(b=>b.id===target);const [item]=n.splice(from,1);n.splice(to,0,item);return n});dragged.current=null};
-  const copy = async () => { await navigator.clipboard.writeText(html); setExportHistory(v=>[{date:new Date().toLocaleString(),title:postTitle,html},...v].slice(0,10)); setCopied(true); setTimeout(()=>setCopied(false),1800); };
+  const announce = (message: string) => {
+    setAnnouncement("");
+    window.setTimeout(() => setAnnouncement(message), 20);
+  };
+  const copy = async () => { await navigator.clipboard.writeText(html); setExportHistory(v=>[{date:new Date().toLocaleString(),title:postTitle,html},...v].slice(0,10)); setCopied(true); announce("Copied the generated HTML to the clipboard."); setTimeout(()=>setCopied(false),1800); };
   const undo = () => {const prior=past.current.pop();if(!prior)return;future.current.push(blocks);historyAction.current=true;setBlocks(prior)};
   const redo = () => {const next=future.current.pop();if(!next)return;past.current.push(blocks);historyAction.current=true;setBlocks(next)};
   // Named `applyTemplate`, not `useTemplate`: the old name made every linter and
@@ -147,8 +170,8 @@ export function useComposer({
     styleKey, setStyleKey, profileKey, setProfileKey, fonts, setFonts,
     customPalette, setCustomPalette, surfaceKey, setSurfaceKey,
     savedPosts, setSavedPosts, exportHistory, palette, profile, surface, html, report,
-    copied, dragged, workspace, restore,
-    update, move, addBlock, deleteBlock, duplicateBlock, dropBlock, copy, undo, redo, applyTemplate,
+    copied, announcement, ready, saveStatus, dragged, formatterRef, workspace, restore,
+    announce, update, updateBlock, format, move, addBlock, deleteBlock, duplicateBlock, dropBlock, copy, undo, redo, applyTemplate,
   };
 }
 

@@ -4,7 +4,7 @@
  * The allowlist is the contract: 11 inline tags survive, everything else is
  * unwrapped with its children kept, every attribute is dropped except `style`
  * (and `href` on anchors), non-http(s) hrefs go, and surviving inline styles are
- * narrowed to `color` and `background-color`.
+ * narrowed to `color`, `background-color`, and the measured line-through form.
  *
  * DOM-dependent by design. Both shells have a real DOM; tests shim `document`
  * and `HTMLElement` with linkedom. The plan's argument for an HTML-parser
@@ -67,9 +67,21 @@ export function safeRich(value: string): string {
     if (el instanceof HTMLElement && el.hasAttribute("style")) {
       const color = el.style.color;
       const bg = el.style.backgroundColor;
+      const lineThrough = /(^|\s)line-through(\s|$)/i.test(el.style.textDecoration);
       el.removeAttribute("style");
       if (color) el.style.color = color;
       if (bg) el.style.backgroundColor = bg;
+      if (lineThrough) el.style.textDecoration = "line-through";
+    }
+    if (el.tagName === "S" || el.tagName === "STRIKE") {
+      // Blackbaud normalizes both elements to this span after a visual-editor
+      // save. Emit its stored form up front and preserve it on re-import.
+      const span = document.createElement("span");
+      const keptStyle = el.getAttribute("style");
+      if (keptStyle) span.setAttribute("style", keptStyle);
+      span.style.textDecoration = "line-through";
+      span.append(...Array.from(el.childNodes));
+      el.replaceWith(span);
     }
   });
   return root.innerHTML;

@@ -1,7 +1,7 @@
 /**
  * Blackbaud compatibility rules, as data.
  *
- * Measured 2026-08-12 against one tenant across three surfaces — see
+ * Measured 2026-08-21 against one tenant across three surfaces — see
  * docs/blackbaud-compatibility.md for the method and the full result table.
  *
  * This is deliberately overridable. Another school's Blackbaud instance may be
@@ -42,6 +42,8 @@ export interface CompatSpec {
   readonly unlistedStyles: "allow" | "deny";
   /** Elements safe to emit. */
   readonly elements: Readonly<Record<string, Support>>;
+  /** Whether Blackbaud preserves an h2 nested inside a disclosure summary. */
+  readonly headingInSummary: Support;
 
   /**
    * The three fields below are **measured facts, not switches.** Nothing reads
@@ -85,7 +87,7 @@ export interface CompatSpec {
 
 export const stJohns: CompatSpec = {
   tenant: "St John's",
-  measured: "2026-08-12",
+  measured: "2026-08-21",
   surfaces: ["bulletin", "topic", "assignment"],
 
   /** No inline style property was observed being stripped. See the field doc. */
@@ -108,11 +110,8 @@ export const stJohns: CompatSpec = {
     "display": true, // inline-block, flex and grid all survive
 
     /**
-     * Listed explicitly despite `unlistedStyles: "allow"`, because it gates a
-     * layout decision: render.ts only emits the half-width flex row when this is
-     * true, and falls back to inline-block when it is not, so this line is the
-     * one place to flip if a tenant turns out to strip it. Currently inferred
-     * from R09 rather than isolated — probe row R42 settles it on the next run.
+     * Listed explicitly because it gates the half-width layout. R42 measured
+     * it surviving on all three surfaces on 2026-08-21.
      */
     "flex-wrap": true,
     "float": true,
@@ -143,16 +142,18 @@ export const stJohns: CompatSpec = {
     summary: true,
 
     /**
-     * Assignment strips inline <svg>, bulletin and topic keep it. A data-URI
-     * <img> carrying the same SVG survives everywhere — use that instead of
-     * branching on surface.
+     * The 2026-08-21 rerun retained both inline SVG and SMIL animation on all
+     * three surfaces. Exported motion remains disabled for accessibility.
      */
-    svg: { bulletin: true, topic: true, assignment: false },
-    animate: { bulletin: true, topic: true, assignment: false },
+    svg: true,
+    animate: true,
 
     /** Stripped everywhere. The premise of the whole inline-style design. */
     style: false,
   },
+
+  /** R43 passed on bulletin, topic, and assignment on 2026-08-21. */
+  headingInSummary: true,
 
   styleBlocks: false,
   animation: false,
@@ -203,6 +204,7 @@ export const conservative: CompatSpec = {
     animate: false,
     details: false,
   },
+  headingInSummary: false,
 };
 
 function resolve(support: Support | undefined, surface: SurfaceKey): boolean {
@@ -219,4 +221,8 @@ export function supportsStyle(spec: CompatSpec, prop: string, surface: SurfaceKe
 
 export function supportsElement(spec: CompatSpec, tag: string, surface: SurfaceKey): boolean {
   return resolve(spec.elements[tag.toLowerCase()], surface);
+}
+
+export function supportsHeadingInSummary(spec: CompatSpec, surface: SurfaceKey): boolean {
+  return resolve(spec.headingInSummary, surface);
 }

@@ -49,20 +49,22 @@ Then:
 The extension requests only `sidePanel` and `storage`. Storage holds the panel's
 workspace locally; there is no content script and no Blackbaud host access.
 
-## Your data and backups
+## Temporary saves and permanent backups
 
 The web app stores its workspace in `localStorage`; the extension uses
 `chrome.storage.local`. Browser origins are isolated, so their workspaces do not
-automatically sync. Use **Back up to a file** and **Restore from a backup** to
-move or preserve a workspace.
+automatically sync. Betterbaud treats all browser storage, including **My posts**,
+as temporary because clearing browser data or reimaging a device can erase it.
 
-Clearing browser storage or reimaging a device can erase work that has not been
-backed up. Betterbaud cannot recover it because the project operates no server.
+Use **Back up workspace** often to download a permanent copy, and **Restore
+workspace backup** to move it to another browser or recover it later. Betterbaud
+cannot recover temporary saves because the project operates no server.
 
 ## Blackbaud compatibility
 
-The renderer is based on a 43-row compatibility probe measured across bulletin,
-topic, and assignment editors on one Blackbaud tenant. It keeps all styles
+The renderer uses a 50-row compatibility probe; its original 41 rows were
+measured across bulletin, topic, and assignment editors on one Blackbaud tenant.
+It keeps all styles
 inline, avoids structures Blackbaud strips, and can degrade decorative features
 for a stricter tenant without dropping content.
 

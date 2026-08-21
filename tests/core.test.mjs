@@ -195,6 +195,8 @@ test("safeRich enforces the allowlist", () => {
   assert.equal(safeRich('<a href="javascript:x">t</a>'), "<a>t</a>", "bad scheme dropped");
   assert.equal(safeRich('<a href="/rel">t</a>'), "<a>t</a>", "relative href dropped");
   assert.doesNotMatch(safeRich('<span style="font-size:99px">t</span>'), /font-size/);
+  assert.match(safeRich("<strike>t</strike>"), /^<span style="text-decoration:line-through;?">t<\/span>$/);
+  assert.match(safeRich('<span style="text-decoration: line-through; font-size:99px">t</span>'), /^<span style="text-decoration:line-through;?">t<\/span>$/);
   assert.doesNotMatch(safeRich('<span title="x">t</span>'), /title/);
   assert.doesNotMatch(safeRich('<p onclick="x()">t</p>'), /onclick/);
 });
@@ -300,10 +302,10 @@ test("degrade skips empty values, so a profile opts out with an empty token", ()
   assert.equal(style([["box-shadow", ""], ["padding", "16px"]], stJohns, "topic"), "padding:16px;");
 });
 
-test("degrade resolves per-surface support", () => {
-  // Assignment strips inline <svg>; bulletin and topic keep it (probe R37).
+test("the latest probe records inline svg on every surface", () => {
+  // The 2026-08-21 R37 rerun supersedes the earlier Assignment-only strip.
   assert.equal(supportsElement(stJohns, "svg", "bulletin"), true);
-  assert.equal(supportsElement(stJohns, "svg", "assignment"), false);
+  assert.equal(supportsElement(stJohns, "svg", "assignment"), true);
 });
 
 /* ---------------------------------------------------------------- render */
@@ -353,6 +355,13 @@ test("hidden blocks never reach the export", () => {
   assert.match(html, /visible/);
 });
 
+test("block alignment is exported and left remains the clean default", () => {
+  const centered = render([{ id: 1, type: "note", title: "Centered", body: "Body", align: "center" }]);
+  assert.match(centered, /text-align:center/);
+  const left = render([{ id: 1, type: "note", title: "Left", body: "Body", align: "left" }]);
+  assert.doesNotMatch(left, /text-align:left/);
+});
+
 test("half-width cards carry both layouts in one markup", () => {
   const html = render(HALF_PAIR);
   // Flex, so two cards of unequal length reach equal heights (probe R09/R42)…
@@ -381,7 +390,10 @@ test("details renders as disclosure where it survives, as a card where it does n
 
   const open = render(block);
   assert.match(open, /<details data-layout="full"/);
-  assert.match(open, /<summary style="[^"]+">Answers<\/summary>/);
+  assert.match(open, /<summary style="[^"]+"><h2 style="[^"]+">Answers<\/h2><\/summary>/);
+
+  const plainSummary = render(block, { spec: { ...stJohns, headingInSummary: false } });
+  assert.match(plainSummary, /<summary style="[^"]+">Answers<\/summary>/, "unmeasured nesting keeps the plain-summary fallback");
 
   const flat = render(block, { spec: conservative });
   assert.doesNotMatch(flat, /<details/, "unsupported disclosure degrades to a card");
@@ -601,16 +613,13 @@ test("heading structure follows what the renderer actually emits", () => {
   );
   assert.match(late.checks.find((c) => c.id === "heading-order").detail, /not the first block/);
 
-  // A disclosure is a control, not a heading, and the report says so rather
-  // than counting it as structure.
+  // R43 measured a heading surviving inside the disclosure control, so it now
+  // contributes to the document outline.
   const disclosure = runChecks(
     [...starter, { id: 50, type: "details", title: "Answer key", body: "A" }],
     profiles.soft, palettes.english, surfaces.topic
   );
-  assert.match(
-    disclosure.checks.find((c) => c.id === "heading-order").detail,
-    /announced as a disclosure rather than a heading/
-  );
+  assert.match(disclosure.checks.find((c) => c.id === "heading-order").detail, /One <h1> and 5 <h2>s/);
 });
 
 test("hidden blocks are checked exactly as the renderer treats them", () => {
@@ -730,7 +739,7 @@ test("the local adapter survives storage that is missing, full or corrupt", asyn
     assert.equal(await localAdapter.load(), null, "nothing stored yet");
 
     const workspace = migrate({ blocks: starter, postTitle: "Saved" });
-    await localAdapter.save(workspace);
+    assert.equal(await localAdapter.save(workspace), true);
     assert.deepEqual(await localAdapter.load(), workspace);
 
     store[STORAGE_KEY] = "{ not json";
@@ -741,7 +750,7 @@ test("the local adapter survives storage that is missing, full or corrupt", asyn
       setItem: () => { throw new Error("quota") },
     };
     assert.equal(await localAdapter.load(), null);
-    await localAdapter.save(workspace); // must not throw: losing an autosave beats crashing
+    assert.equal(await localAdapter.save(workspace), false); // must not throw: losing an autosave beats crashing
   } finally {
     globalThis.localStorage = original;
   }

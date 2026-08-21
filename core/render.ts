@@ -41,7 +41,7 @@ import { blockMeta } from "./catalog.ts";
 import { esc, safeRich } from "./sanitize.ts";
 import { fontStack, resolveTone } from "./profiles/index.ts";
 import { style } from "./degrade.ts";
-import { stJohns, supportsElement, supportsStyle, type CompatSpec } from "./compat.ts";
+import { stJohns, supportsElement, supportsHeadingInSummary, supportsStyle, type CompatSpec } from "./compat.ts";
 
 export function renderHtml(
   blocks: Block[],
@@ -117,6 +117,7 @@ export function renderHtml(
     const title = esc(b.title);
     const icon = b.emoji ? `${esc(b.emoji)} ` : "";
     const body = renderBody(b);
+    const alignment: [string, string] | null = b.align && b.align !== "left" ? ["text-align", b.align] : null;
 
     if (b.type === "hero") return renderHero(b, icon, title, body);
 
@@ -125,6 +126,7 @@ export function renderHtml(
         ["margin", `0 0 ${card.gap}`],
         ["font-size", fontSizes.body],
         ["line-height", lineHeights.body],
+        alignment,
       ])}">${body}</div>`;
 
     const tone = resolveTone(profile, palette, blockMeta[b.type].tone);
@@ -142,6 +144,7 @@ export function renderHtml(
       card.accentBar ? ["border-left", `${card.accentBar} solid ${tone.border}`] : null,
       ["border-radius", card.radius],
       ["box-shadow", card.shadow],
+      alignment,
     ]);
 
     const headingStyle = s([
@@ -156,13 +159,26 @@ export function renderHtml(
 
     // Disclosure where the tenant keeps it (R40), an ordinary open card where it
     // does not — a compatibility decision must never hide a teacher's content.
-    if (b.type === "details" && supportsElement(spec, "details", surface.key))
+    if (b.type === "details" && supportsElement(spec, "details", surface.key)) {
+      const summary = supportsHeadingInSummary(spec, surface.key)
+        ? `<summary style="${s([["cursor", "pointer"]])}"><h2 style="${s([
+            ["display", "inline"],
+            ["margin", "0"],
+            ["color", tone.label],
+            ["font-family", fontStack(profile.fonts.heading)],
+            ["font-size", head.size],
+            ["font-weight", head.weight],
+            ["letter-spacing", head.letterSpacing === "0" ? "" : head.letterSpacing],
+            ["text-transform", head.transform === "none" ? "" : head.transform],
+          ])}">${icon}${label}</h2></summary>`
+        : `<summary style="${headingStyle}">${icon}${label}</summary>`;
       return (
         `<details data-layout="${b.width || "full"}" style="${box}">` +
-        `<summary style="${headingStyle}">${icon}${label}</summary>` +
+        summary +
         `<div style="${s([["margin", `${spacing.xs} 0 0`]])}">${body}</div>` +
         `</details>`
       );
+    }
 
     // A card heading is an `<h2>`, not a styled paragraph. Phase 4 decision D3:
     // the hero's `<h1>` was the only heading in the document, so a screen reader
@@ -171,9 +187,6 @@ export function renderHtml(
     // inline style already fixes size, weight and margin, so the tag changes and
     // the rendering does not.
     //
-    // `<summary>` above is deliberately left alone. The spec permits a heading
-    // inside it, but that nesting is unmeasured against Blackbaud, and this
-    // renderer emits only what the probe verified.
     return (
       `<div data-layout="${b.width || "full"}" style="${box}">` +
       `<h2 style="${headingStyle}">${icon}${label}</h2>` +
@@ -184,11 +197,13 @@ export function renderHtml(
 
   function renderHero(b: Block, icon: string, title: string, body: string): string {
     const rule = `${hero.ruleWidth} solid ${palette.accent}`;
+    const alignment: [string, string] | null = b.align && b.align !== "left" ? ["text-align", b.align] : null;
     const frame = s([
       hero.rule === "top" ? ["border-top", rule] : null,
       hero.rule === "bottom" ? ["border-bottom", rule] : null,
       ["padding", hero.padding],
       ["margin", `0 0 ${card.gap}`],
+      alignment,
     ]);
 
     const eyebrow = b.label?.trim()

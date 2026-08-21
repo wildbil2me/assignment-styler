@@ -44,6 +44,7 @@ export type Block = {
   width?: "full" | "half";
   emoji?: string;
   hidden?: boolean;
+  align?: "left" | "center" | "right" | "justify";
 };
 
 /**
