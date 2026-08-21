@@ -1,14 +1,22 @@
 import type { Composer } from "./state.ts";
 
-/**
- * Copy to clipboard, and the generated HTML behind a disclosure.
- *
- * This is the whole integration surface with Blackbaud. Nothing reads the page,
- * nothing posts anywhere; the teacher pastes. The side panel drops the export
- * history — it is a quick-post tool, not an archive — and says "paste into the
- * source editor" rather than the web app's longer instruction.
- */
-export function ExportPanel({ c, label, hint, showHistory = true }: { c: Composer; label: string; hint: string; showHistory?: boolean }) {
-  const { copy, copied, html, exportHistory } = c;
-  return <div className="export"><button className="copy" onClick={copy}>{copied?"✓ Copied to clipboard":label}</button><details><summary>View generated HTML</summary><textarea readOnly value={html}/></details>{showHistory&&exportHistory.length>0&&<details><summary>Export history ({exportHistory.length})</summary><div className="export-history">{exportHistory.map((x,i)=><button key={`${x.date}-${i}`} onClick={()=>navigator.clipboard.writeText(x.html)}><strong>{x.title}</strong><small>{x.date} · Click to copy</small></button>)}</div></details>}<small>{hint}</small></div>;
+/** Clipboard export and the optional history used by the full composer. */
+export function ExportPanel({ c, label, hint, showHistory = true }: {
+  c: Composer;
+  label: string;
+  hint: string;
+  showHistory?: boolean;
+}) {
+  const { copy, copied, html, exportHistory, announce } = c;
+  const copyRecord = async (record: { html: string; title: string }) => {
+    await navigator.clipboard.writeText(record.html);
+    announce(`Copied the ${record.title} export to the clipboard.`);
+  };
+
+  return <div className="export">
+    <button className="copy" onClick={copy}>{copied ? "✓ Copied to clipboard" : label}</button>
+    <details><summary>View generated HTML</summary><textarea aria-label="Generated Blackbaud HTML" readOnly value={html} /></details>
+    {showHistory && <details><summary>Export history ({exportHistory.length})</summary>{exportHistory.length === 0 ? <p className="empty-state compact">No exports yet. Copy this post to start the local history.</p> : <div className="export-history">{exportHistory.map((record, index) => <button key={`${record.date}-${index}`} onClick={() => copyRecord(record)}><strong>{record.title}</strong><small>{record.date} · Click to copy</small></button>)}</div>}</details>}
+    <small>{hint}</small>
+  </div>;
 }

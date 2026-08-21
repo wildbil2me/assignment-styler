@@ -353,6 +353,13 @@ test("hidden blocks never reach the export", () => {
   assert.match(html, /visible/);
 });
 
+test("block alignment is exported and left remains the clean default", () => {
+  const centered = render([{ id: 1, type: "note", title: "Centered", body: "Body", align: "center" }]);
+  assert.match(centered, /text-align:center/);
+  const left = render([{ id: 1, type: "note", title: "Left", body: "Body", align: "left" }]);
+  assert.doesNotMatch(left, /text-align:left/);
+});
+
 test("half-width cards carry both layouts in one markup", () => {
   const html = render(HALF_PAIR);
   // Flex, so two cards of unequal length reach equal heights (probe R09/R42)…
@@ -730,7 +737,7 @@ test("the local adapter survives storage that is missing, full or corrupt", asyn
     assert.equal(await localAdapter.load(), null, "nothing stored yet");
 
     const workspace = migrate({ blocks: starter, postTitle: "Saved" });
-    await localAdapter.save(workspace);
+    assert.equal(await localAdapter.save(workspace), true);
     assert.deepEqual(await localAdapter.load(), workspace);
 
     store[STORAGE_KEY] = "{ not json";
@@ -741,7 +748,7 @@ test("the local adapter survives storage that is missing, full or corrupt", asyn
       setItem: () => { throw new Error("quota") },
     };
     assert.equal(await localAdapter.load(), null);
-    await localAdapter.save(workspace); // must not throw: losing an autosave beats crashing
+    assert.equal(await localAdapter.save(workspace), false); // must not throw: losing an autosave beats crashing
   } finally {
     globalThis.localStorage = original;
   }

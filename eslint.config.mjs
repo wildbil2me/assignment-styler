@@ -9,7 +9,9 @@ import tseslint from "typescript-eslint";
 const eslintConfig = defineConfig([
   // The two build outputs. Both are gitignored, so they are absent on a clean
   // clone — linting them made the error count depend on whether you had built.
-  globalIgnores(["pages-dist/**", "extension-dist/**"]),
+  // `design/` is generated upstream and audited by its own canonical checker;
+  // local lint must not rewrite or reinterpret vendored authority files.
+  globalIgnores(["pages-dist/**", "extension-dist/**", "design/**"]),
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   react.configs.flat.recommended,

@@ -1,0 +1,37 @@
+{
+  "$schema": "./conformance.schema.json",
+  "platform": "bundled",
+  "buildCommand": "npm run build && npm run build:ext",
+  "entries": [
+    {
+      "html": "apps/web/index.html",
+      "sources": ["apps/web/main.tsx", "ui/composer.tsx"]
+    },
+    {
+      "html": "apps/ext/index.html",
+      "sources": ["apps/ext/main.tsx", "ui/quickpost.tsx"]
+    }
+  ],
+  "deliverySurfaces": [
+    {
+      "name": "GitHub Pages composer",
+      "entry": "apps/web/index.html",
+      "build": "pages-dist/index.html"
+    },
+    {
+      "name": "Chrome and Edge MV3 side panel",
+      "entry": "apps/ext/index.html",
+      "build": "extension-dist/index.html"
+    }
+  ],
+  "scopes": {
+    "source": {
+      "include": ["apps/web/index.html", "apps/web/main.tsx", "apps/ext/index.html", "apps/ext/main.tsx", "ui"],
+      "exclude": []
+    },
+    "built": {
+      "include": ["pages-dist", "extension-dist"],
+      "exclude": ["pages-dist/assets/app.js", "extension-dist/assets/app.js"]
+    }
+  }
+}

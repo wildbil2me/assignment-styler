@@ -12,6 +12,10 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   root: "apps/ext",
   base: "./",
-  build: { outDir: "../../extension-dist", emptyOutDir: true },
+  build: {
+    outDir: "../../extension-dist",
+    emptyOutDir: true,
+    rollupOptions: { output: { entryFileNames: "assets/app.js", assetFileNames: "assets/[name][extname]" } },
+  },
   plugins: [react()],
 });

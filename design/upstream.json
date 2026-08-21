@@ -1,0 +1,13 @@
+{
+  "repository": "wildbil2me/edu-style-guide",
+  "edition": 3,
+  "commit": "65bc4f5d3bbabd280724ee66f2c473f98cc9747a",
+  "generated": "2026-08-21",
+  "sha256": {
+    "style-guide.html": "36f1519e7e6e2dcb1f6a4a58f3ad91db6ed98b6a460ed74087692f2946c28631",
+    "RULES.md": "0d687a9e66c218c047cb8a41bdec04b4581e912cf79b5e8ad5dd20b3b37122e3",
+    "tokens.json": "06f8f3a74902f0f71f8068fcd40938d650db5bff6a383db89adcc9db36f386ca",
+    "conformance.schema.json": "13cc034012ec8e2f08cdd87b71c2ff4aff8957ac654ec84de5f8151823ffa711",
+    "tools/conformance.mjs": "2e479d6f9e443e62efcbe27d8a4e2e7532b0df573ba1483ef835ec2e57eed814"
+  }
+}

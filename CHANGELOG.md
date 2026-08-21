@@ -5,6 +5,21 @@ All notable changes to this project are documented here. Versions follow
 
 ## [Unreleased]
 
+### Changed
+
+- Adopted the educator suite admin UI style guide across the web composer and
+  extension without changing exported Blackbaud HTML.
+- Added suite tokens, responsive/touch behavior, reduced-motion handling,
+  accessible dialogs and menus, consistent interaction states, and inline SVG
+  controls.
+- Replaced the unconditional autosave claim with verified saving, saved, and
+  failure states backed by the active browser storage adapter.
+
+### Added
+
+- Vendored design authority, source and built-output conformance gates, upstream
+  integrity hashes, and a reviewed suppression inventory.
+
 ## [0.1.0] - 2026-08-21
 
 ### Added

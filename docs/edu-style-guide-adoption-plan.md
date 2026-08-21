@@ -3,6 +3,30 @@
 Written 2026-08-21 against `wildbil2me/edu-style-guide` edition 2, commit
 `a5933e7`, and Betterbaud commit `766e653`.
 
+## Implementation status
+
+Implemented on `feat/edu-style-guide-adoption` on 2026-08-21 through Phase 5.
+The authority actually vendored is the completed edition 3 bundled-platform
+branch at `65bc4f5d3bbabd280724ee66f2c473f98cc9747a`, recorded with file hashes in
+`design/upstream.json`.
+
+- Phase 1 vendors the generated authority, declares both bundled shells, and
+  runs source and built conformance in CI and Pages deployment.
+- Phase 2 adds shared modal focus management, keyboard/menu behavior, touch
+  targets, semantic state, polite announcements, and reduced-motion handling.
+- Phase 3 migrates the application chrome to the suite palette, type, spacing,
+  shape, depth, header, and responsive surface system.
+- Phase 4 standardizes statuses, save language, loading and empty states,
+  inline SVG controls, and component behavior across both shells.
+- Phase 5 pins generated authority integrity, inventories the narrow computed
+  exceptions, documents upgrades, and produces 0-violation/0-warning source
+  and built conformance results.
+
+The exported HTML goldens remain unchanged, workspace schema remains version 1,
+and extension permissions remain unchanged. Final browser review captures and
+the real unpacked-extension handoff are recorded separately from the automated
+implementation gates.
+
 ## Goal
 
 Bring Betterbaud's educator-facing interface into the educator admin suite's

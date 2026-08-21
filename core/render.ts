@@ -117,6 +117,7 @@ export function renderHtml(
     const title = esc(b.title);
     const icon = b.emoji ? `${esc(b.emoji)} ` : "";
     const body = renderBody(b);
+    const alignment: [string, string] | null = b.align && b.align !== "left" ? ["text-align", b.align] : null;
 
     if (b.type === "hero") return renderHero(b, icon, title, body);
 
@@ -125,6 +126,7 @@ export function renderHtml(
         ["margin", `0 0 ${card.gap}`],
         ["font-size", fontSizes.body],
         ["line-height", lineHeights.body],
+        alignment,
       ])}">${body}</div>`;
 
     const tone = resolveTone(profile, palette, blockMeta[b.type].tone);
@@ -142,6 +144,7 @@ export function renderHtml(
       card.accentBar ? ["border-left", `${card.accentBar} solid ${tone.border}`] : null,
       ["border-radius", card.radius],
       ["box-shadow", card.shadow],
+      alignment,
     ]);
 
     const headingStyle = s([
@@ -184,11 +187,13 @@ export function renderHtml(
 
   function renderHero(b: Block, icon: string, title: string, body: string): string {
     const rule = `${hero.ruleWidth} solid ${palette.accent}`;
+    const alignment: [string, string] | null = b.align && b.align !== "left" ? ["text-align", b.align] : null;
     const frame = s([
       hero.rule === "top" ? ["border-top", rule] : null,
       hero.rule === "bottom" ? ["border-bottom", rule] : null,
       ["padding", hero.padding],
       ["margin", `0 0 ${card.gap}`],
+      alignment,
     ]);
 
     const eyebrow = b.label?.trim()
