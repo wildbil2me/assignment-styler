@@ -280,7 +280,7 @@ export function Composer() {
           <small>Independent, private-by-design software for educators.</small>
         </section>
         <section className="footer-block footer-support" aria-label="Support BBStyler">
-          <a href="https://ko-fi.com/O1F623ASR1" target="_blank" rel="noreferrer">Support me on Ko-fi <span aria-hidden="true">↗</span></a>
+          <a href="https://ko-fi.com/O1F623ASR1" target="_blank" rel="noreferrer"><img height="36" src={`${import.meta.env.BASE_URL}kofi6.png`} alt="Buy Me a Coffee at ko-fi.com" /></a>
         </section>
       </div>
     </footer>

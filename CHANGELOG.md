@@ -22,6 +22,7 @@ All notable changes to this project are documented here. Versions follow
   preserving full-width stacking in the mobile preview.
 - Moved the primary Copy for Blackbaud action to the top of the right-hand
   column so it remains visible before block settings and compatibility details.
+- Replaced the custom Ko-fi footer button with Ko-fi's official linked image, bundled locally for offline reliability.
 - Normalized strikethrough to Blackbaud's stored line-through span and added
   measured semantic headings to collapsible sections.
 
