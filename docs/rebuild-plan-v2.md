@@ -479,7 +479,7 @@ written back as `version: 1` with all four of those handled.
 **Implemented 2026-08-21.** The repository is release-ready; merging and tagging
 remain explicit publication actions.
 
-- MIT license attributed to Betterbaud contributors.
+- MIT license attributed to BBStyler contributors.
 - Privacy-first README with real captures of both running shells and prominent
   disclosure that no data leaves the browser.
 - Semantic Versioning policy and a `0.1.0` changelog, with a release check that
@@ -601,15 +601,12 @@ Fixed by the phases above, listed so none get lost:
 
 ## Open
 
-1. ~~**Three names**~~ **Settled 2026-08-12 as a working name: Betterbaud.** The
-   app, the package and the extension all say it; the repo and the Pages base
-   path still say `blackbaud-styler`, deliberately, because renaming the repo
-   moves a URL that is now live. [naming.md](naming.md) is the inventory, and it
-   exists so the next change is a checklist rather than a search.
-2. **Someone else's trademark.** Still open, and the working name sharpens it:
-   "Betterbaud" is a closer play on "Blackbaud" than the old name was, and it
-   reads as a comparative claim rather than a description. The audience is
-   schools who are themselves Blackbaud customers. Decide deliberately before
-   announcing anywhere.
+1. ~~**Three names**~~ **Resolved 2026-08-21 as BBStyler.** The app, package and
+   extension use BBStyler. The repository was renamed separately to
+   `assignment-styler`, with its Pages base changed in the same update.
+   [naming.md](naming.md) remains the rename inventory.
+2. ~~**Someone else's trademark.**~~ **Resolved 2026-08-21.** The working name
+   Betterbaud was replaced by BBStyler so the product no longer reads as a
+   comparative variation of Blackbaud's brand.
 3. **Tenant variation.** Unknown until a second school runs the probe. Design
    `core/compat.ts` to be overridable rather than assuming one answer.

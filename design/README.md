@@ -1,6 +1,6 @@
 # Admin UI style guide
 
-The files in this directory govern Betterbaud's application chrome: headers,
+The files in this directory govern BBStyler's application chrome: headers,
 panels, forms, buttons, dialogs, interaction states, responsive behavior,
 accessibility, motion, and interface voice. They do not govern the
 student-facing HTML copied into Blackbaud; that contract remains in
@@ -19,7 +19,7 @@ after reviewing the vendored diff and confirming the new upstream commit.
 - `RULES.md` is the textual rule ledger.
 - `tokens.json` contains the authoritative values.
 - `style-guide.html` contains the live component specimens and rationale.
-- `conformance.json` declares Betterbaud's bundled shells and audit scopes.
+- `conformance.json` declares BBStyler's bundled shells and audit scopes.
 - `suppressions.json` inventories narrowly reviewed computed-value exceptions.
 - `upstream.json` pins the source edition, commit, and generated-file hashes.
 - `tools/conformance.mjs` checks source and built output.

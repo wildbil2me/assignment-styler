@@ -76,6 +76,20 @@ export function Preview({ c, device, onDevice }: {
     visible.forEach((block, index) => {
       const root = roots[index];
       if (!root) return;
+
+      // The paper sits inside the middle application column, so its usable
+      // content width can be narrower than Blackbaud's real 720px surface.
+      // Keep the exported calc() width, but relax the exported min-width only
+      // in this live preview so paired half cards do not wrap prematurely.
+      // Mobile remains an explicit full-width stack.
+      if (block.width === "half" && block.type !== "hero" && block.type !== "intro") {
+        root.dataset.previewDesktopWidth ||= root.style.width;
+        root.dataset.previewDesktopMarginRight ??= root.style.marginRight;
+        root.style.minWidth = "0";
+        root.style.width = device === "mobile" ? "100%" : root.dataset.previewDesktopWidth;
+        root.style.marginRight = device === "mobile" ? "0" : root.dataset.previewDesktopMarginRight;
+      }
+
       root.classList.add("inline-block");
       root.classList.toggle("inline-block-selected", block.id === selected);
       root.dataset.editorBlock = String(block.id);
@@ -173,7 +187,7 @@ export function Preview({ c, device, onDevice }: {
       document.removeEventListener("pointercancel", clearToolbarPointer, true);
       if (formatterRef.current === runFormat) formatterRef.current = () => undefined;
     };
-  }, [blocks, formatterRef, html, selected, setSelected, updateBlock]);
+  }, [blocks, device, formatterRef, html, selected, setSelected, updateBlock]);
 
   return <>
     {onDevice && <div className="stagebar">

@@ -7,6 +7,8 @@ All notable changes to this project are documented here. Versions follow
 
 ### Changed
 
+- Renamed the product and package from Betterbaud to BBStyler, and synchronized
+  project links and the Pages base with `wildbil2me/assignment-styler`.
 - Adopted the educator suite admin UI style guide across the web composer and
   extension.
 - Added suite tokens, responsive/touch behavior, reduced-motion handling,
@@ -16,11 +18,14 @@ All notable changes to this project are documented here. Versions follow
   failure states backed by the active browser storage adapter.
 - Revalidated compatibility with a 50-row probe across all three Blackbaud
   surfaces, including rich formatting, alignment, nested lists, and flex wrap.
+- Kept half-width cards paired in BBStyler's narrower desktop preview while
+  preserving full-width stacking in the mobile preview.
 - Normalized strikethrough to Blackbaud's stored line-through span and added
   measured semantic headings to collapsible sections.
 
 ### Added
 
+- Added a responsive three-section application footer with a Ko-fi support link.
 - Vendored design authority, source and built-output conformance gates, upstream
   integrity hashes, and a reviewed suppression inventory.
 
@@ -43,5 +48,5 @@ All notable changes to this project are documented here. Versions follow
 - No backend, accounts, analytics, telemetry, host permissions, or content
   scripts. Content stays in the browser unless the user copies or exports it.
 
-[Unreleased]: https://github.com/toomey-sj/blackbaud-styler/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/toomey-sj/blackbaud-styler/releases/tag/v0.1.0
+[Unreleased]: https://github.com/wildbil2me/assignment-styler/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/wildbil2me/assignment-styler/releases/tag/v0.1.0

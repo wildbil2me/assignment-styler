@@ -107,8 +107,8 @@ export function Composer() {
       setStyleMessage("");
       announce(`Imported the style file ${file.name}.`);
     } catch {
-      setStyleMessage("That file is not a valid Betterbaud style. Choose a class-style JSON file exported by Betterbaud.");
-      announce("The selected file is not a valid Betterbaud style.");
+      setStyleMessage("That file is not a valid BBStyler style. Choose a class-style JSON file exported by BBStyler.");
+      announce("The selected file is not a valid BBStyler style.");
     }
   };
   const importExistingHtml = () => {
@@ -174,14 +174,14 @@ export function Composer() {
     announce("Restored the example post.");
   };
 
-  if (!ready) return <main className="app-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">B</span><strong>Betterbaud</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading the composer</span></main>;
+  if (!ready) return <main className="app-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">BB</span><strong>BBStyler</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading the composer</span></main>;
 
   const saveLabel = saveStatus === "saving" ? "SAVING TEMPORARILY" : saveStatus === "error" ? "TEMPORARY SAVE FAILED" : "TEMPORARILY SAVED";
 
   return <main className="app-shell">
     <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
     <header className="topbar">
-      <div className="brand"><span className="brandmark" aria-hidden="true">B</span><div><h1>Betterbaud</h1><small>for Blackbaud</small></div></div>
+      <div className="brand"><span className="brandmark" aria-hidden="true">BB</span><div><h1>BBStyler</h1><small>for Blackbaud</small></div></div>
       <div className="style-tools">
         {/* conformance-ignore FORM-05 Enclosing label and aria-label name this select; conformance-ignore CODE-08 palette.accent is user-selected runtime data. */}
         <label className="class-picker"><span className="class-dot" style={{ background: palette.accent }} aria-hidden="true" /><select value={styleKey} onChange={event => setStyleKey(event.target.value as StyleKey)} aria-label="Class style">{Object.entries(palettes).map(([key, value]) => <option key={key} value={key}>{value.name} · {value.className}</option>)}<option value="custom">Custom · {customPalette.className}</option></select></label>
@@ -193,13 +193,13 @@ export function Composer() {
     </header>
 
     {aboutOpen && <Dialog labelledBy="about-title" onClose={closeAbout} className="about-modal">
-      <header><div><span className="eyebrow">ABOUT</span><h2 id="about-title">Betterbaud</h2></div><button onClick={closeAbout} aria-label="Close About dialog" title="Close About dialog"><Icon name="close" /></button></header>
+      <header><div><span className="eyebrow">ABOUT</span><h2 id="about-title">BBStyler</h2></div><button onClick={closeAbout} aria-label="Close About dialog" title="Close About dialog"><Icon name="close" /></button></header>
       <div className="about-content">
         <p className="about-version">Version {packageJson.version}</p>
-        <p>Betterbaud helps educators create structured class content and export inline-styled HTML designed to survive Blackbaud’s editor.</p>
+        <p>BBStyler helps educators create structured class content and export inline-styled HTML designed to survive Blackbaud’s editor.</p>
         <section><h3>Private by design</h3><p>There are no accounts, analytics, or backend services. Browser saves are temporary because clearing browser data can erase them. Back up your workspace often for a permanent copy.</p></section>
-        <section><h3>Independent software</h3><p>Betterbaud is not affiliated with, endorsed by, or produced by Blackbaud.</p></section>
-        <a className="about-source" href="https://github.com/toomey-sj/blackbaud-styler" target="_blank" rel="noreferrer">View source on GitHub ↗</a>
+        <section><h3>Independent software</h3><p>BBStyler is not affiliated with, endorsed by, or produced by Blackbaud.</p></section>
+        <a className="about-source" href="https://github.com/wildbil2me/assignment-styler" target="_blank" rel="noreferrer">View source on GitHub ↗</a>
       </div>
       <footer><button className="apply-style" onClick={closeAbout}>Done</button></footer>
     </Dialog>}
@@ -255,7 +255,7 @@ export function Composer() {
             <button role="menuitem" onClick={backupWorkspace}><span aria-hidden="true"><Icon name="download" /></span><div><strong>Back up workspace</strong><small>Download every post and style permanently</small></div></button>
             <button role="menuitem" onClick={() => backupFileRef.current?.click()}><span aria-hidden="true"><Icon name="upload" /></span><div><strong>Restore workspace backup</strong><small>Replaces this browser’s temporary workspace</small></div></button>
             {/* conformance-ignore FORM-05 The adjacent Restore workspace backup menu item names and opens this hidden input. */}
-            <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore Betterbaud backup" type="file" accept="application/json,.json" onChange={event => restoreWorkspace(event.target.files?.[0])} />
+            <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore BBStyler backup" type="file" accept="application/json,.json" onChange={event => restoreWorkspace(event.target.files?.[0])} />
             <div className="saved-heading">TEMPORARY MY POSTS</div>
             {savedPosts.length === 0 && <p className="empty-state compact">No temporary snapshots yet. Save one to My posts for reuse in this browser.</p>}
             {savedPosts.slice(0, 5).map(post => <button role="menuitem" key={post.id} onClick={() => loadPost(post)}><span aria-hidden="true">□</span><div><strong>{post.title}</strong><small>Open temporary snapshot</small></div></button>)}
@@ -269,5 +269,20 @@ export function Composer() {
       <section className="stage" aria-label="Post preview"><Preview c={c} device={device} onDevice={setDevice} /></section>
       <aside className="inspector"><BlockFields c={c} /><Checks c={c} /><ExportPanel c={c} label="Copy for Blackbaud" hint="Paste into Blackbaud’s HTML editor, then preview before publishing." /></aside>
     </section>
+    <footer className="app-footer">
+      <div className="footer-grid">
+        <section className="footer-block footer-brand" aria-label="BBStyler">
+          <span className="brandmark" aria-hidden="true">BB</span>
+          <div><strong>BBStyler</strong><small>for Blackbaud</small></div>
+        </section>
+        <section className="footer-block footer-note" aria-label="About BBStyler">
+          <strong>Build clearer class posts.</strong>
+          <small>Independent, private-by-design software for educators.</small>
+        </section>
+        <section className="footer-block footer-support" aria-label="Support BBStyler">
+          <a href="https://ko-fi.com/O1F623ASR1" target="_blank" rel="noreferrer">Support me on Ko-fi <span aria-hidden="true">↗</span></a>
+        </section>
+      </div>
+    </footer>
   </main>;
 }

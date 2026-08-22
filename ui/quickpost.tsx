@@ -15,12 +15,12 @@ export function QuickPost() {
   const c = useComposer({ initialBlocks: initial, initialSelected: initial[0].id, initialTitle: templateGroups.bulletin[0] });
   const { styleKey, setStyleKey, profileKey, setProfileKey, customPalette, surfaceKey, setSurfaceKey, palette, announcement, ready, saveStatus } = c;
 
-  if (!ready) return <main className="app-loading panel-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">B</span><strong>Betterbaud</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading quick post</span></main>;
+  if (!ready) return <main className="app-loading panel-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">BB</span><strong>BBStyler</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading quick post</span></main>;
 
   return <main className="panel">
     <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
     <header className="panel-bar">
-      <div className="panel-brand"><span className="brandmark" aria-hidden="true">B</span><h1>Betterbaud</h1></div>
+      <div className="panel-brand"><span className="brandmark" aria-hidden="true">BB</span><h1>BBStyler</h1></div>
       <span className={`save-chip save-${saveStatus}`}>{saveStatus === "saving" ? "Saving" : saveStatus === "error" ? "Save failed" : "Saved locally"}</span>
       {/* conformance-ignore CODE-08 palette.accent is teacher-selected runtime data. */}
       <span className="class-dot" style={{ background: palette.accent }} aria-hidden="true" />

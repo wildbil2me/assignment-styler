@@ -1,6 +1,6 @@
-# Releasing Betterbaud
+# Releasing BBStyler
 
-Betterbaud uses Semantic Versioning. During the `0.x` series, increment the
+BBStyler uses Semantic Versioning. During the `0.x` series, increment the
 minor version for user-visible features or exported-HTML changes and the patch
 version for backward-compatible fixes. A breaking workspace migration or a
 deliberately incompatible exported-HTML contract requires a major version once

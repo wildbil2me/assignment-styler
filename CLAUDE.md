@@ -45,7 +45,7 @@ which is what makes a zero-backend, free-to-publish tool possible.
 
 ## What this is
 
-**Betterbaud** (`betterbaud`) — a composer for building student-facing class
+**BBStyler** (`bbstyler`) — a composer for building student-facing class
 posts and exporting HTML that survives Blackbaud's editor. The name is a working
 one, chosen 2026-08-12; [docs/naming.md](docs/naming.md) lists every place it
 appears and, more importantly, draws the line between *our* name and the many
@@ -197,7 +197,7 @@ Verify before trusting it:
 Test-Path "$env:USERPROFILE\.claude\hooks\git-auto-pull.ps1"   # should be True
 ```
 
-If it's False — or no `blackbaud-styler: already up to date` style message appears
+If it's False — or no `assignment-styler: already up to date` style message appears
 when a session opens, or `/wrap-up` isn't offered — clone that repo and run
 `install.ps1`. Its README covers the rest.
 

@@ -1,7 +1,7 @@
 # Educator suite style-guide adoption plan
 
 Written 2026-08-21 against `wildbil2me/edu-style-guide` edition 2, commit
-`a5933e7`, and Betterbaud commit `766e653`.
+`a5933e7`, and BBStyler commit `766e653`.
 
 ## Implementation status
 
@@ -31,8 +31,8 @@ from the automated implementation gates.
 
 ## Goal
 
-Bring Betterbaud's educator-facing interface into the educator admin suite's
-design system without weakening Betterbaud's two-shell architecture or changing
+Bring BBStyler's educator-facing interface into the educator admin suite's
+design system without weakening BBStyler's two-shell architecture or changing
 the HTML it exports to Blackbaud.
 
 This is an application-chrome migration, not a content-profile migration. The
@@ -40,20 +40,20 @@ two style systems remain separate:
 
 | System | Governs | Does not govern |
 | --- | --- | --- |
-| Educator suite style guide | Betterbaud header, panels, forms, buttons, modals, states, touch behavior, accessibility, motion and voice | The HTML copied into Blackbaud |
-| Betterbaud profiles and palettes | Student-facing exported content and its Blackbaud compatibility degradation | The composer application's chrome |
+| Educator suite style guide | BBStyler header, panels, forms, buttons, modals, states, touch behavior, accessibility, motion and voice | The HTML copied into Blackbaud |
+| BBStyler profiles and palettes | Student-facing exported content and its Blackbaud compatibility degradation | The composer application's chrome |
 
 `docs/style-guide-spec.md`, `core/profiles/` and `core/palettes.ts` keep their
 current meaning. The suite book should be called the **admin UI style guide** in
-Betterbaud documentation so the two are never confused.
+BBStyler documentation so the two are never confused.
 
 ## Decisions
 
 These are settled for this implementation.
 
-1. **Betterbaud joins the suite.** The admin UI style guide is authoritative for
+1. **BBStyler joins the suite.** The admin UI style guide is authoritative for
    its application chrome, not merely inspiration.
-2. **React, Vite, GitHub Pages and MV3 stay.** Betterbaud receives a narrowly
+2. **React, Vite, GitHub Pages and MV3 stay.** BBStyler receives a narrowly
    fenced `bundled` platform in the upstream book. It is not rewritten as a
    single-file `file://` application.
 3. **The exception is architectural, not visual.** The bundled platform may use
@@ -63,9 +63,9 @@ These are settled for this implementation.
 4. **Exported HTML is out of scope.** `core/render.ts`, the three profiles, six
    palettes, templates, compatibility spec and golden HTML must remain
    byte-identical throughout the migration.
-5. **The upstream book remains canonical.** Betterbaud vendors generated copies
+5. **The upstream book remains canonical.** BBStyler vendors generated copies
    and never edits them locally. Upstream changes land and regenerate before a
-   sync into Betterbaud.
+   sync into BBStyler.
 6. **Both shells migrate together.** Shared UI changes land in `ui/`; the web
    composer and extension panel cannot develop separate design systems.
 7. **No remote runtime assets.** The bundled exception does not permit web
@@ -93,24 +93,24 @@ Create one fresh branch in each repository from a clean, synchronized `main`:
 | Repository | Branch | Starting point |
 | --- | --- | --- |
 | `wildbil2me/edu-style-guide` | `feat/bundled-app-platform` | `a5933e74913d75d546a936c30a9aed98d940a48c` |
-| `toomey-sj/blackbaud-styler` | `feat/edu-style-guide-adoption` | `766e65320bb77cdacef39e1cf944bc1f092a0f16` |
+| `wildbil2me/assignment-styler` | `feat/edu-style-guide-adoption` | `766e65320bb77cdacef39e1cf944bc1f092a0f16` |
 
 Before branching, require `git status --short` to be empty and fetch the remote
 so the branch point is not silently stale. Push the branches normally for
 backup and CI, but do not open a release/tag or merge either branch until its
 phase gates pass.
 
-The two branches have an order dependency: Betterbaud may begin baseline and
+The two branches have an order dependency: BBStyler may begin baseline and
 accessibility preparation locally, but it must not vendor the book or claim
 conformance until the upstream bundled-platform branch is complete and its
 generated files are current. Record the exact upstream commit vendored by
-Betterbaud in `design/`.
+BBStyler in `design/`.
 
 ### Preserve a comparison baseline
 
 Before the first UI edit:
 
-1. Run the complete Betterbaud gate and record the commit and results.
+1. Run the complete BBStyler gate and record the commit and results.
 2. Build both shells from the branch point.
 3. Capture baseline images into ignored `work/visual-baseline/` at:
    - web composer: 1600×1000;
@@ -127,7 +127,7 @@ Before the first UI edit:
 
 ### Local viewing loop
 
-Use two terminals from the Betterbaud implementation branch:
+Use two terminals from the BBStyler implementation branch:
 
 ```bash
 npm run dev -- --host 127.0.0.1 --port 5173
@@ -135,7 +135,7 @@ npm run dev:ext -- --host 127.0.0.1 --port 5174
 ```
 
 Review the full composer at
-`http://127.0.0.1:5173/blackbaud-styler/`. The second server is useful for quick
+`http://127.0.0.1:5173/assignment-styler/`. The second server is useful for quick
 responsive inspection of the panel UI, but it is not a substitute for an
 extension-origin test: it does not prove MV3 packaging, service-worker behavior,
 permissions or `chrome.storage.local`.
@@ -147,7 +147,7 @@ npm run build:ext
 ```
 
 Load `extension-dist/` through **Load unpacked** in Chrome or Edge, pin
-Betterbaud, open its side panel, and use the browser's **Reload extension**
+BBStyler, open its side panel, and use the browser's **Reload extension**
 control after each rebuild. Test storage restoration, clipboard copy and panel
 reopening from the installed extension, not only from port 5174.
 
@@ -159,7 +159,7 @@ visual inspection.
 
 ### Required local review matrix
 
-Each Betterbaud phase ends with this matrix before its commit is considered
+Each BBStyler phase ends with this matrix before its commit is considered
 ready:
 
 | Area | Local review |
@@ -223,7 +223,7 @@ The audit also found real issues that should be fixed before visual restyling:
 
 ## Phase 0 — correct and fence the upstream authority
 
-Do this on `feat/bundled-app-platform` in `edu-style-guide` first. Betterbaud
+Do this on `feat/bundled-app-platform` in `edu-style-guide` first. BBStyler
 should not vendor a book known to contradict itself.
 
 ### 0a. Resolve the two accessibility contradictions
@@ -234,7 +234,7 @@ should not vendor a book known to contradict itself.
    coarse-pointer targets, 16px touch inputs, contained overscroll and touch
    manipulation.
 2. Replace secondary text `#6b7a8d`, measured at 4.38:1 on white, with a token
-   that clears 4.5:1. Use `#687482` as the initial candidate; Betterbaud's
+   that clears 4.5:1. Use `#687482` as the initial candidate; BBStyler's
    contrast implementation measures it at 4.76:1. Recompute every contrast row
    and regenerate all specimens rather than editing the generated table.
 3. Remove the secondary-text item from `contrast.acceptedDebt`. A core readable
@@ -284,7 +284,7 @@ Extend `tools/conformance.mjs` and its fixtures:
    the configured React entry renders it; report against the rendered/source
    component instead.
 5. Add a configuration file for multi-shell apps, with explicit included UI
-   paths, entry points and excluded product-output paths. For Betterbaud the
+   paths, entry points and excluded product-output paths. For BBStyler the
    exclusions include `core/`, `tests/golden/`, `docs/compat-*.html`,
    `pages-dist/` and `extension-dist/`.
 6. Extend the true-positive fixture with a bundled app that lacks the platform
@@ -306,9 +306,9 @@ must not depend on a sibling clone being present.
 - The book contains no readable text pair below 4.5:1 and no viewport zoom
   restriction.
 
-## Phase 1 — vendor the book and lock Betterbaud's boundaries
+## Phase 1 — vendor the book and lock BBStyler's boundaries
 
-All Betterbaud work from this point lands on `feat/edu-style-guide-adoption`.
+All BBStyler work from this point lands on `feat/edu-style-guide-adoption`.
 
 1. Sync the upstream book into `design/`: canonical HTML, generated rules,
    tokens, conformance checker and schema/config support.
@@ -399,7 +399,7 @@ component restructuring in one unreviewable stylesheet rewrite.
 - Move text onto the guide's size and weight ladders, retaining uppercase only
   for 10px section labels and 9px badges.
 - Reorder `ui/styles.css` to base → header → banners → layout/panels → controls →
-  components → Betterbaud preview chrome → responsive blocks.
+  components → BBStyler preview chrome → responsive blocks.
 
 ### 3b. Suite header and surfaces
 
@@ -407,11 +407,11 @@ component restructuring in one unreviewable stylesheet rewrite.
   amber 2px identity rule and header shadow.
 - Build the extension's compact header from the same identity tokens without
   pretending its 440px side panel is a desktop page.
-- Keep the Betterbaud name and “for Blackbaud” subtitle as the permitted
+- Keep the BBStyler name and “for Blackbaud” subtitle as the permitted
   per-app identity fields.
 - Use the page, panel, inset and divider roles consistently across the rail,
   stage, inspector and quick-post shell.
-- Preserve Betterbaud's functional three-column desktop layout as an
+- Preserve BBStyler's functional three-column desktop layout as an
   app-prefixed layout. The suite controls its tokens and behavior; it does not
   remove the preview column the product requires.
 
@@ -441,10 +441,10 @@ component restructuring in one unreviewable stylesheet rewrite.
 
 ## Phase 4 — migrate components and voice
 
-Map existing Betterbaud concepts to the closest canonical component rather than
+Map existing BBStyler concepts to the closest canonical component rather than
 inventing a parallel family:
 
-| Betterbaud area | Suite treatment |
+| BBStyler area | Suite treatment |
 | --- | --- |
 | Surface, device, width and icon choices | Toggle/tab rules with synchronized ARIA state |
 | Content block rows | Canonical selectable rows; selected inset is the non-color signal |
@@ -485,7 +485,7 @@ adapter cannot leave that claim visible.
    conformance.
 5. Refresh README and social screenshots only after both shells pass the final
    visual review.
-6. Run the upstream checker against its own fixtures and Betterbaud against its
+6. Run the upstream checker against its own fixtures and BBStyler against its
    vendored checker in the same change that upgrades an edition.
 
 The final target is **0 violations, 0 stale files and no unexplained warnings**.
@@ -497,28 +497,28 @@ React” is not a blanket suppression.
 
 Keep the migration reviewable and reversible:
 
-1. Branch both repositories and preserve the local Betterbaud baseline.
+1. Branch both repositories and preserve the local BBStyler baseline.
 2. `edu-style-guide` branch: correct zoom and contrast contradictions.
 3. `edu-style-guide` branch: add bundled platform, fixtures and sync/checker
    support; review the canonical book locally over `file://`.
-4. Betterbaud branch: vendor authority, declare scopes and add CI gate.
-5. Betterbaud branch: focus, keyboard, dialog, touch and reduced-motion fixes.
-6. Betterbaud branch: base tokens, suite header, surfaces, shape and layer
+4. BBStyler branch: vendor authority, declare scopes and add CI gate.
+5. BBStyler branch: focus, keyboard, dialog, touch and reduced-motion fixes.
+6. BBStyler branch: base tokens, suite header, surfaces, shape and layer
    migration.
-7. Betterbaud branch: component/state/voice migration.
-8. Betterbaud branch: final conformance cleanup, full local review matrix and
+7. BBStyler branch: component/state/voice migration.
+8. BBStyler branch: final conformance cleanup, full local review matrix and
    screenshot refresh.
-9. Merge the upstream branch first. Update Betterbaud's vendored source commit
-   if the merge commit differs, rerun all checks, then merge Betterbaud.
+9. Merge the upstream branch first. Update BBStyler's vendored source commit
+   if the merge commit differs, rerun all checks, then merge BBStyler.
 
-Do not combine the upstream authority change and Betterbaud's full visual
+Do not combine the upstream authority change and BBStyler's full visual
 migration into one commit. If the new design causes a product regression, the
 UI commit can then be reverted without removing the platform model or
 accessibility corrections.
 
 ## Definition of done
 
-- Betterbaud carries a current, generated copy of the admin UI style guide.
+- BBStyler carries a current, generated copy of the admin UI style guide.
 - Both entry points explicitly declare the bundled platform.
 - The vendored checker reports 0 violations and 0 stale files, with every
   remaining warning explicitly reviewed and narrowly suppressed or fixed.
@@ -538,7 +538,8 @@ accessibility corrections.
 
 ## Explicitly deferred
 
-- Changing Betterbaud's working name or repository URL.
+- Changing BBStyler's working name or repository URL. (The later product and
+  repository renames were completed separately on 2026-08-21.)
 - Adding AI drafting, a backend, accounts, telemetry or cross-shell sync.
 - Changing class-content profiles, palettes, templates or Blackbaud
   compatibility measurements.

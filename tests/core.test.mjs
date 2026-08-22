@@ -759,6 +759,6 @@ test("the local adapter survives storage that is missing, full or corrupt", asyn
 test("backup filenames are findable six months later", () => {
   // The prefix is our name, and a row in docs/naming.md — if a rename lands and
   // this assertion is not updated with it, that is the rename being incomplete.
-  assert.equal(backupFilename("Tuesday’s class post", "2026-08-12"), "betterbaud-tuesday-s-class-post-2026-08-12.json");
-  assert.equal(backupFilename("", "2026-08-12"), "betterbaud-workspace-2026-08-12.json");
+  assert.equal(backupFilename("Tuesday’s class post", "2026-08-12"), "bbstyler-tuesday-s-class-post-2026-08-12.json");
+  assert.equal(backupFilename("", "2026-08-12"), "bbstyler-workspace-2026-08-12.json");
 });

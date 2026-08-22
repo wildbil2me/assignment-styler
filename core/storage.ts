@@ -173,7 +173,7 @@ export function parse(text: string): { workspace: Workspace | null; message: str
   if (!workspace)
     return {
       workspace: null,
-      message: "That file doesn’t contain any posts. Check it’s a Betterbaud backup rather than a class style.",
+      message: "That file doesn’t contain any posts. Check it’s a BBStyler backup rather than a class style.",
     };
   const count = workspace.blocks.length;
   return {
@@ -193,7 +193,7 @@ export function parse(text: string): { workspace: Workspace | null; message: str
  */
 export function backupFilename(postTitle: string, today: string): string {
   const slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `betterbaud-${slug || "workspace"}-${today}.json`;
+  return `bbstyler-${slug || "workspace"}-${today}.json`;
 }
 
 /* ---------------------------------------------------------------- adapters */

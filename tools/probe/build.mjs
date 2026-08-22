@@ -217,7 +217,7 @@ details.src textarea{width:100%;height:260px;margin:8px 0 0;padding:12px;backgro
     ${legend}
   </section>
 
-  <footer>Betterbaud &middot; tools/probe &middot; regenerate with <code>npm run probe</code></footer>
+  <footer>BBStyler &middot; tools/probe &middot; regenerate with <code>npm run probe</code></footer>
 </div>
 <script>
 const PAYLOAD = document.getElementById('raw');
@@ -359,7 +359,7 @@ textarea#input{width:100%;height:190px;line-height:1.5;margin:14px 0 0;}
     <textarea class="out" id="out" readonly placeholder="Export output appears here too, in case the clipboard is blocked."></textarea>
   </section>
 
-  <footer>Betterbaud &middot; tools/probe &middot; regenerate with <code>npm run probe</code></footer>
+  <footer>BBStyler &middot; tools/probe &middot; regenerate with <code>npm run probe</code></footer>
 </div>
 <script>
 const ROWS = ${JSON.stringify(meta)};
