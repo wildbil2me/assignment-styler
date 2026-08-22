@@ -18,9 +18,11 @@ loss; R48 still needs reanalysis with the corrected multi-marker analyzer.
 
 Three findings change the plan:
 
-1. **`<style>` blocks are stripped on every surface.** The inline-only
-   architecture is confirmed necessary — not superstition. This also settles
-   motion: CSS animation in exported content is impossible.
+1. **Top-level `<style>` blocks are stripped on every measured surface.** The
+   inline-only architecture remains necessary for ordinary HTML. Dedicated
+   2026-08-22 probes found a bounded exception: a style nested inside inline
+   SVG survives and executes within that SVG. See
+   [SVG motion and interaction](svg-motion-reference.md).
 2. **Everything soft cards is made of survives.** `border-radius`, `box-shadow`,
    `rgba()`, tinted fills, all three surfaces. The chosen direction ships as
    drawn. No degradation needed.
@@ -160,7 +162,15 @@ another tenant may well be stricter — but Phase 2 should not spend effort
 building fallbacks nothing currently needs. Write the guard, keep the spec as
 data, move on.
 
-### Motion is settled: off
+### Motion is bounded to self-contained SVG
+
+> **2026-08-22 update:** The paragraphs below record the original conclusion
+> from the broad compatibility run and are superseded for self-contained SVG.
+> Dedicated probes confirmed SVG-nested CSS keyframes, SMIL, `<foreignObject>`,
+> hover, focus, custom properties, and reduced-motion media queries. SVG styles
+> do not escape to surrounding HTML, fragment-link controls are unsafe, and
+> SMIL does not automatically honor CSS reduced-motion rules. See the complete
+> [SVG motion and interaction reference](svg-motion-reference.md).
 
 `<style>` is stripped, so `@keyframes` has nowhere to live and CSS animation is
 impossible. SMIL survives on two of three surfaces, but:

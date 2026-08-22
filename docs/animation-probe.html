@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blackbaud CSS motion probe</title>
+<style>
+:root{--navy:#11263d;--blue:#4e66c5;--orange:#e67e22;--paper:#fff;--ground:#edf1f5;--ink:#182230;--muted:#647180;--rule:#d9e0e8;--green:#187348;--red:#b42d3b;--amber:#95600c}
+*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{width:min(1120px,calc(100% - 32px));margin:auto;padding:42px 0 72px}header{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;padding-bottom:26px;border-bottom:2px solid var(--orange)}.kicker{margin:0 0 8px;color:var(--blue);font:700 11px/1.2 ui-monospace,monospace;letter-spacing:1.5px;text-transform:uppercase}h1{max-width:720px;margin:0;font-size:clamp(30px,5vw,54px);line-height:1;letter-spacing:-2px}header p:last-child{max-width:720px;margin:14px 0 0;color:var(--muted);font-size:17px}.count{padding:10px 13px;border:1px solid var(--rule);background:var(--paper);font:700 12px ui-monospace,monospace}.warning{margin:24px 0 0;padding:14px 17px;border-left:4px solid var(--orange);background:#fff7eb}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:28px 0;background:var(--rule);border:1px solid var(--rule)}.step{min-height:114px;padding:16px;background:var(--paper)}.step b{display:block;margin-bottom:7px;color:var(--blue);font:700 11px ui-monospace,monospace;text-transform:uppercase}.toolbar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:12px 0;background:var(--ground)}button{padding:10px 14px;border:1px solid var(--blue);background:var(--paper);color:var(--blue);font-weight:750;cursor:pointer}button.primary{background:var(--blue);color:#fff}button:hover{filter:brightness(.96)}button:focus-visible,textarea:focus-visible{outline:3px solid #aab7ef;outline-offset:2px}.status{color:var(--muted);font:12px ui-monospace,monospace}.grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);gap:20px}.panel{overflow:hidden;border:1px solid var(--rule);background:var(--paper)}.panel>h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--rule);font-size:17px}.panel-note{margin:0;padding:0 18px 15px;color:var(--muted);font-size:13px}.reference{width:100%;height:760px;border:0;background:#f4f6f8}.source{display:block;width:100%;height:330px;resize:vertical;padding:15px;border:0;border-top:1px solid var(--rule);background:#101824;color:#dbe8f5;font:11px/1.55 ui-monospace,monospace}.paste{display:block;width:calc(100% - 36px);height:210px;margin:0 18px 14px;resize:vertical;padding:12px;border:1px solid var(--rule);font:11px/1.5 ui-monospace,monospace}.results{margin:0;padding:0 18px 18px;list-style:none}.results li{display:grid;grid-template-columns:44px 1fr auto;gap:9px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:13px}.results code{color:var(--muted)}.pass{color:var(--green)}.fail{color:var(--red)}.maybe{color:var(--amber)}footer{margin-top:28px;color:var(--muted);font-size:12px}@media(max-width:800px){header,.grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.count{justify-self:start}}@media(max-width:520px){.steps{grid-template-columns:1fr}.wrap{width:min(100% - 20px,1120px)}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header>
+  <div><p class="kicker">Experimental payload · save as draft</p><h1>CSS motion stress probe</h1><p>Find the exact edge of what a rich-text box will store, render, and replay—without guessing from the visual editor alone.</p></div>
+  <div class="count">16 boundary tests · round 4</div>
+</header>
+<p class="warning"><strong>Do not publish this to students.</strong> Round 4 tests embedded HTML, user-triggered motion, responsive rules, reusable components, and 50 concurrent elements. Use a private draft, note scrolling performance, then delete it.</p>
+<section class="steps" aria-label="Test procedure">
+  <div class="step"><b>01 · Copy</b>Copy the payload below and paste it into the text box’s HTML/source mode.</div>
+  <div class="step"><b>02 · Save</b>Save once, open the visual editor, make no changes, then save again.</div>
+  <div class="step"><b>03 · Observe</b>Compare the saved post with the reference. Hover and focus the interactive rows.</div>
+  <div class="step"><b>04 · Inspect</b>Copy the stored HTML back out, paste it here, and run the structural analysis.</div>
+</section>
+<div class="toolbar">
+  <button class="primary" id="copy" type="button">Copy probe payload</button>
+  <button id="select" type="button">Select source</button>
+  <span class="status" id="copyStatus" role="status">Ready</span>
+</div>
+<section class="grid">
+  <article class="panel"><h2>Reference rendering</h2><p class="panel-note">Everything below moves in a normal browser unless your system requests reduced motion.</p><iframe class="reference" id="reference" title="Reference rendering of the animation probe"></iframe></article>
+  <article class="panel"><h2>Probe source</h2><p class="panel-note">Paste only this payload into the target editor.</p><textarea class="source" id="source" readonly spellcheck="false"></textarea><h2>Analyze stored HTML</h2><p class="panel-note">Paste back what the editor stored. This checks structure and declarations; use the reference for visual behavior.</p><textarea class="paste" id="stored" placeholder="Paste stored HTML here…" spellcheck="false"></textarea><div style="padding:0 18px 14px"><button id="analyze" type="button">Analyze stored HTML</button></div><ul class="results" id="results"><li><span>—</span><span>No stored HTML analyzed yet.</span><span class="maybe">waiting</span></li></ul></article>
+</section>
+<footer>Interpretation rule: a declaration surviving does not prove the animation ran. Record both the structural result here and the visible result in the saved target.</footer>
+</main>
+<script>
+const tests=[
+ {id:'F01',name:'foreignObject retained',tag:'foreignObject'},
+ {id:'F02',name:'animated HTML in foreignObject',needle:'.fo-card'},
+ {id:'F03',name:'rich wrapped HTML',needle:'data-fo-rich'},
+ {id:'F04',name:'HTML interaction in foreignObject',needle:'.fo-button:hover'},
+ {id:'F05',name:'SVG hover state',needle:'.hover-target:hover'},
+ {id:'F06',name:'SVG keyboard focus',needle:'.focus-target:focus'},
+ {id:'F07',name:'click-triggered SMIL',needle:'begin="click"'},
+ {id:'F08',name:'chained SMIL',needle:'first-motion.end'},
+ {id:'F09',name:'local reduced-motion',needle:'prefers-reduced-motion'},
+ {id:'F10',name:'CSS custom properties',needle:'--travel'},
+ {id:'F11',name:'CSS @supports',needle:'@supports'},
+ {id:'F12',name:'symbol and use',tag:'use'},
+ {id:'F13',name:'pattern and clipPath',tag:'pattern'},
+ {id:'F14',name:'SVG filter primitives',tag:'feGaussianBlur'},
+ {id:'F15',name:'responsive media query',needle:'max-width:500px'},
+ {id:'F16',name:'50 animated elements',needle:'data-stress-count="50"'}
+];
+const stressDots=Array.from({length:50},(_,i)=>`<circle class="stress-dot" cx="${466+(i%10)*18}" cy="${1056+Math.floor(i/10)*15}" r="5" style="animation-delay:-${(i*.07).toFixed(2)}s"/>`).join('');
+const payload=`<div data-motion-probe="svg-round-4" style="max-width:720px;margin:0 auto;padding:18px;background:#f4f6f8;color:#172536;font-family:Arial,Helvetica,sans-serif;">
+<h2 style="margin:0 0 5px;font-size:24px;">SVG boundary lab · round 4</h2><p style="margin:0 0 16px;color:#5c6875;">Sixteen tests. Hover F04/F05, tab to F04/F06, click F07, and watch for lag at F16.</p>
+<svg data-svg-boundary-lab="2026-08-22" viewBox="0 0 680 1140" width="100%" role="img" aria-labelledby="f-title f-desc" preserveAspectRatio="xMidYMin meet" style="display:block;max-width:680px;height:auto;background:#fff;border:1px solid #d6dee7;">
+<title id="f-title">SVG boundary compatibility probe</title><desc id="f-desc">Tests embedded HTML, interaction, responsive CSS, reusable components, filters, and animation load.</desc>
+<defs><style>
+@keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(var(--travel,24px))}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}@keyframes stress{0%,100%{transform:translateY(0);fill:#4e66c5}50%{transform:translateY(-8px);fill:#e67e22}}
+.fo-card{animation:drift 2.2s ease-in-out infinite;background:#e8edff;border-left:5px solid #4e66c5;border-radius:7px;color:#172536;padding:9px;width:170px}.fo-button{display:inline-block;margin-top:5px;padding:5px 9px;border:0;border-radius:5px;background:#172536;color:#fff;transition:transform .2s,background .2s}.fo-button:hover,.fo-button:focus{background:#e67e22;transform:scale(1.08)}.hover-target{transition:transform .25s,fill .25s;transform-box:fill-box;transform-origin:center}.hover-target:hover{fill:#e67e22;transform:scale(1.4)}.focus-target{transition:transform .25s,fill .25s;transform-box:fill-box;transform-origin:center}.focus-target:focus{outline:none;fill:#187348;transform:rotate(20deg) scale(1.2)}.variable-target{--travel:90px;animation:drift 2s infinite}.supports-target{fill:#b42d3b}@supports (transform-box:fill-box){.supports-target{fill:#187348}}.stress-dot{animation:stress 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.row-label{font:700 13px Arial,sans-serif;fill:#172536}.row-note{font:11px Arial,sans-serif;fill:#647180}.rule{stroke:#e1e6ec;stroke-width:1}
+@media (max-width:500px){.responsive-target{fill:#e67e22}}@media (prefers-reduced-motion:reduce){.fo-card,.variable-target,.stress-dot{animation:none!important}.fo-button,.hover-target,.focus-target{transition:none!important}}
+</style>
+<symbol id="reusable-star" viewBox="0 0 40 40"><path d="M20 2l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z"/></symbol>
+<pattern id="grid-pattern" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0V12" fill="none" stroke="#aebbe8"/></pattern><clipPath id="round-clip" clipPathUnits="userSpaceOnUse"><circle cx="594" cy="885" r="23"/></clipPath>
+<filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g data-motion-test="F01"><text class="row-label" x="20" y="34">F01 · foreignObject</text><text class="row-note" x="20" y="52">A pale HTML card should appear at right</text><foreignObject x="460" y="9" width="190" height="52"><div xmlns="http://www.w3.org/1999/xhtml" style="padding:8px;background:#e8edff;border-left:5px solid #4e66c5;font:12px Arial,sans-serif;color:#172536;">Real HTML inside SVG</div></foreignObject></g><path class="rule" d="M20 68H660"/>
+<g data-motion-test="F02"><text class="row-label" x="20" y="99">F02 · Animated embedded HTML</text><text class="row-note" x="20" y="117">The HTML card glides horizontally</text><foreignObject x="450" y="76" width="210" height="58"><div xmlns="http://www.w3.org/1999/xhtml" class="fo-card">Animated HTML card</div></foreignObject></g><path class="rule" d="M20 138H660"/>
+<g data-motion-test="F03"><text class="row-label" x="20" y="169">F03 · Rich wrapped HTML</text><text class="row-note" x="20" y="187">Bold, italic, list, and wrapping remain intact</text><foreignObject x="430" y="145" width="220" height="82"><div xmlns="http://www.w3.org/1999/xhtml" data-fo-rich="true" style="font:11px/1.25 Arial,sans-serif;color:#172536;"><strong>Rich HTML</strong> with <em>emphasis</em><ul style="margin:3px 0;padding-left:17px;"><li>wrapped list item one</li><li>item two</li></ul></div></foreignObject></g><path class="rule" d="M20 228H660"/>
+<g data-motion-test="F04"><text class="row-label" x="20" y="259">F04 · HTML hover and focus</text><text class="row-note" x="20" y="277">Hover or tab to the embedded button</text><foreignObject x="470" y="239" width="180" height="58"><div xmlns="http://www.w3.org/1999/xhtml"><button class="fo-button" type="button">HTML BUTTON</button></div></foreignObject></g><path class="rule" d="M20 298H660"/>
+<g data-motion-test="F05"><text class="row-label" x="20" y="329">F05 · SVG hover</text><text class="row-note" x="20" y="347">Circle grows and turns orange</text><circle class="hover-target" cx="594" cy="330" r="19" fill="#4e66c5"/></g><path class="rule" d="M20 368H660"/>
+<g data-motion-test="F06"><text class="row-label" x="20" y="399">F06 · SVG focus</text><text class="row-note" x="20" y="417">Tab to square; it tilts and turns green</text><rect class="focus-target" tabindex="0" x="573" y="379" width="42" height="42" rx="6" fill="#4e66c5"/></g><path class="rule" d="M20 438H660"/>
+<g data-motion-test="F07"><text class="row-label" x="20" y="469">F07 · Click-triggered SMIL</text><text class="row-note" x="20" y="487">Click orange circle; it travels once</text><circle cx="490" cy="470" r="15" fill="#e67e22"><animate id="click-motion" attributeName="cx" from="490" to="630" dur="1s" begin="click" fill="freeze"/></circle></g><path class="rule" d="M20 508H660"/>
+<g data-motion-test="F08"><rect x="450" y="516" width="200" height="50" rx="6" fill="#f4f6f8" stroke="#d6dee7"/><text class="row-label" x="20" y="539">F08 · Chained SMIL</text><text class="row-note" x="20" y="557">Click the BLUE bar; green should follow</text><rect x="470" y="526" width="32" height="12" rx="6" fill="#4e66c5" style="cursor:pointer;"><animate id="first-motion" attributeName="x" from="470" to="610" dur="1.2s" begin="click" fill="freeze" restart="always"/></rect><rect x="470" y="546" width="32" height="12" rx="6" fill="#187348"><animate id="second-motion" attributeName="x" from="470" to="610" dur="1.2s" begin="first-motion.end+0.2s" fill="freeze" restart="always"/></rect></g><path class="rule" d="M20 578H660"/>
+<g data-motion-test="F09"><text class="row-label" x="20" y="609">F09 · Reduced motion</text><text class="row-note" x="20" y="627">With reduced motion enabled, CSS motion stops</text><path class="variable-target" d="M500 590L518 612H509V632H491V612H482Z" fill="#187348"/></g><path class="rule" d="M20 648H660"/>
+<g data-motion-test="F10"><text class="row-label" x="20" y="679">F10 · CSS custom property</text><text class="row-note" x="20" y="697">Purple capsule travels 90px</text><rect class="variable-target" x="470" y="662" width="60" height="28" rx="14" fill="#7553a6"/></g><path class="rule" d="M20 718H660"/>
+<g data-motion-test="F11"><text class="row-label" x="20" y="749">F11 · @supports</text><text class="row-note" x="20" y="767">Circle is green if the conditional rule runs, red otherwise</text><circle class="supports-target" cx="594" cy="750" r="20"/></g><path class="rule" d="M20 788H660"/>
+<g data-motion-test="F12"><text class="row-label" x="20" y="819">F12 · symbol and use</text><text class="row-note" x="20" y="837">Two reusable stars should render</text><use href="#reusable-star" x="550" y="797" width="38" height="38" fill="#4e66c5"/><use href="#reusable-star" x="602" y="797" width="38" height="38" fill="#e67e22"/></g><path class="rule" d="M20 858H660"/>
+<g data-motion-test="F13"><text class="row-label" x="20" y="889">F13 · pattern and clipPath</text><text class="row-note" x="20" y="907">Grid is clipped to a circle</text><rect x="565" y="856" width="58" height="58" fill="url(#grid-pattern)" clip-path="url(#round-clip)"/></g><path class="rule" d="M20 918H660"/>
+<g data-motion-test="F14"><text class="row-label" x="20" y="949">F14 · Filter primitives</text><text class="row-note" x="20" y="967">Orange dot has a soft glow</text><circle cx="594" cy="948" r="16" fill="#e67e22" filter="url(#soft-glow)"/></g><path class="rule" d="M20 978H660"/>
+<g data-motion-test="F15"><text class="row-label" x="20" y="1009">F15 · Responsive media query</text><text class="row-note" x="20" y="1027">Pill turns orange in a narrow viewport</text><rect class="responsive-target" x="550" y="992" width="100" height="28" rx="14" fill="#4e66c5"/></g><path class="rule" d="M20 1040H660"/>
+<g data-motion-test="F16" data-stress-count="50"><text class="row-label" x="20" y="1075">F16 · 50 concurrent animations</text><text class="row-note" x="20" y="1093">Dots bounce and recolour; note any lag</text>${stressDots}</g>
+</svg></div>`;
+const source=document.querySelector('#source'),frame=document.querySelector('#reference'),status=document.querySelector('#copyStatus');
+source.value=payload;frame.srcdoc='<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:18px;background:#f4f6f8}</style>'+payload;
+document.querySelector('#copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(payload);status.textContent='Copied '+payload.length.toLocaleString()+' characters'}catch{source.select();document.execCommand('copy');status.textContent='Copied with browser fallback'}});
+document.querySelector('#select').addEventListener('click',()=>{source.focus();source.select();status.textContent='Source selected'});
+document.querySelector('#analyze').addEventListener('click',()=>{
+ const html=document.querySelector('#stored').value,results=document.querySelector('#results');if(!html.trim()){results.innerHTML='<li><span>—</span><span>Paste stored HTML first.</span><span class="maybe">waiting</span></li>';return}
+ const doc=new DOMParser().parseFromString(html,'text/html');
+ results.innerHTML=tests.map(t=>{const marker=doc.querySelector('[data-motion-test="'+t.id+'"]')||[...doc.querySelectorAll('*')].find(n=>n.textContent.includes('['+t.id+']'));let ok=false,detail='marker missing';if(marker){if(t.style){ok=marker.style.getPropertyValue(t.style)!=='';detail=ok?t.style+' retained':t.style+' stripped'}else if(t.tag){ok=[...doc.querySelectorAll('*')].some(n=>n.localName.toLowerCase()===t.tag.toLowerCase());detail=ok?t.tag+' retained':t.tag+' stripped'}else{ok=html.toLowerCase().includes(t.needle.toLowerCase());detail=ok?'rule retained':'rule stripped'}}return '<li><code>'+t.id+'</code><span>'+t.name+'<br><small>'+detail+'</small></span><strong class="'+(ok?'pass':'fail')+'">'+(ok?'retained':'lost')+'</strong></li>'}).join('');
+ });
+</script>
+</body>
+</html>
