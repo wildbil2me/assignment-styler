@@ -1,7 +1,7 @@
 import type { BlockType, ToneKey } from "./model.ts";
 
 /**
- * The block taxonomy — 17 types since Phase 2 promoted `details`.
+ * The block taxonomy — 18 types, including the SVG-backed animated card.
  *
  * Labels double as fallback headings in render.ts and as inferred titles in
  * import.ts, so the strings are load-bearing.
@@ -30,10 +30,11 @@ export const blockMeta: Record<BlockType, { label: string; icon: string; tone: T
   /**
    * Native disclosure — `<details>`/`<summary>`, measured surviving on all three
    * surfaces (probe R40). No CSS, no accessibility cost, and the only
-   * interaction primitive available in exported content now that motion is off.
+   * interaction primitive available in exported content.
    * Answer keys and long study guides are what it is for.
    */
   details: { label: "Collapsible section", icon: "▸", tone: "neutral" },
+  animated: { label: "Animated card", icon: "▶", tone: "accent" },
 };
 
 export const blockTypes = Object.keys(blockMeta) as BlockType[];

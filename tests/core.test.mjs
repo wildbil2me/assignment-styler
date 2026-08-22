@@ -400,6 +400,44 @@ test("details renders as disclosure where it survives, as a card where it does n
   assert.match(flat, /the answer/, "and never hides the content");
 });
 
+test("animated cards export the three measured SVG motion variants accessibly", () => {
+  const expected = {
+    fade: /from\{opacity:0\}to\{opacity:1\}/,
+    "slide-up": /translateY\(24px\)/,
+    "slide-left": /translateX\(-32px\)/,
+  };
+  for (const [motion, keyframes] of Object.entries(expected)) {
+    const html = render([{ id: 1, type: "animated", title: "Notice", body: "Read this", motion }]);
+    assert.match(html, new RegExp(`<svg[^>]+data-bcc-motion="${motion}"`));
+    assert.match(html, /<foreignObject/);
+    assert.doesNotMatch(html, /viewBox=/, "responsive SVG must not scale its text");
+    assert.match(html, /<foreignObject[^>]+width="100%"/, "the card follows its container without scaling typography");
+    assert.match(html, keyframes);
+    assert.match(html, /prefers-reduced-motion:reduce/);
+    assert.match(html, /animation:none!important/);
+    assert.deepEqual(guard(html, stJohns), []);
+  }
+});
+
+test("animated cards degrade to ordinary static cards when SVG is unsupported", () => {
+  const block = [{ id: 1, type: "animated", width: "half", title: "Notice", body: "Still readable", motion: "slide-up" }];
+  const html = render(block, { spec: conservative });
+  assert.doesNotMatch(html, /<svg|@keyframes|animation:/);
+  assert.match(html, /Still readable/);
+  assert.doesNotMatch(html, /data-layout="half"/, "animated cards ignore stale half-width state");
+});
+
+test("animated cards round-trip through the HTML importer", () => {
+  const html = render([{ id: 1, type: "animated", title: "Motion", body: "<strong>Visible</strong>", motion: "slide-left" }]);
+  const back = importHtml(html, 50);
+  const animated = back.blocks.find((block) => block.type === "animated");
+  assert.ok(animated, "the SVG card remains an editable animated block");
+  assert.deepEqual(
+    { type: animated.type, title: animated.title, body: animated.body, motion: animated.motion },
+    { type: "animated", title: "Motion", body: "<strong>Visible</strong>", motion: "slide-left" }
+  );
+});
+
 test("the soft profile emits the properties Phase 0 verified it needs", () => {
   const html = render(starter, { profile: profiles.soft });
   assert.match(html, /border-radius:14px/, "R02");
@@ -460,7 +498,7 @@ test("the surface decides the wrapper width", () => {
 /* ---------------------------------------------------- data table integrity */
 
 test("the data tables match the shapes the renderer expects", () => {
-  assert.equal(blockTypes.length, 17, "17 block types — details joined in Phase 2");
+  assert.equal(blockTypes.length, 18, "18 block types — animated card is the measured SVG exception");
   assert.equal(paletteKeys.length, 6, "6 subject palettes");
   assert.equal(profileKeys.length, 3, "3 profiles");
   assert.equal(surfaceKeys.length, 3, "3 surfaces — not 4; announcement is a block type");
@@ -694,6 +732,15 @@ test("migration accepts what the prototype wrote and rejects what it didn't", ()
   assert.equal(v0.surfaceKey, "bulletin", "an unknown surface falls back rather than throwing");
   assert.equal(v0.profileKey, "soft");
   assert.equal(v0.styleKey, "science");
+
+  const motion = migrate({
+    blocks: [
+      { id: 2, type: "animated", title: "A", body: "B", motion: "slide-up" },
+      { id: 3, type: "animated", title: "C", body: "D", motion: "spin" },
+    ],
+  });
+  assert.equal(motion.blocks[0].motion, "slide-up", "validated motion survives storage");
+  assert.equal("motion" in motion.blocks[1], false, "unknown motion is discarded");
 
   const junk = migrate({ blocks: [{ id: 1, type: "nonexistent", title: "", body: "" }, ...starter] });
   assert.equal(junk.blocks.length, starter.length, "a block type this build doesn't have is dropped");

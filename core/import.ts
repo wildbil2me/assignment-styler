@@ -59,7 +59,8 @@ export function importHtml(source: string, stamp: number = Date.now()): ImportRe
   if (
     elements.length === 1 &&
     ["DIV", "MAIN", "SECTION", "ARTICLE"].includes(elements[0].tagName) &&
-    elements[0].children.length > 1
+    (elements[0].children.length > 1 ||
+      elements[0].firstElementChild?.matches('svg[data-bcc-type="animated"]'))
   )
     elements = Array.from(elements[0].children) as HTMLElement[];
 
@@ -70,6 +71,20 @@ export function importHtml(source: string, stamp: number = Date.now()): ImportRe
     if (!text) continue;
     const id = stamp + imported.length;
     const tag = el.tagName;
+
+    if (tag === "SVG" && el.getAttribute("data-bcc-type") === "animated") {
+      const heading = el.querySelector("foreignObject h2");
+      const body = el.querySelector<HTMLElement>("foreignObject [data-bcc-body]");
+      const motion = el.getAttribute("data-bcc-motion");
+      imported.push({
+        id,
+        type: "animated",
+        title: heading?.textContent?.trim() || "Animated card",
+        body: body?.innerHTML.trim() || "",
+        motion: ["fade", "slide-up", "slide-left"].includes(motion || "") ? motion as Block["motion"] : "fade",
+      });
+      continue;
+    }
 
     if (tag === "H1") {
       imported.push({ id, type: "hero", label: "IMPORTED POST", title: text, body: "" });

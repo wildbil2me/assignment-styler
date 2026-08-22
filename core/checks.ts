@@ -343,6 +343,7 @@ function headingOrder(visible: Block[], spec: CompatSpec, surface: Surface): Che
 function structure(html: string, spec: CompatSpec): Check {
   const problems = guard(html, spec);
   const inlineOnly = !/<style[\s>]/i.test(html) && !/\sclass=/i.test(html);
+  const animated = /data-bcc-type="animated"/i.test(html);
   if (problems.length)
     return {
       id: "structure",
@@ -355,7 +356,9 @@ function structure(html: string, spec: CompatSpec): Check {
     id: "structure",
     label: "Blackbaud-safe structure",
     status: "pass",
-    detail: inlineOnly
+    detail: animated
+      ? "Animated cards use a self-contained SVG stylesheet with a reduced-motion fallback; ordinary blocks remain inline-only."
+      : inlineOnly
       ? "Every style is inline, no <style> block, no stylesheet class, no animation."
       : "No <style> block, no inline <svg>, no animation.",
     blockIds: [],
@@ -379,8 +382,14 @@ function surfaceSupport(visible: Block[], spec: CompatSpec, surface: Surface): C
     affected.push(...disclosures.map((b) => b.id));
   }
 
+  const animated = visible.filter((b) => b.type === "animated");
+  if (animated.length && !supportsElement(spec, "svg", surface.key)) {
+    notes.push("animated cards render as ordinary static cards because this surface strips inline SVG");
+    affected.push(...animated.map((b) => b.id));
+  }
+
   const halves = visible.filter(
-    (b) => b.width === "half" && b.type !== "hero" && b.type !== "intro"
+    (b) => b.width === "half" && !["hero", "intro", "animated"].includes(b.type)
   );
   if (halves.length && !supportsStyle(spec, "flex-wrap", surface.key)) {
     notes.push("half-width blocks fall back to inline-block, which still stacks on a phone");

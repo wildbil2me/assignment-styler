@@ -38,7 +38,7 @@
 
 import type { Block, Palette, Profile, Surface } from "./model.ts";
 import { blockMeta } from "./catalog.ts";
-import { esc, safeRich } from "./sanitize.ts";
+import { cssSafe, esc, safeRich } from "./sanitize.ts";
 import { fontStack, resolveTone } from "./profiles/index.ts";
 import { style } from "./degrade.ts";
 import { stJohns, supportsElement, supportsHeadingInSummary, supportsStyle, type CompatSpec } from "./compat.ts";
@@ -82,7 +82,7 @@ export function renderHtml(
 
   /** A half-width block that is actually rendered as a card. */
   function isHalf(block: Block): boolean {
-    return block.width === "half" && block.type !== "hero" && block.type !== "intro";
+    return block.width === "half" && !["hero", "intro", "animated"].includes(block.type);
   }
 
   /**
@@ -157,6 +157,46 @@ export function renderHtml(
       ["text-transform", head.transform === "none" ? "" : head.transform],
     ]);
 
+    if (b.type === "animated" && supportsElement(spec, "svg", surface.key)) {
+      const motion = b.motion || "fade";
+      const text = `${b.title} ${b.body.replace(/<[^>]+>/g, " ")}`.trim();
+      const estimatedLines = Math.max(1, Math.ceil(text.length / 64));
+      const height = Math.min(360, 112 + estimatedLines * 24);
+      const outer = s([
+        ["display", "block"],
+        ["width", "100%"],
+        ["height", `${height}px`],
+        ["margin", `0 0 ${card.gap}`],
+      ]);
+      const cardStyle = s([
+        ["box-sizing", "border-box"],
+        ["width", "100%"],
+        ["height", `${height}px`],
+        ["padding", card.padding],
+        ["background-color", tone.fill],
+        ["border", `${card.borderWidth} solid ${tone.border}`],
+        card.accentBar ? ["border-left", `${card.accentBar} solid ${tone.border}`] : null,
+        ["border-radius", card.radius],
+        ["box-shadow", card.shadow],
+        alignment,
+      ]);
+      const keyframes = {
+        fade: "from{opacity:0}to{opacity:1}",
+        "slide-up": "from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}",
+        "slide-left": "from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}",
+      }[motion];
+      const motionCss = `@keyframes bcc-motion{${keyframes}}.bcc-motion{animation:bcc-motion .65s ease-out both}@media(prefers-reduced-motion:reduce){.bcc-motion{animation:none!important}}`;
+      return (
+        `<svg data-layout="full" data-bcc-type="animated" data-bcc-motion="${motion}" width="100%" height="${height}" role="group" aria-label="${title || "Animated card"}" style="${outer}">` +
+        `<style>${motionCss}</style>` +
+        `<foreignObject x="0" y="0" width="100%" height="${height}">` +
+        `<div xmlns="http://www.w3.org/1999/xhtml" class="bcc-motion" style="${cardStyle}font-family:${cssSafe(fontStack(profile.fonts.body))};color:${cssSafe(colors.text)};font-size:${cssSafe(fontSizes.body)};line-height:${cssSafe(lineHeights.body)};">` +
+        `<h2 style="${headingStyle}">${icon}${label}</h2>` +
+        `<div data-bcc-body="true" style="margin:0;">${body}</div>` +
+        `</div></foreignObject></svg>`
+      );
+    }
+
     // Disclosure where the tenant keeps it (R40), an ordinary open card where it
     // does not — a compatibility decision must never hide a teacher's content.
     if (b.type === "details" && supportsElement(spec, "details", surface.key)) {
@@ -188,7 +228,7 @@ export function renderHtml(
     // the rendering does not.
     //
     return (
-      `<div data-layout="${b.width || "full"}" style="${box}">` +
+      `<div data-layout="${b.type === "animated" ? "full" : b.width || "full"}" style="${box}">` +
       `<h2 style="${headingStyle}">${icon}${label}</h2>` +
       `<div style="${s([["margin", "0"]])}">${body}</div>` +
       `</div>`

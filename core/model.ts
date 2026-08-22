@@ -33,7 +33,10 @@ export type BlockType =
   | "quote"
   | "resource"
   | "targets"
-  | "details";
+  | "details"
+  | "animated";
+
+export type MotionStyle = "fade" | "slide-up" | "slide-left";
 
 export type Block = {
   id: number;
@@ -45,6 +48,8 @@ export type Block = {
   emoji?: string;
   hidden?: boolean;
   align?: "left" | "center" | "right" | "justify";
+  /** Only used by the SVG-backed animated block. */
+  motion?: MotionStyle;
 };
 
 /**

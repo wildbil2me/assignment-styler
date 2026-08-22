@@ -91,6 +91,7 @@ export function Preview({ c, device, onDevice }: {
       }
 
       root.classList.add("inline-block");
+      root.classList.toggle("inline-block-animated", block.type === "animated");
       root.classList.toggle("inline-block-selected", block.id === selected);
       root.dataset.editorBlock = String(block.id);
 
@@ -203,6 +204,7 @@ export function Preview({ c, device, onDevice }: {
       <span>{surface.width}px</span>
     </div>}
     <div className={`preview-wrap ${device}`}>
+      {blocks.some(block => !block.hidden && block.type === "animated") && <span className="motion-legend"><span aria-hidden="true">▶</span> Animated card</span>}
       <PreviewPaper paper={paper} html={html} maxWidth={device === "desktop" ? surface.width : 390} />
     </div>
   </>;
@@ -234,6 +236,11 @@ function shortcutFor(event: KeyboardEvent): string | undefined {
 }
 
 function editableFields(root: HTMLElement, block: Block): EditableField[] {
+  if (block.type === "animated") {
+    const title = root.querySelector<HTMLElement>("foreignObject h2");
+    const body = root.querySelector<HTMLElement>("foreignObject [data-bcc-body]");
+    return compact([title && { element: title, field: "title" }, body && { element: body, field: "body" }]);
+  }
   if (block.type === "intro") return [{ element: root, field: "body" }];
   if (block.type === "hero") {
     const label = directChild(root, "p");

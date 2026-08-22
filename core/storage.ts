@@ -15,7 +15,7 @@
  * workspaces in different places and neither can read the other's.
  */
 
-import type { Block, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "./model.ts";
+import type { Block, MotionStyle, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "./model.ts";
 import { palettes } from "./palettes.ts";
 import { profiles, defaultProfile } from "./profiles/index.ts";
 import { surfaces } from "./surfaces.ts";
@@ -53,22 +53,24 @@ const isObject = (v: unknown): v is Unknown => typeof v === "object" && v !== nu
 const str = (v: unknown, fallback: string): string => (typeof v === "string" ? v : fallback);
 
 /**
- * Blocks carried an `animation` field in the prototype, before the probe closed
- * the motion question. It is dropped on the way in rather than tolerated, so
- * nothing downstream has to know it ever existed.
+ * Blocks carried an unvalidated `animation` field in the early prototype. It is
+ * dropped on the way in; the SVG-backed block instead preserves one of the
+ * validated `motion` values below.
  */
 function cleanBlocks(value: unknown): Block[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((b): b is Block & { animation?: string } => isObject(b) && typeof b.type === "string" && b.type in blockMeta)
-    .map(({ animation, align, ...b }) => {
+    .map(({ animation, align, motion, ...b }) => {
       const safeAlign = ["left", "center", "right", "justify"].includes(String(align)) ? align : undefined;
+      const safeMotion = ["fade", "slide-up", "slide-left"].includes(String(motion)) ? motion as MotionStyle : undefined;
       return {
         ...b,
         id: Number(b.id),
         title: str(b.title, ""),
         body: str(b.body, ""),
         ...(safeAlign ? { align: safeAlign } : {}),
+        ...(safeMotion ? { motion: safeMotion } : {}),
       };
     });
 }

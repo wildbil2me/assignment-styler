@@ -1,6 +1,6 @@
 import type { CheckStatus } from "../core/checks.ts";
 import { blockMeta } from "../core/catalog.ts";
-import type { BlockType } from "../core/model.ts";
+import type { BlockType, MotionStyle } from "../core/model.ts";
 import { Icon } from "./icon.tsx";
 import type { Composer } from "./state.ts";
 
@@ -10,6 +10,15 @@ const TEXT_EMOJIS = ["📘", "📖", "✏️", "💡", "❓", "✅", "⚠️", "
 /** Structural settings for the selected block. Text is edited in the preview. */
 export function BlockFields({ c }: { c: Composer }) {
   const { active, update, deleteBlock } = c;
+  const replayMotion = () => {
+    if (!active) return;
+    const root = document.querySelector(`[data-editor-block="${active.id}"]`);
+    const target = root?.querySelector<HTMLElement>(".bcc-motion");
+    if (!target) return;
+    target.style.animation = "none";
+    target.getBoundingClientRect();
+    target.style.removeProperty("animation");
+  };
   return <>
     <div className="inspector-title">
       <div><span className="eyebrow">BLOCK SETTINGS</span><h2>{active ? blockMeta[active.type].label : "Block"}</h2></div>
@@ -19,8 +28,9 @@ export function BlockFields({ c }: { c: Composer }) {
       <p className="inline-edit-help">Edit the heading and content directly in the preview.</p>
       <TextFormatting c={c} />
       <label>Block type<select aria-label="Block type" value={active.type} onChange={event => update({ type: event.target.value as BlockType })}>{Object.entries(blockMeta).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select></label>
+      {active.type === "animated" && <div className="motion-control"><label>Entrance motion<select aria-label="Entrance motion" value={active.motion || "fade"} onChange={event => update({ motion: event.target.value as MotionStyle })}><option value="fade">Fade in</option><option value="slide-up">Slide up</option><option value="slide-left">Slide from left</option></select></label><button type="button" className="replay-motion" onClick={replayMotion}>▶ Replay animation</button><small className="motion-help">Runs when the Blackbaud content loads. Reduced-motion users see the final state immediately.</small></div>}
       <button aria-pressed={Boolean(active.hidden)} className={`visibility-toggle ${active.hidden ? "active" : ""}`} onClick={() => update({ hidden: !active.hidden })}>{active.hidden ? "Show in export" : "Hide from export"}</button>
-      {active.type !== "hero" && active.type !== "intro" && <fieldset className="width-control">
+      {active.type !== "hero" && active.type !== "intro" && active.type !== "animated" && <fieldset className="width-control">
         <legend>Desktop width</legend>
         <button aria-pressed={(active.width || "full") === "full"} className={(active.width || "full") === "full" ? "active" : ""} onClick={() => update({ width: "full" })}><span aria-hidden="true">▬</span> Full</button>
         <button aria-pressed={active.width === "half"} className={active.width === "half" ? "active" : ""} onClick={() => update({ width: "half" })}><span aria-hidden="true">▰</span> Half</button>

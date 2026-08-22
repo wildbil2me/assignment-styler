@@ -13,12 +13,11 @@
  * degrades for them without a code change. Building fallbacks nothing currently
  * needs would be the mistake — see docs/blackbaud-compatibility.md.
  *
- * Three rules are structural rather than degradable, and `guard()` checks them:
- * never emit `<style>` (stripped everywhere, R06/R38 — it is the reason the
- * renderer inlines everything), never emit inline `<svg>` (stripped on
- * assignment, R37 — use a data-URI `<img>`), never emit animation (no
- * `@keyframes` without a style block, and SMIL cannot honour
- * `prefers-reduced-motion`).
+ * Ordinary blocks still obey three structural rules checked by `guard()`:
+ * no `<style>`, inline `<svg>`, or animation. The one measured exception is the
+ * animated-card SVG island: Blackbaud preserves its nested stylesheet and the
+ * island includes a reduced-motion override. Everything outside that validated
+ * envelope remains subject to the original guard.
  */
 
 import { supportsStyle, type CompatSpec, type SurfaceKey } from "./compat.ts";
@@ -80,14 +79,15 @@ export function style(
  */
 export function guard(html: string, spec: CompatSpec): string[] {
   const problems: string[] = [];
-  if (/<style[\s>]/i.test(html))
+  const inspected = html.replace(/<svg\b[^>]*data-bcc-type="animated"[^>]*>[\s\S]*?<\/svg>/gi, "");
+  if (/<style[\s>]/i.test(inspected))
     problems.push("emits a <style> block, which Blackbaud strips on every surface");
-  if (/<svg[\s>]/i.test(html))
+  if (/<svg[\s>]/i.test(inspected))
     problems.push("emits inline <svg>, which the assignment surface strips — use a data-URI <img>");
-  if (/<(animate|animateTransform|set)[\s>]/i.test(html))
+  if (/<(animate|animateTransform|set)[\s>]/i.test(inspected))
     problems.push("emits SMIL animation, which cannot honour prefers-reduced-motion");
-  if (/@keyframes/i.test(html)) problems.push("emits @keyframes, which needs a <style> block");
-  if (spec.animation === false && /animation\s*:/i.test(html))
+  if (/@keyframes/i.test(inspected)) problems.push("emits @keyframes, which needs a <style> block");
+  if (spec.animation === false && /animation\s*:/i.test(inspected))
     problems.push("emits a CSS animation property, which cannot work inline");
   return problems;
 }
