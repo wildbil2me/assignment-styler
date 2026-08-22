@@ -217,6 +217,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 
 /* Export */
 .export{padding:20px}
+.inspector>.export{border-bottom:1px solid #eef0f4}
 .copy{width:100%;padding:12px;border-radius:7px;background:#5b6fcc;color:#fff;font-size:13px;font-weight:700;transition:transform .1s,background .15s}
 .copy:hover{background:#4a5fbb}
 .copy:active{transform:scale(.95)}
@@ -309,9 +310,10 @@ button:disabled{cursor:not-allowed;opacity:.5}
   .block-row{grid-template-columns:minmax(0,1fr)}
   .block-actions{position:absolute;right:6px;top:6px;padding:2px;border-radius:7px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.07)}
   .block-row:hover .block-select,.block-row.selected .block-select{padding-right:88px}
-  .inspector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-  .inspector-title{grid-column:1/-1}
-  .inspector .fields,.inspector .checks{border-right:1px solid #eef0f4;border-bottom:0}
+  .inspector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .inspector>.export,.inspector-title{grid-column:1/-1}
+  .inspector .fields{border-right:1px solid #eef0f4}
+  .inspector .fields,.inspector .checks{border-bottom:0}
   .class-picker:first-child select{max-width:150px}
 }
 

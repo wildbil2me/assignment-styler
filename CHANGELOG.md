@@ -20,6 +20,8 @@ All notable changes to this project are documented here. Versions follow
   surfaces, including rich formatting, alignment, nested lists, and flex wrap.
 - Kept half-width cards paired in BBStyler's narrower desktop preview while
   preserving full-width stacking in the mobile preview.
+- Moved the primary Copy for Blackbaud action to the top of the right-hand
+  column so it remains visible before block settings and compatibility details.
 - Normalized strikethrough to Blackbaud's stored line-through span and added
   measured semantic headings to collapsible sections.
 

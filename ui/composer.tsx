@@ -267,7 +267,7 @@ export function Composer() {
         <BlockList c={c} />
       </aside>
       <section className="stage" aria-label="Post preview"><Preview c={c} device={device} onDevice={setDevice} /></section>
-      <aside className="inspector"><BlockFields c={c} /><Checks c={c} /><ExportPanel c={c} label="Copy for Blackbaud" hint="Paste into Blackbaud’s HTML editor, then preview before publishing." /></aside>
+      <aside className="inspector"><ExportPanel c={c} label="Copy for Blackbaud" hint="Paste into Blackbaud’s HTML editor, then preview before publishing." /><BlockFields c={c} /><Checks c={c} /></aside>
     </section>
     <footer className="app-footer">
       <div className="footer-grid">
