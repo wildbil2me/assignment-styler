@@ -27,6 +27,6 @@ jobs:
       - run: npm run design:check:built
       - uses: actions/upload-artifact@v4
         with:
-          name: betterbaud-extension-${{ github.sha }}
+          name: bbstyler-extension-${{ github.sha }}
           path: extension-dist
           if-no-files-found: error

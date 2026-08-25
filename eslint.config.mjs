@@ -11,7 +11,9 @@ const eslintConfig = defineConfig([
   // clone — linting them made the error count depend on whether you had built.
   // `design/` is generated upstream and audited by its own canonical checker;
   // local lint must not rewrite or reinterpret vendored authority files.
-  globalIgnores(["pages-dist/**", "extension-dist/**", "design/**"]),
+  // `work/` is gitignored local scratch, and the same trap as the build outputs:
+  // lint was reading files a clean clone does not have.
+  globalIgnores(["pages-dist/**", "extension-dist/**", "design/**", "work/**"]),
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   react.configs.flat.recommended,

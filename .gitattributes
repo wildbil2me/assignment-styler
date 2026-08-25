@@ -1,0 +1,5 @@
+# The vendored style book is verified by SHA-256 against the upstream commit
+# recorded in design/upstream.json, so its bytes must survive a checkout
+# unaltered. On Windows with core.autocrlf=true every one of those five files
+# arrived as CRLF and every hash mismatched, which read as upstream drift.
+design/** -text

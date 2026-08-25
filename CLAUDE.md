@@ -111,10 +111,10 @@ npm run design:check # vendored authority integrity + source conformance, 0/0
 npm run build      # the web build - the real gate, must pass
 npm run build:ext  # the extension build - the other real gate
 npm run design:check:built # run after both builds, 0/0
-npm test           # test:core + probe:test, and it is a usable signal again
-npm run test:core  # 63 tests over core/ - green, keep it that way
+npm test           # test:core + test:design + probe:test - the whole suite
+npm run test:core  # 64 tests over core/ - green, keep it that way
 npm run test:design # admin chrome contrast, suppressions and permissions
-npm run probe:test # 26 tests over the probe analyzer - green, keep it that way
+npm run probe:test # 27 tests over the probe analyzer - green, keep it that way
 npm run lint       # 0 errors - anything else is yours, or stale build output
 npm run probe      # regenerate the compatibility kit into docs/
 ```
@@ -224,6 +224,26 @@ Deleting them fixes both, and is safe:
 ```powershell
 Remove-Item -Recurse -Force .next, dist, .wrangler -ErrorAction SilentlyContinue
 ```
+
+### Two more local-only reds, both fixed 2026-08-25
+
+Same family as the one above — a check reading something a clean CI checkout
+does not have. Recorded because the fixes are non-obvious:
+
+- **`npm run design:check` failed on every vendored file.** `core.autocrlf=true`
+  with no `.gitattributes` meant `design/**` checked out as CRLF, so all five
+  SHA-256s mismatched and it read as upstream drift. `.gitattributes` now marks
+  `design/** -text`, and `tools/check-design-vendor.mjs` normalises CRLF before
+  hashing so a copy cloned before that still reports content rather than its
+  line endings. Note the vendored `conformance.mjs` is no cross-check here: its
+  `matches canonical` lines compare `design/` against itself and always pass.
+- **`npm run lint` reported 3 errors from `work/`.** Gitignored local scratch
+  that eslint still walked; `work/**` is in `globalIgnores` now.
+
+`npx tsc --noEmit` was also red at `b61591c` — `import.meta.env.BASE_URL` with
+nothing referencing Vite's ambient types. `ui/vite-env.d.ts` is that reference.
+A `types` array in `tsconfig.json` would have worked too, and would have
+silently dropped `@types/node` from the Vite config files.
 
 ## Design
 
