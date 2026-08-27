@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%90%3C/text%3E%3C/svg%3E" />
+    <title>Embed harness &mdash; the reference rendering</title>
+    <style>
+      *,::before,::after{box-sizing:border-box}
+      html,body{margin:0}
+      html{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+      h1,h2,p{margin:0}
+      :focus-visible{outline:2px solid #5b6fcc;outline-offset:2px}
+      .page{max-width:1300px;margin:0 auto;padding:20px}
+      .head{padding:16px 20px;border-radius:14px;background:linear-gradient(135deg,#0d2137 0%,#1a3c5e 60%,#2a2a6e 100%);border-bottom:2px solid #e67e22;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+      .head h1{font-size:16px;font-weight:700}
+      .head p{margin-top:6px;color:rgba(255,255,255,.75);font-size:12px;max-width:78ch}
+      .case{margin-top:20px;padding:16px 20px;border:1px solid #eef0f4;border-radius:14px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+      .case h2{font-size:15px;font-weight:700}
+      .case p{margin-top:4px;color:#687482;font-size:12px}
+      .holder{margin-top:12px;padding:12px;border-radius:10px;background:#f0f2f5}
+      .holder iframe{display:block;border:0}
+      .fluid iframe{width:100%;height:450px}
+      .w680 iframe{width:680px;height:383px}
+      .w720 iframe{width:720px;height:405px}
+      .w760 iframe{width:760px;height:428px}
+      .w360 iframe{width:360px;height:270px}
+      .note{margin-top:20px;padding:12px 16px;border:1px solid #f0dfa8;border-radius:10px;background:#fff8e6;color:#8a6d1a;font-size:12px}
+      @media (max-width: 640px){
+        .holder{overflow-x:auto}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="head">
+        <h1>Embed harness &mdash; the reference rendering</h1>
+        <p>What a correct probe reading looks like, at known widths, before you trust one taken
+          inside Blackbaud. Every box below is sized by this page, so the probe's Width readout
+          must equal the width named in the heading. If it does not, the probe is wrong, not
+          Blackbaud. Open this file directly &mdash; no server needed.</p>
+      </div>
+
+      <section class="case">
+        <h2>Fluid &mdash; 100% width, 450px height</h2>
+        <p>The shape the Blackbaud embed box is expected to produce. Resize the browser and watch
+          the ratio change: this is why the width has to be measured per surface rather than assumed.</p>
+        <div class="holder fluid">
+          <iframe title="Probe at 100% width" src="../apps/web/public/embed-probe.html?label=harness-fluid&amp;w=100%25&amp;h=450"></iframe>
+        </div>
+      </section>
+
+      <section class="case">
+        <h2>680px &mdash; the width the app assumes for Assignment</h2>
+        <p>Height 383px, which is 16:9 at this width.</p>
+        <div class="holder w680">
+          <iframe title="Probe at 680px" src="../apps/web/public/embed-probe.html?label=harness-680&amp;w=680px&amp;h=383"></iframe>
+        </div>
+      </section>
+
+      <section class="case">
+        <h2>720px &mdash; the width the app assumes for Bulletin Board</h2>
+        <p>Height 405px, which is 16:9 at this width.</p>
+        <div class="holder w720">
+          <iframe title="Probe at 720px" src="../apps/web/public/embed-probe.html?label=harness-720&amp;w=720px&amp;h=405"></iframe>
+        </div>
+      </section>
+
+      <section class="case">
+        <h2>760px &mdash; the width the app assumes for Topic</h2>
+        <p>Height 428px, which is 16:9 at this width.</p>
+        <div class="holder w760">
+          <iframe title="Probe at 760px" src="../apps/web/public/embed-probe.html?label=harness-760&amp;w=760px&amp;h=428"></iframe>
+        </div>
+      </section>
+
+      <section class="case">
+        <h2>360px &mdash; phone column</h2>
+        <p>Height 270px, which is 4:3 at this width. The narrow case the ratio also has to survive.</p>
+        <div class="holder w360">
+          <iframe title="Probe at 360px" src="../apps/web/public/embed-probe.html?label=harness-360&amp;w=360px&amp;h=270"></iframe>
+        </div>
+      </section>
+
+      <p class="note">Two readings differ here from the real thing, and both are expected on
+        <code>file://</code>: Storage reports blocked, and Parent document reports cross-origin even
+        though this page is the parent. Neither affects the width, height or ratio, which are the
+        numbers this test is about.</p>
+    </div>
+  </body>
+</html>

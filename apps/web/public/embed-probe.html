@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Reports the width, height and aspect ratio a Blackbaud embed box actually gives an iframe." />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%90%3C/text%3E%3C/svg%3E" />
+    <title>Embed ratio probe · BBStyler</title>
+    <style>
+      /* Base. Literal values only (ARCH-01), px only (ARCH-07). */
+      *,::before,::after{box-sizing:border-box}
+      html,body{margin:0}
+      html{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+      h1,h2,p,dl,dd,dt{margin:0}
+      :focus-visible{outline:2px solid #5b6fcc;outline-offset:2px}
+
+      /* The dashed frame is the clipping test: if you cannot see all four edges,
+         the embed box is cropping or scrolling this page. */
+      .main{display:flex;min-height:calc(100vh - 8px);flex-direction:column;gap:12px;margin:4px;padding:12px;border:1.5px dashed #5b6fcc;border-radius:14px;background:#fff}
+
+      .probe-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+      h1{font-size:15px;font-weight:700}
+      .probe-tag{padding:2px 8px;border-radius:20px;background:#eef2ff;color:#4a5fbb;font-size:11px;font-weight:700}
+      .probe-lead{color:#687482;font-size:12px}
+
+      /* Readouts. Tabular figures, per the numeric-column rule. */
+      .stat-row{display:flex;flex-wrap:wrap;gap:8px}
+      .stat{flex:1 1 120px;padding:8px 12px;border:1px solid #e0e4f0;border-radius:10px;background:#f8f9fc}
+      .stat-label{display:block;color:#687482;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+      .stat-value{display:block;margin-top:2px;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+
+      .verdict{padding:8px 12px;border:1px solid #e0e4ea;border-radius:8px;background:#f8f9fb;font-size:13px;font-weight:600}
+      .verdict-good{border-color:#a3e4bc;background:#eafaf1;color:#1a6b3a}
+      .verdict-warn{border-color:#f0dfa8;background:#fff8e6;color:#8a6d1a}
+      .verdict-bad{border-color:#f0b0b0;background:#fdeaea;color:#c0392b}
+
+      .section-label{color:#687482;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+
+      table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+      caption{padding-bottom:4px;color:#687482;font-size:10px;font-weight:700;letter-spacing:.8px;text-align:left;text-transform:uppercase}
+      th,td{padding:4px 8px;border-bottom:1px solid #f3f4f6;text-align:left}
+      th{color:#687482;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+      tbody tr:last-child td{border-bottom:0}
+      .row-near td{background:#eef2ff;font-weight:700}
+      .cell-tight{color:#8a6d1a}
+      .cell-room{color:#1a6b3a}
+
+      /* The JS-dead fallback: read the width off the last fully visible tick. */
+      .ruler{display:flex;overflow:hidden;height:26px;border:1px solid #e0e4ea;border-radius:6px;background:#f8f9fb}
+      .tick{flex:0 0 100px;padding:5px 0 0 4px;border-right:1px solid #d0d8e4;color:#687482;font-size:10px;font-variant-numeric:tabular-nums}
+
+      .env{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;font-size:12px}
+      .env dt{color:#687482}
+      .env dd{font-variant-numeric:tabular-nums;word-break:break-word}
+
+      .record{display:flex;flex-direction:column;gap:6px}
+      .report{width:100%;padding:8px;border:1px solid #e0e4ea;border-radius:8px;background:#f8f9fb;color:#1a1a2e;font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-size:11px;resize:vertical}
+      .record-actions{display:flex;align-items:center;gap:8px}
+      .copy-btn{padding:8px 12px;border:1.5px solid #4a5fbb;border-radius:7px;background:#5b6fcc;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+      .copy-btn:hover{background:#4a5fbb}
+      .copied{color:#1a6b3a;font-size:12px;font-weight:600}
+
+      .beacon{margin-top:auto;padding:6px 12px;border:1px solid #a3e4bc;border-radius:6px;background:#eafaf1;color:#1a6b3a;font-size:11px;font-weight:700;letter-spacing:.4px;text-align:center;text-transform:uppercase}
+
+      /* Responsive blocks last: coarse, then reduced motion (ARCH-03). */
+      @media (pointer: coarse){
+        .copy-btn{min-height:44px}
+        .report{font-size:16px}
+      }
+      @media (prefers-reduced-motion: reduce){
+        *{transition:none !important;animation:none !important}
+      }
+    </style>
+  </head>
+  <body>
+    <main class="main">
+      <div class="probe-head">
+        <h1>Embed ratio probe</h1>
+        <span class="probe-tag" id="tag">no label</span>
+      </div>
+      <p class="probe-lead">Reports the box this iframe was actually given. Numbers update live as the window resizes.</p>
+
+      <div class="stat-row">
+        <div class="stat"><span class="stat-label">Width</span><strong class="stat-value" id="stat-w">&mdash;</strong></div>
+        <div class="stat"><span class="stat-label">Height</span><strong class="stat-value" id="stat-h">&mdash;</strong></div>
+        <div class="stat"><span class="stat-label">Ratio</span><strong class="stat-value" id="stat-ratio">&mdash;</strong></div>
+        <div class="stat"><span class="stat-label">Padding-bottom</span><strong class="stat-value" id="stat-pb">&mdash;</strong></div>
+      </div>
+
+      <p class="verdict" id="verdict">Measuring&hellip;</p>
+
+      <table>
+        <caption>Height needed at this width, per candidate ratio</caption>
+        <thead>
+          <tr><th scope="col">Ratio</th><th scope="col">Height</th><th scope="col">Against this box</th></tr>
+        </thead>
+        <tbody id="ladder"></tbody>
+      </table>
+
+      <div>
+        <p class="section-label">100px ruler &mdash; read the last full tick if scripts are blocked</p>
+        <div class="ruler">
+          <span class="tick">0</span><span class="tick">100</span><span class="tick">200</span><span class="tick">300</span>
+          <span class="tick">400</span><span class="tick">500</span><span class="tick">600</span><span class="tick">700</span>
+          <span class="tick">800</span><span class="tick">900</span><span class="tick">1000</span><span class="tick">1100</span>
+          <span class="tick">1200</span><span class="tick">1300</span><span class="tick">1400</span><span class="tick">1500</span>
+        </div>
+      </div>
+
+      <dl class="env" id="env"></dl>
+
+      <div class="record">
+        <label class="section-label" for="report">One-line record &mdash; paste into docs/embed-ratio-test.md</label>
+        <textarea class="report" id="report" rows="2" readonly></textarea>
+        <div class="record-actions">
+          <button class="copy-btn" id="copy" type="button">Copy record</button>
+          <span class="copied" id="copied" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <p class="beacon">End of report &mdash; if you can read this, the box is tall enough</p>
+    </main>
+    <script>
+      (function () {
+        "use strict";
+
+        var CANDIDATES = [[21, 9], [2, 1], [16, 9], [16, 10], [3, 2], [4, 3], [5, 4], [1, 1]];
+
+        var query = new URLSearchParams(window.location.search);
+
+        /* A sanitizing CMS sometimes re-encodes the `&amp;` separators a second time,
+           which turns every parameter after the first into `amp;h`, `amp;w`. Reading
+           both spellings means a double-escaped src still measures correctly instead
+           of reporting "height not declared" and blaming the embed box. */
+        function param(name) {
+          return query.get(name) || query.get("amp;" + name) || "";
+        }
+
+        var askedHeight = parseFloat(param("h"));
+        var askedWidth = param("w");
+        var label = param("label").slice(0, 40);
+
+        var el = function (id) { return document.getElementById(id); };
+        var text = function (id, value) { el(id).textContent = value; };
+
+        function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+
+        function ratioText(w, h) {
+          if (!w || !h) return "n/a";
+          var a = Math.round(w), b = Math.round(h);
+          var g = gcd(a, b) || 1;
+          var ra = a / g, rb = b / g;
+          if (ra > 40 || rb > 40) return (w / h).toFixed(3) + ":1";
+          return ra + ":" + rb;
+        }
+
+        /* Whether the parent document is readable at all. Cross-origin is the expected
+           answer inside Blackbaud; it is reported because a same-origin answer would
+           mean this is not the real embedding path. */
+        function parentAccess() {
+          if (window.parent === window) return "not framed";
+          try {
+            return "same origin - " + window.parent.location.href.slice(0, 60);
+          } catch (err) {
+            return "cross-origin (expected)";
+          }
+        }
+
+        function storageAccess() {
+          try {
+            window.localStorage.getItem("probe");
+            return "available";
+          } catch (err) {
+            return "blocked - sandboxed without allow-same-origin";
+          }
+        }
+
+        function row(cells, className) {
+          var tr = document.createElement("tr");
+          if (className) tr.className = className;
+          cells.forEach(function (cell) {
+            var td = document.createElement("td");
+            td.textContent = cell.text;
+            if (cell.className) td.className = cell.className;
+            tr.appendChild(td);
+          });
+          return tr;
+        }
+
+        function define(list, term, value) {
+          var dt = document.createElement("dt");
+          dt.textContent = term;
+          var dd = document.createElement("dd");
+          dd.textContent = value;
+          list.appendChild(dt);
+          list.appendChild(dd);
+        }
+
+        function measure() {
+          var viewportWidth = window.innerWidth;
+          var viewportHeight = window.innerHeight;
+          var root = document.documentElement;
+          var layoutWidth = root.clientWidth;
+          var layoutHeight = root.clientHeight;
+          var contentHeight = root.scrollHeight;
+          var framed = window.parent !== window;
+          var measuredRatio = viewportHeight ? viewportWidth / viewportHeight : 0;
+
+          text("tag", label || "no label");
+          text("stat-w", viewportWidth + "px");
+          text("stat-h", viewportHeight + "px");
+          text("stat-ratio", ratioText(viewportWidth, viewportHeight));
+          text("stat-pb", viewportWidth ? (viewportHeight / viewportWidth * 100).toFixed(2) + "%" : "n/a");
+
+          /* Verdict. The interesting question is not the height we asked for, it is
+             whether the embed box kept it. */
+          var verdict = el("verdict");
+          var message, tone;
+          if (!framed) {
+            message = "Not inside an iframe. These are this window's own numbers - load this page through the embed box to measure it.";
+            tone = "verdict-warn";
+          } else if (askedHeight && Math.abs(viewportHeight - askedHeight) > 1) {
+            message = "Height OVERRIDDEN: asked for " + askedHeight + "px, the box gave " + viewportHeight + "px.";
+            tone = "verdict-bad";
+          } else if (askedHeight) {
+            message = "Height honoured at " + askedHeight + "px. Width at 100% resolves to " + viewportWidth + "px, so the box is " + ratioText(viewportWidth, viewportHeight) + ".";
+            tone = "verdict-good";
+          } else {
+            message = "Framed, but no requested height was declared. Add ?h=<px> to the src to test whether the box keeps it.";
+            tone = "verdict-warn";
+          }
+          verdict.textContent = message;
+          verdict.className = "verdict " + tone;
+
+          /* Ratio ladder - the height each candidate needs at the measured width, and
+             how that sits against the height actually granted. */
+          var nearest = null;
+          CANDIDATES.forEach(function (pair) {
+            var distance = Math.abs(pair[0] / pair[1] - measuredRatio);
+            if (!nearest || distance < nearest.distance) nearest = { pair: pair, distance: distance };
+          });
+
+          var ladder = el("ladder");
+          ladder.textContent = "";
+          CANDIDATES.forEach(function (pair) {
+            var needed = Math.round(viewportWidth * pair[1] / pair[0]);
+            var difference = needed - viewportHeight;
+            var against, cellClass;
+            if (!framed) {
+              against = "load it framed";
+              cellClass = "";
+            } else if (difference > 1) {
+              against = difference + "px taller than the box";
+              cellClass = "cell-tight";
+            } else if (difference < -1) {
+              against = Math.abs(difference) + "px of slack";
+              cellClass = "cell-room";
+            } else {
+              against = "matches the box";
+              cellClass = "cell-room";
+            }
+            var isNearest = nearest && nearest.pair === pair && framed;
+            ladder.appendChild(row([
+              { text: pair[0] + ":" + pair[1] + (isNearest ? " - nearest" : "") },
+              { text: needed + "px" },
+              { text: against, className: cellClass },
+            ], isNearest ? "row-near" : ""));
+          });
+
+          /* Environment. */
+          var env = el("env");
+          env.textContent = "";
+          define(env, "Requested", (askedWidth ? "width " + askedWidth : "width not declared") + " / " + (askedHeight ? "height " + askedHeight + "px" : "height not declared"));
+          define(env, "Query string as received", window.location.search || "(none)");
+          define(env, "Viewport", viewportWidth + " x " + viewportHeight + " px");
+          define(env, "Layout box", layoutWidth + " x " + layoutHeight + " px" + (viewportWidth - layoutWidth ? " (a " + (viewportWidth - layoutWidth) + "px scrollbar is taking width)" : " (no scrollbar)"));
+          define(env, "This page needs", contentHeight + "px of height" + (contentHeight > viewportHeight ? " - " + (contentHeight - viewportHeight) + "px more than the box gives" : " and fits"));
+          define(env, "Device pixel ratio", String(window.devicePixelRatio || 1));
+          define(env, "Screen", window.screen.width + " x " + window.screen.height + " px");
+          define(env, "Framed", framed ? "yes" : "no");
+          define(env, "Parent document", parentAccess());
+          define(env, "Storage", storageAccess());
+          define(env, "User agent", navigator.userAgent);
+
+          /* The record: a markdown table row, ready to paste into the results table. */
+          el("report").value = "| " + [
+            label || "(unlabelled)",
+            askedWidth || "-",
+            askedHeight ? askedHeight + "px" : "-",
+            viewportWidth + "px",
+            viewportHeight + "px",
+            ratioText(viewportWidth, viewportHeight),
+            viewportWidth ? (viewportHeight / viewportWidth * 100).toFixed(2) + "%" : "-",
+            framed ? (askedHeight ? (Math.abs(viewportHeight - askedHeight) > 1 ? "overridden" : "honoured") : "not declared") : "not framed",
+          ].join(" | ") + " |";
+        }
+
+        el("copy").addEventListener("click", function () {
+          var report = el("report");
+          report.select();
+          var done = function (ok) { el("copied").textContent = ok ? "Copied." : "Select the text above and copy it."; };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(report.value).then(function () { done(true); }, function () { done(false); });
+          } else {
+            done(false);
+          }
+        });
+
+        measure();
+        window.addEventListener("resize", measure);
+        if (window.ResizeObserver) new ResizeObserver(measure).observe(document.documentElement);
+      })();
+    </script>
+  </body>
+</html>
