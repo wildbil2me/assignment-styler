@@ -1,10 +1,17 @@
 import type { BlockType, ToneKey } from "./model.ts";
 
 /**
- * The block taxonomy — 18 types, including the SVG-backed animated card.
+ * The block taxonomy — 15 types, including the SVG-backed animated card.
  *
  * Labels double as fallback headings in render.ts and as inferred titles in
  * import.ts, so the strings are load-bearing.
+ *
+ * Three types were retired once the golden render showed them emitting
+ * byte-identical HTML: `reading`, `vocabulary` and `resource` were all a
+ * neutral card with an unwrapped body, differing from `note` only in the
+ * fallback label — and every template supplies its own title, so the label was
+ * reachable only on a blank block. `storage.ts` remaps them, so a saved post
+ * that still names one opens as a `note` rather than losing the block.
  *
  * `tone` is the Phase 2 addition and the reason render.ts no longer contains a
  * single hex value: a block names the *role* it plays, and the active profile
@@ -13,7 +20,6 @@ import type { BlockType, ToneKey } from "./model.ts";
 export const blockMeta: Record<BlockType, { label: string; icon: string; tone: ToneKey }> = {
   hero: { label: "Page title", icon: "H", tone: "neutral" },
   intro: { label: "Introduction", icon: "¶", tone: "neutral" },
-  reading: { label: "Reading", icon: "R", tone: "neutral" },
   focus: { label: "Focus questions", icon: "?", tone: "focus" },
   homework: { label: "Homework", icon: "✓", tone: "info" },
   deadline: { label: "Deadline", icon: "!", tone: "attention" },
@@ -23,9 +29,7 @@ export const blockMeta: Record<BlockType, { label: string; icon: string; tone: T
   note: { label: "Note", icon: "i", tone: "neutral" },
   steps: { label: "Steps", icon: "1", tone: "neutral" },
   checklist: { label: "Checklist", icon: "✓", tone: "neutral" },
-  vocabulary: { label: "Vocabulary", icon: "V", tone: "neutral" },
   quote: { label: "Quote", icon: "“", tone: "neutral" },
-  resource: { label: "Resource link", icon: "↗", tone: "neutral" },
   targets: { label: "Learning targets", icon: "◎", tone: "neutral" },
   /**
    * Native disclosure — `<details>`/`<summary>`, measured surviving on all three

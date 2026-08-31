@@ -62,7 +62,7 @@ export const editorial: Profile = {
     focus: { fill: "palette.focus", border: "palette.accent", label: "palette.primary" },
     info: { fill: "#EFF6FF", border: "#93C5FD", label: "palette.primary" },
     attention: { fill: "#FEF3C7", border: "palette.accent", label: "palette.primary" },
-    accent: { fill: "#F0F7FF", border: "palette.primary", label: "palette.primary" },
+    accent: { fill: "#F0FDFA", border: "palette.primary", label: "palette.primary" },
     study: { fill: "#F5F3FF", border: "#A78BFA", label: "palette.primary" },
     alert: { fill: "#FFF1F2", border: "#FB7185", label: "palette.primary" },
   },

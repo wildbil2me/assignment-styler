@@ -15,7 +15,7 @@
  * workspaces in different places and neither can read the other's.
  */
 
-import type { Block, MotionStyle, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "./model.ts";
+import type { Block, BlockType, MotionStyle, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "./model.ts";
 import { palettes } from "./palettes.ts";
 import { profiles, defaultProfile } from "./profiles/index.ts";
 import { surfaces } from "./surfaces.ts";
@@ -23,7 +23,7 @@ import { blockMeta } from "./catalog.ts";
 import { reserveIds } from "./ids.ts";
 
 export const STORAGE_KEY = "bcc-workspace";
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export type SavedPost = { id: number; title: string; blocks: Block[] };
 
@@ -53,6 +53,22 @@ const isObject = (v: unknown): v is Unknown => typeof v === "object" && v !== nu
 const str = (v: unknown, fallback: string): string => (typeof v === "string" ? v : fallback);
 
 /**
+ * Types that existed in v1 and no longer do, and what each becomes.
+ *
+ * All three rendered as a neutral card with an unwrapped body — the same markup
+ * `note` emits, down to the byte — so remapping them is not a downgrade of a
+ * teacher's saved work, it is the same block under the name that survived. This
+ * has to happen *before* the `in blockMeta` filter below, which drops unknown
+ * types: without the remap, opening a v1 workspace would silently delete every
+ * reading, vocabulary and resource block in it.
+ */
+const RETIRED_TYPES: Record<string, BlockType> = {
+  reading: "note",
+  vocabulary: "note",
+  resource: "note",
+};
+
+/**
  * Blocks carried an unvalidated `animation` field in the early prototype. It is
  * dropped on the way in; the SVG-backed block instead preserves one of the
  * validated `motion` values below.
@@ -60,6 +76,11 @@ const str = (v: unknown, fallback: string): string => (typeof v === "string" ? v
 function cleanBlocks(value: unknown): Block[] {
   if (!Array.isArray(value)) return [];
   return value
+    .map((b) =>
+      isObject(b) && typeof b.type === "string" && b.type in RETIRED_TYPES
+        ? { ...b, type: RETIRED_TYPES[b.type] }
+        : b
+    )
     .filter((b): b is Block & { animation?: string } => isObject(b) && typeof b.type === "string" && b.type in blockMeta)
     .map(({ animation, align, motion, ...b }) => {
       const safeAlign = ["left", "center", "right", "justify"].includes(String(align)) ? align : undefined;

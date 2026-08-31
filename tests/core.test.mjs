@@ -42,7 +42,7 @@ import {
 } from "../core/checks.ts";
 import { nextId, nextIds, reserveIds } from "../core/ids.ts";
 import {
-  migrate, serialize, parse, backupFilename, localAdapter, STORAGE_KEY,
+  migrate, serialize, parse, backupFilename, localAdapter, STORAGE_KEY, SCHEMA_VERSION,
 } from "../core/storage.ts";
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), "golden");
@@ -162,7 +162,7 @@ function unitBlocks() {
 }
 
 const HALF_PAIR = [
-  { id: 1, type: "reading", width: "half", title: "L", body: "left" },
+  { id: 1, type: "note", width: "half", title: "L", body: "left" },
   { id: 2, type: "focus", width: "half", title: "R", body: "right" },
 ];
 
@@ -498,7 +498,7 @@ test("the surface decides the wrapper width", () => {
 /* ---------------------------------------------------- data table integrity */
 
 test("the data tables match the shapes the renderer expects", () => {
-  assert.equal(blockTypes.length, 18, "18 block types — animated card is the measured SVG exception");
+  assert.equal(blockTypes.length, 15, "15 block types — animated card is the measured SVG exception");
   assert.equal(paletteKeys.length, 6, "6 subject palettes");
   assert.equal(profileKeys.length, 3, "3 profiles");
   assert.equal(surfaceKeys.length, 3, "3 surfaces — not 4; announcement is a block type");
@@ -727,7 +727,7 @@ test("migration accepts what the prototype wrote and rejects what it didn't", ()
     surfaceKey: "nonsense",
     profileKey: "nonsense",
   });
-  assert.equal(v0.version, 1);
+  assert.equal(v0.version, SCHEMA_VERSION);
   assert.equal("animation" in v0.blocks[0], false, "the prototype's animation field is dropped");
   assert.equal(v0.surfaceKey, "bulletin", "an unknown surface falls back rather than throwing");
   assert.equal(v0.profileKey, "soft");
@@ -744,6 +744,41 @@ test("migration accepts what the prototype wrote and rejects what it didn't", ()
 
   const junk = migrate({ blocks: [{ id: 1, type: "nonexistent", title: "", body: "" }, ...starter] });
   assert.equal(junk.blocks.length, starter.length, "a block type this build doesn't have is dropped");
+});
+
+test("a v1 workspace keeps its retired blocks instead of losing them", () => {
+  // The three types below were dropped as visual duplicates of `note`. They are
+  // remapped rather than filtered, because the filter above is indiscriminate:
+  // without the remap this migration would delete a teacher's saved work and
+  // report success, which is the one failure mode a storage layer must not have.
+  const v1 = migrate({
+    version: 1,
+    blocks: [
+      { id: 1, type: "hero", title: "Unit 3", body: "" },
+      { id: 2, type: "reading", title: "Read", body: "Chapter 4" },
+      { id: 3, type: "vocabulary", title: "Key terms", body: "term — definition" },
+      { id: 4, type: "resource", title: "Links", body: "https://example.org" },
+    ],
+  });
+
+  assert.equal(v1.blocks.length, 4, "every retired block survives the migration");
+  assert.deepEqual(
+    v1.blocks.map((b) => b.type),
+    ["hero", "note", "note", "note"],
+    "each retired type becomes the one it was already identical to"
+  );
+  assert.equal(v1.blocks[1].title, "Read", "the teacher's own heading is untouched");
+  assert.equal(v1.blocks[3].body, "https://example.org", "and so is the body");
+  assert.equal(v1.version, SCHEMA_VERSION, "and the workspace is stamped current");
+
+  // Saved posts go through the same cleaner, so they must be covered too.
+  const posts = migrate({
+    version: 1,
+    blocks: [{ id: 1, type: "hero", title: "T", body: "" }],
+    savedPosts: [{ id: 9, title: "Old post", blocks: [{ id: 2, type: "resource", title: "R", body: "B" }] }],
+  });
+  assert.equal(posts.savedPosts[0].blocks.length, 1, "a retired block inside a saved post survives too");
+  assert.equal(posts.savedPosts[0].blocks[0].type, "note");
 });
 
 test("the pre-split fused customStyle migrates colour always, fonts only if chosen", () => {

@@ -69,7 +69,7 @@ export const soft: Profile = {
     focus: { fill: "palette.focus", border: "palette.accent", label: "palette.primary" },
     info: { fill: "#EFF6FF", border: "#BFDBFE", label: "#1D4ED8" },
     attention: { fill: "#FEF6E7", border: "palette.accent", label: "#92400E" },
-    accent: { fill: "#F0F7FF", border: "palette.primary", label: "palette.primary" },
+    accent: { fill: "#F0FDFA", border: "palette.primary", label: "palette.primary" },
     study: { fill: "#F5F3FF", border: "#C4B5FD", label: "#6D28D9" },
     alert: { fill: "#FFF1F2", border: "#FDA4AF", label: "#BE123C" },
   },

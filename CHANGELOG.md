@@ -7,6 +7,15 @@ All notable changes to this project are documented here. Versions follow
 
 ### Changed
 
+- Retired the `reading`, `vocabulary` and `resource` block types, which rendered
+  markup identical to `note` and differed only in a fallback heading. The
+  taxonomy is now 15 types. Saved workspaces are migrated to schema v2, which
+  remaps the three retired types rather than dropping them, so no existing post
+  loses a block; the HTML importer still infers their headings, so an untitled
+  imported block is titled "Reading" or "Resource link" as before.
+- Retinted the `accent` tone away from `info` in all three profiles. At
+  `#F0F7FF` against `info`'s `#EFF6FF` an announcement and a homework card were
+  indistinguishable; accent is now teal.
 - Renamed the product and package from Betterbaud to BBStyler, and synchronized
   project links and the Pages base with `wildbil2me/assignment-styler`.
 - Adopted the educator suite admin UI style guide across the web composer and

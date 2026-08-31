@@ -232,7 +232,7 @@
       },
       {
         "id": 1000,
-        "type": "reading",
+        "type": "note",
         "title": "Reading",
         "body": "Chapter 4, pages 20-30"
       }
@@ -251,7 +251,7 @@
       },
       {
         "id": 1000,
-        "type": "vocabulary",
+        "type": "note",
         "title": "Vocabulary",
         "body": "key term list"
       }
@@ -289,7 +289,7 @@
       },
       {
         "id": 1000,
-        "type": "resource",
+        "type": "note",
         "title": "Resource link",
         "body": "Resource link to the website"
       }

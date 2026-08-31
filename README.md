@@ -26,7 +26,7 @@ it into Blackbaud's HTML/source editor.
 ![BBStyler extension side panel in quick-post mode](docs/screenshots/extension-quick-post.png)
 
 Both shells use the same renderer, so the same blocks, profile, palette, and
-surface produce the same HTML. BBStyler supports 17 content block types, 15
+surface produce the same HTML. BBStyler supports 15 content block types, 15
 templates, three visual profiles, six subject palettes, and bulletin, topic,
 and assignment destinations.
 

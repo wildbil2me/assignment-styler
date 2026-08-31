@@ -9,6 +9,10 @@
  * The regex -> block-type inference table is real heuristic knowledge and the
  * reason this file exists. Order matters: `quiz` is tested before `exam`, and
  * `homework` before `deadline`, so "homework due Friday" reads as homework.
+ * Several patterns now resolve to `note` because the types they used to name
+ * were retired as visual duplicates of it (see catalog.ts); the tests they sit
+ * in still matter, because where a pattern sits decides what a *later* test
+ * never gets to claim.
  *
  * Worth knowing from Phase 0: `data-layout` survives a Blackbaud round trip
  * (probe R15), so a future version can recover half-width layout on import
@@ -37,17 +41,37 @@ const inferType = (text: string): BlockType =>
           ? "homework"
           : /due|deadline|coming up/i.test(text)
             ? "deadline"
-            : /read|chapter|pages|scene/i.test(text)
-              ? "reading"
+            : // Reading, vocabulary and resource are all `note` now, but the
+              // reading test stays ahead of `focus` because it always was:
+              // "reading questions" was deliberately a reading card, not a
+              // focus one, and dropping the branch would silently retint it.
+              /read|chapter|pages|scene/i.test(text)
+              ? "note"
               : /question|focus|consider|think/i.test(text)
                 ? "focus"
-                : /vocabulary|key term/i.test(text)
-                  ? "vocabulary"
-                  : /resource|link|website/i.test(text)
-                    ? "resource"
-                    : /learning target|objective|i can/i.test(text)
-                      ? "targets"
-                      : "note";
+                : /learning target|objective|i can/i.test(text)
+                  ? "targets"
+                  : "note";
+
+/**
+ * The heading to give an imported block that arrived without one.
+ *
+ * Retiring `reading`, `vocabulary` and `resource` as *types* is a statement
+ * about how they are drawn — all three were a neutral card, byte for byte. It
+ * is not a claim that the words stopped meaning anything, and the fallback
+ * heading is the one place that distinction is still visible: a paragraph about
+ * a website is better titled "Resource link" than "Note", even though both are
+ * now the same block. Without this the regexes above would keep classifying and
+ * the teacher would just stop seeing the result.
+ */
+const inferLabel = (text: string): string =>
+  /vocabulary|key term/i.test(text)
+    ? "Vocabulary"
+    : /resource|link|website/i.test(text)
+      ? "Resource link"
+      : /read|chapter|pages|scene/i.test(text)
+        ? "Reading"
+        : blockMeta[inferType(text)].label;
 
 export function importHtml(source: string, stamp: number = Date.now()): ImportResult {
   const doc = new DOMParser().parseFromString(source, "text/html");
@@ -126,7 +150,7 @@ export function importHtml(source: string, stamp: number = Date.now()): ImportRe
     const heading = el.matches("h2,h3,h4")
       ? el
       : el.querySelector<HTMLElement>("h1,h2,h3,h4,strong,b");
-    const title = (heading?.textContent || "").trim() || blockMeta[inferType(text)].label;
+    const title = (heading?.textContent || "").trim() || inferLabel(text);
     const clone = el.cloneNode(true) as HTMLElement;
     if (heading && !el.matches("h2,h3,h4"))
       clone.querySelector("h1,h2,h3,h4,strong,b")?.remove();

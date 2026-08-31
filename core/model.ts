@@ -19,7 +19,6 @@
 export type BlockType =
   | "hero"
   | "intro"
-  | "reading"
   | "focus"
   | "homework"
   | "deadline"
@@ -29,9 +28,7 @@ export type BlockType =
   | "note"
   | "steps"
   | "checklist"
-  | "vocabulary"
   | "quote"
-  | "resource"
   | "targets"
   | "details"
   | "animated";

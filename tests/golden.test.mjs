@@ -54,7 +54,7 @@ const adversarial = [
 
 const halfPair = [
   { id: 1, type: "hero", label: "HALF WIDTH", title: "Two columns", body: "No media query" },
-  { id: 2, type: "reading", width: "half", title: "Left", body: "Short." },
+  { id: 2, type: "note", width: "half", title: "Left", body: "Short." },
   { id: 3, type: "focus", width: "half", title: "Right", body: "A noticeably longer body, so unequal card heights are visible in the snapshot." },
 ];
 

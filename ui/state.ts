@@ -9,7 +9,7 @@ import { renderHtml } from "../core/render.ts";
 import { runChecks } from "../core/checks.ts";
 import { nextId, nextIds } from "../core/ids.ts";
 import {
-  defaultAdapter, emptyCustomPalette,
+  defaultAdapter, emptyCustomPalette, SCHEMA_VERSION,
   type SavedPost, type StorageAdapter, type Workspace,
 } from "../core/storage.ts";
 
@@ -77,7 +77,7 @@ export function useComposer({
 
   /** One object, one schema — the thing that is saved and the thing that is exported. */
   const workspace = useMemo<Workspace>(
-    () => ({ version: 1, blocks, postTitle, styleKey, surfaceKey, profileKey, fonts, customPalette, savedPosts }),
+    () => ({ version: SCHEMA_VERSION, blocks, postTitle, styleKey, surfaceKey, profileKey, fonts, customPalette, savedPosts }),
     [blocks, postTitle, styleKey, surfaceKey, profileKey, fonts, customPalette, savedPosts]
   );
 

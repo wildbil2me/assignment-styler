@@ -43,7 +43,7 @@ export const templates: Record<string, Block[]> = {
   ],
   "Reading Assignment": [
     { id: 211, type: "hero", label: "READING ASSIGNMENT", title: "ASSIGNED READING", body: "Add the text or unit" },
-    { id: 212, type: "reading", title: "Read", body: "Add the title, chapter, scenes, or pages" },
+    { id: 212, type: "note", title: "Read", body: "Add the title, chapter, scenes, or pages" },
     { id: 213, type: "focus", title: "As you read", body: "Add questions, annotations, or ideas to track" },
     { id: 214, type: "checklist", title: "Come prepared with", body: "Add notes, responses, or materials students need" },
     { id: 215, type: "deadline", title: "Complete by", body: "Add the due date" },
@@ -68,7 +68,7 @@ export const templates: Record<string, Block[]> = {
     { id: 242, type: "targets", title: "Project goal", body: "Describe the intended outcome" },
     { id: 243, type: "steps", title: "Process", body: "Plan\nCreate\nRevise\nSubmit" },
     { id: 244, type: "checklist", title: "Deliverables", body: "List everything students must turn in" },
-    { id: 245, type: "resource", title: "Resources", body: "Add helpful links, files, or examples" },
+    { id: 245, type: "note", title: "Resources", body: "Add helpful links, files, or examples" },
     { id: 246, type: "deadline", title: "Final deadline", body: "Add the due date and time" },
   ],
   "Unit Introduction": [
@@ -76,8 +76,8 @@ export const templates: Record<string, Block[]> = {
     { id: 302, type: "intro", title: "", body: "Introduce what students will study and why it matters." },
     { id: 303, type: "targets", width: "half", title: "Learning goals", body: "Add the unit’s essential knowledge and skills" },
     { id: 304, type: "focus", width: "half", title: "Essential questions", body: "Add the questions that will guide the unit" },
-    { id: 305, type: "vocabulary", title: "Key vocabulary", body: "Term — definition" },
-    { id: 306, type: "resource", title: "Unit resources", body: "Add important links, files, or media" },
+    { id: 305, type: "note", title: "Key vocabulary", body: "Term — definition" },
+    { id: 306, type: "note", title: "Unit resources", body: "Add important links, files, or media" },
   ],
   "Lesson Page": [
     { id: 311, type: "hero", label: "LESSON", title: "LESSON TITLE", body: "Add the lesson focus" },
@@ -85,33 +85,33 @@ export const templates: Record<string, Block[]> = {
     { id: 313, type: "intro", title: "", body: "Explain the central concept or provide lesson context." },
     { id: 314, type: "steps", title: "Learning sequence", body: "Explore\nPractice\nApply\nReflect" },
     { id: 315, type: "focus", title: "Check your understanding", body: "Add a question or short reflection" },
-    { id: 316, type: "resource", title: "Resources", body: "Add lesson materials or links" },
+    { id: 316, type: "note", title: "Resources", body: "Add lesson materials or links" },
   ],
   "Reading Guide": [
     { id: 321, type: "hero", label: "READING GUIDE", title: "TEXT OR CHAPTER", body: "Add the reading context" },
     { id: 322, type: "intro", title: "", body: "Explain what students should understand before reading." },
-    { id: 323, type: "vocabulary", width: "half", title: "Key terms", body: "Term — definition" },
+    { id: 323, type: "note", width: "half", title: "Key terms", body: "Term — definition" },
     { id: 324, type: "focus", width: "half", title: "Questions to consider", body: "Add guiding questions" },
-    { id: 325, type: "reading", title: "Reading sections", body: "Add chapters, pages, scenes, or passages" },
+    { id: 325, type: "note", title: "Reading sections", body: "Add chapters, pages, scenes, or passages" },
     { id: 326, type: "note", title: "Annotation guidance", body: "Explain what students should notice or mark" },
   ],
   "Study Guide": [
     { id: 331, type: "hero", label: "STUDY GUIDE", title: "ASSESSMENT OR UNIT", body: "Organize your review" },
     { id: 332, type: "targets", title: "You should be able to", body: "Add the knowledge and skills students need" },
-    { id: 333, type: "vocabulary", width: "half", title: "Key vocabulary", body: "Term — definition" },
+    { id: 333, type: "note", width: "half", title: "Key vocabulary", body: "Term — definition" },
     { id: 334, type: "focus", width: "half", title: "Practice questions", body: "Add representative questions" },
     { id: 335, type: "checklist", title: "Review checklist", body: "Review notes\nPractice key skills\nIdentify remaining questions" },
     // The reason `details` was promoted to a block type: an answer key students
     // open only after they have tried the questions themselves.
     { id: 336, type: "details", title: "Answers — open after you try", body: "Add the worked answers or explanations" },
-    { id: 337, type: "resource", title: "Review resources", body: "Add helpful materials or links" },
+    { id: 337, type: "note", title: "Review resources", body: "Add helpful materials or links" },
   ],
   "Resource Collection": [
     { id: 341, type: "hero", label: "RESOURCES", title: "RESOURCE COLLECTION", body: "Add the topic or purpose" },
     { id: 342, type: "intro", title: "", body: "Explain how students should use this collection." },
-    { id: 343, type: "resource", title: "Start here", body: "Add the primary resource link" },
-    { id: 344, type: "resource", width: "half", title: "Read", body: "Add articles, documents, or books" },
-    { id: 345, type: "resource", width: "half", title: "Watch or listen", body: "Add videos, podcasts, or media" },
+    { id: 343, type: "note", title: "Start here", body: "Add the primary resource link" },
+    { id: 344, type: "note", width: "half", title: "Read", body: "Add articles, documents, or books" },
+    { id: 345, type: "note", width: "half", title: "Watch or listen", body: "Add videos, podcasts, or media" },
     { id: 346, type: "note", title: "Using these resources", body: "Add any directions, priorities, or access notes" },
   ],
   "Daily Update": [
@@ -134,7 +134,7 @@ export const templates: Record<string, Block[]> = {
     { id: 422, type: "quiz", width: "half", title: "Upcoming quiz", body: "Add topic, format, and date" },
     { id: 423, type: "exam", width: "half", title: "Upcoming exam", body: "Add topic, format, and date" },
     { id: 424, type: "checklist", title: "How to prepare", body: "Review class materials\nPractice key skills\nBring questions" },
-    { id: 425, type: "resource", title: "Study resources", body: "Add review materials or links" },
+    { id: 425, type: "note", title: "Study resources", body: "Add review materials or links" },
   ],
   "Important Announcement": [
     { id: 431, type: "hero", label: "IMPORTANT", title: "CLASS ANNOUNCEMENT", body: "Add a concise summary" },
@@ -154,7 +154,7 @@ export const templates: Record<string, Block[]> = {
 export const starter: Block[] = [
   { id: 1, type: "hero", label: "UNIT UPDATE", title: "MACBETH · ACT II", body: "After the murder" },
   { id: 2, type: "intro", title: "", body: "Tonight we move into the consequences of Duncan’s murder." },
-  { id: 3, type: "reading", width: "half", title: "For Tuesday", body: "Read Act II, Scenes 1–2 and annotate references to sleep and blood." },
+  { id: 3, type: "note", width: "half", title: "For Tuesday", body: "Read Act II, Scenes 1–2 and annotate references to sleep and blood." },
   { id: 4, type: "focus", width: "half", title: "As you read", body: "What changes in Macbeth’s behavior?\nHow does Shakespeare connect guilt to sleep?" },
   { id: 5, type: "homework", title: "Come prepared", body: "Bring one discussion question to class." },
   { id: 6, type: "deadline", title: "Coming up", body: "Vocabulary quiz · Thursday" },

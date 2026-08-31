@@ -76,7 +76,7 @@ Strict JSON schema, `name: "composition"`:
         "additionalProperties": false,
         "required": ["type", "label", "title", "body", "width", "emoji"],
         "properties": {
-          "type": { "type": "string", "enum": ["hero", "intro", "reading", "focus", "homework", "deadline", "note", "steps", "checklist", "vocabulary", "quote", "resource", "targets"] },
+          "type": { "type": "string", "enum": ["hero", "intro", "focus", "homework", "deadline", "note", "steps", "checklist", "quote", "targets"] },
           "label": { "type": "string" },
           "title": { "type": "string" },
           "body": { "type": "string" },

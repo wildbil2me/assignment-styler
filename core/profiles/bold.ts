@@ -60,7 +60,7 @@ export const bold: Profile = {
     focus: { fill: "palette.focus", border: "palette.accent", label: "palette.primary" },
     info: { fill: "#DBEAFE", border: "#3B82F6", label: "#1E3A8A" },
     attention: { fill: "#FEF08A", border: "#CA8A04", label: "#713F12" },
-    accent: { fill: "#E0ECFB", border: "palette.primary", label: "palette.primary" },
+    accent: { fill: "#CCFBF1", border: "palette.primary", label: "palette.primary" },
     study: { fill: "#EDE9FE", border: "#7C3AED", label: "#4C1D95" },
     alert: { fill: "#FFE4E6", border: "#E11D48", label: "#881337" },
   },
