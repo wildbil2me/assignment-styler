@@ -41,6 +41,25 @@ All notable changes to this project are documented here. Versions follow
 - Vendored design authority, source and built-output conformance gates, upstream
   integrity hashes, and a reviewed suppression inventory.
 
+### Fixed
+
+- Stopped inline edits being silently discarded. The preview tracked whether a
+  field had been typed into with a variable local to the effect that wires the
+  editors up, so any re-render that re-ran that effect — an autosave flipping
+  the save indicator, a screen-reader announcement, a selection change — reset
+  the flag to "clean" while the teacher's text was still in the DOM. The next
+  blur then skipped the commit, and the text disappeared at the following
+  render. The flag now lives in a ref that outlives the effect, and the update
+  callback the effect depends on is stable, so the editors are no longer torn
+  down and rebuilt mid-edit.
+- Stopped duplicating a block from copying stale text. The copy was built from
+  the block list captured when the button was rendered, while the insert was
+  applied to the list React actually held. Clicking Duplicate blurs the open
+  editor, which commits the edit into the same batch, so the copy was made from
+  the pre-edit text: the original kept the new wording and the duplicate carried
+  the old. Duplicate and delete are now applied inside the state updater, and
+  the list operations moved to `core/blocks.ts` with tests.
+
 ## [0.1.0] - 2026-08-21
 
 ### Added

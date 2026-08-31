@@ -41,6 +41,7 @@ import {
   runChecks, contrastRatio, parseHex, isLargeText, requiredRatio, ASSUMED_PAGE_BACKGROUND,
 } from "../core/checks.ts";
 import { nextId, nextIds, reserveIds } from "../core/ids.ts";
+import { duplicateIn, neighbourOf, removeFrom } from "../core/blocks.ts";
 import {
   migrate, serialize, parse, backupFilename, localAdapter, STORAGE_KEY, SCHEMA_VERSION,
 } from "../core/storage.ts";
@@ -493,6 +494,72 @@ test("a custom palette carrying a quote cannot break out of the style attribute"
 test("the surface decides the wrapper width", () => {
   for (const key of surfaceKeys)
     assert.match(render(starter, { surface: surfaces[key] }), new RegExp(`max-width:${surfaces[key].width}px`));
+});
+
+/* ------------------------------------------------------- block list edits */
+
+test("a duplicate carries the text that is in state, not a captured snapshot", () => {
+  const rendered = [
+    { id: 1, type: "note", title: "Homework", body: "old text" },
+    { id: 2, type: "deadline", title: "Due", body: "Friday" },
+  ];
+
+  // What React does when the duplicate button's own blur commits an edit into
+  // the same batch: the queued updaters run in order, and the second one is
+  // handed the result of the first. The duplicate has to read *that* array.
+  // Reading the block from a closure instead is the bug this replaced — the
+  // original kept the new text and the copy silently carried the old.
+  const queued = [
+    (v) => v.map((b) => (b.id === 1 ? { ...b, body: "new text" } : b)),
+    (v) => duplicateIn(v, 1, 99),
+  ];
+  const next = queued.reduce((v, update) => update(v), rendered);
+
+  assert.equal(next.find((b) => b.id === 99).body, "new text", "the copy carries the committed edit");
+  assert.equal(next.find((b) => b.id === 1).body, "new text", "and so does the original");
+  assert.equal(rendered[0].body, "old text", "the array React had already rendered is untouched");
+});
+
+test("a duplicate sits directly after its original and is otherwise identical", () => {
+  const blocks = [
+    { id: 1, type: "hero", title: "Unit 3", body: "" },
+    { id: 2, type: "note", title: "Reading", body: "Chapter 4", width: "half", align: "center" },
+    { id: 3, type: "deadline", title: "Due", body: "Friday" },
+  ];
+  const next = duplicateIn(blocks, 2, 99);
+
+  assert.deepEqual(next.map((b) => b.id), [1, 2, 99, 3], "inserted after the block it copies");
+  assert.equal(next[2].title, "Reading copy", "the copy says so in its title");
+  assert.equal(next[2].body, "Chapter 4");
+  assert.equal(next[2].width, "half", "layout comes along");
+  assert.equal(next[2].align, "center", "and so does alignment");
+  assert.equal(blocks.length, 3, "the input is not mutated");
+});
+
+test("edits to a duplicate do not reach back into the original", () => {
+  const blocks = [{ id: 1, type: "note", title: "T", body: "shared" }];
+  const next = duplicateIn(blocks, 1, 99);
+  next[1].body = "changed";
+  assert.equal(next[0].body, "shared", "the copy is a copy, not a second reference");
+});
+
+test("removing and duplicating an id that is gone leaves the list alone", () => {
+  const blocks = [{ id: 1, type: "note", title: "T", body: "B" }];
+  assert.equal(duplicateIn(blocks, 404, 99), blocks, "same array back, so React skips the render");
+  assert.equal(removeFrom(blocks, 404), blocks);
+  assert.deepEqual(removeFrom(blocks, 1), []);
+});
+
+test("deleting a block selects the one that slides into its place", () => {
+  const blocks = [
+    { id: 1, type: "hero", title: "A", body: "" },
+    { id: 2, type: "note", title: "B", body: "" },
+    { id: 3, type: "note", title: "C", body: "" },
+  ];
+  assert.equal(neighbourOf(blocks, 1), 2, "deleting the first selects the new first");
+  assert.equal(neighbourOf(blocks, 2), 3, "deleting the middle selects what follows");
+  assert.equal(neighbourOf(blocks, 3), 2, "deleting the last falls back to the new last");
+  assert.equal(neighbourOf([{ id: 1, type: "note", title: "", body: "" }], 1), 0, "emptying the list selects nothing");
 });
 
 /* ---------------------------------------------------- data table integrity */

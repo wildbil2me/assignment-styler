@@ -136,9 +136,13 @@ export function Composer() {
   };
   const duplicatePost = () => {
     const ids = nextIds(blocks.length);
-    const copies = blocks.map((block, index) => ({ ...block, id: ids[index] }));
-    setBlocks(copies);
-    setSelected(copies[0]?.id);
+    // Copied from the array React holds rather than the captured one. This menu
+    // can only be reached by a click that already flushed any open editor, so it
+    // is belt-and-braces — but it costs nothing and removes the snapshot that
+    // would otherwise have to stay correct. Extra blocks keep their own ids,
+    // which stay unique because `nextIds` only ever hands out fresh ones.
+    setBlocks(v => v.map((block, index) => ({ ...block, id: ids[index] ?? block.id })));
+    setSelected(ids[0]);
     setPostTitle(`${postTitle} — Copy`);
     setPostMenu(false);
     announce("Duplicated the current draft.");

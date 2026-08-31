@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Block, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "../core/model.ts";
 import { palettes } from "../core/palettes.ts";
@@ -8,6 +8,7 @@ import { templates, starter } from "../core/templates.ts";
 import { renderHtml } from "../core/render.ts";
 import { runChecks } from "../core/checks.ts";
 import { nextId, nextIds } from "../core/ids.ts";
+import { duplicateIn, neighbourOf, removeFrom } from "../core/blocks.ts";
 import {
   defaultAdapter, emptyCustomPalette, SCHEMA_VERSION,
   type SavedPost, type StorageAdapter, type Workspace,
@@ -127,7 +128,10 @@ export function useComposer({
     return () => clearTimeout(timer);
   }, [workspace]);
 
-  const updateBlock = (id: number, patch: Partial<Block>) => setBlocks(value => {
+  // Stable identity on purpose. The preview keys its inline editors off this
+  // function, so a new one every render tore every editor down and rebuilt it
+  // mid-edit — see the dirty-field note in ui/preview.tsx.
+  const updateBlock = useCallback((id: number, patch: Partial<Block>) => setBlocks(value => {
     let changed = false;
     const next = value.map(block => {
       if (block.id !== id || Object.entries(patch).every(([key, field]) => block[key as keyof Block] === field)) return block;
@@ -135,23 +139,30 @@ export function useComposer({
       return { ...block, ...patch };
     });
     return changed ? next : value;
-  });
+  }), []);
   const update = (patch: Partial<Block>) => updateBlock(selected, patch);
   const format = (command: string, argument?: string) => formatterRef.current(command, argument);
   const move = (id: number, by: number) => setBlocks(v => { const i=v.findIndex(b=>b.id===id), j=i+by; if(j<0||j>=v.length)return v; const n=[...v]; [n[i],n[j]]=[n[j],n[i]]; return n; });
   const addBlock = () => {const id=nextId();setBlocks(v=>[...v,{id,type:"note",title:"Note",body:"Add your note here."}]);setSelected(id)};
-  // Carried-forward bug #5: this used to call `setSelected(blocks[0]?.id)` against
-  // the *pre-deletion* array, so deleting the first block re-selected the block it
-  // had just removed and the inspector went blank. Select the neighbour instead —
-  // the one that slid into its place, or the new last block.
+  // The removal is functional so that an edit committed into the same batch —
+  // the blur that the delete click itself caused — is not thrown away with a
+  // whole-array write built from the pre-blur snapshot. Selection is still
+  // derived from the rendered list, which is what the teacher was looking at.
   const deleteBlock = () => {
-    const i = blocks.findIndex(b => b.id === selected);
-    if (i < 0) return;
-    const remaining = blocks.filter(b => b.id !== selected);
-    setBlocks(remaining);
-    setSelected(remaining[Math.min(i, remaining.length - 1)]?.id ?? 0);
+    if (!blocks.some(b => b.id === selected)) return;
+    const target = selected;
+    setBlocks(v => removeFrom(v, target));
+    setSelected(neighbourOf(blocks, target));
   };
-  const duplicateBlock = (id:number) => {const i=blocks.findIndex(b=>b.id===id);if(i<0)return;const copy={...blocks[i],id:nextId(),title:`${blocks[i].title} copy`};setBlocks(v=>[...v.slice(0,i+1),copy,...v.slice(i+1)]);setSelected(copy.id)};
+  // The copy is built inside the updater, from the array React actually holds.
+  // Reading it from the closure meant duplicating a block whose open editor had
+  // just been blurred by this very click produced a copy of the *pre-edit*
+  // text — see core/blocks.ts.
+  const duplicateBlock = useCallback((id: number) => {
+    const newId = nextId();
+    setBlocks(v => duplicateIn(v, id, newId));
+    setSelected(newId);
+  }, []);
   const dropBlock = (target:number) => {const source=dragged.current;if(source===null||source===target)return;setBlocks(v=>{const n=[...v],from=n.findIndex(b=>b.id===source),to=n.findIndex(b=>b.id===target);const [item]=n.splice(from,1);n.splice(to,0,item);return n});dragged.current=null};
   const announce = (message: string) => {
     setAnnouncement("");

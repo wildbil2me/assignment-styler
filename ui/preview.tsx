@@ -17,6 +17,19 @@ export function Preview({ c, device, onDevice }: {
   const activeEditor = useRef<ActiveEditor | null>(null);
   const savedRange = useRef<Range | null>(null);
   const pendingAlign = useRef(new Map<number, NonNullable<Block["align"]>>());
+  /**
+   * Which fields have been typed into and not yet committed, as `id:field`.
+   *
+   * This has to outlive the effect below, and that is the whole point of it
+   * being a ref. It used to be a plain `let dirty` inside the effect, one per
+   * editor per run — so *any* re-render that re-ran the effect (a save-status
+   * flip, an announcement, a selection change) tore the editors down and
+   * rebuilt them with `dirty` back at `false`, while the DOM kept the teacher's
+   * text. The next blur then read `dirty === false`, returned early, and the
+   * edit was dropped; the text stayed on screen until the next render replaced
+   * the preview HTML and it vanished. That is the intermittent blanking.
+   */
+  const dirtyFields = useRef(new Set<string>());
 
   useLayoutEffect(() => {
     const page = paper.current?.firstElementChild;
@@ -111,18 +124,18 @@ export function Preview({ c, device, onDevice }: {
 
         // Commit on blur so React does not replace the DOM while the browser is
         // maintaining a live caret or text selection inside the block.
-        let dirty = false;
+        const key = `${block.id}:${field}`;
         const commit = () => {
           const align = pendingAlign.current.get(block.id);
-          if (!dirty && !align) return;
+          if (!dirtyFields.current.has(key) && !align) return;
           const alignment = align ? { align } : {};
           if (field === "body") updateBlock(block.id, { body: readBody(element, block), ...alignment });
           else if (field === "title") updateBlock(block.id, { title: readTitle(element, block), ...alignment });
           else updateBlock(block.id, { label: element.textContent?.trim() || "", ...alignment });
           pendingAlign.current.delete(block.id);
-          dirty = false;
+          dirtyFields.current.delete(key);
         };
-        const editor = { element, root, block, field, commit, markDirty: () => { dirty = true } } satisfies ActiveEditor;
+        const editor = { element, root, block, field, commit, markDirty: () => { dirtyFields.current.add(key) } } satisfies ActiveEditor;
         if (block.id === selected && field === "body") fallbackEditor = editor;
         const rememberSelection = () => {
           activeEditor.current = editor;
@@ -155,7 +168,7 @@ export function Preview({ c, device, onDevice }: {
         };
         element.addEventListener("focus", rememberSelection);
         const input = () => {
-          dirty = true;
+          dirtyFields.current.add(key);
           rememberSelection();
         };
         element.addEventListener("input", input);
