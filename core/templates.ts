@@ -1,7 +1,8 @@
 import type { Block, SurfaceKey } from "./model.ts";
 
 /**
- * Fifteen post templates, five per surface, plus the Macbeth starter document.
+ * Seventeen post templates — seven assignment, five topic, five bulletin — plus
+ * the Macbeth starter document.
  *
  * Copied verbatim from the prototype — the punctuation matters. Curly
  * apostrophes, en dashes in scene ranges, em dashes in "Term — definition", and
@@ -11,11 +12,13 @@ import type { Block, SurfaceKey } from "./model.ts";
 
 export const templateGroups: Record<SurfaceKey, string[]> = {
   assignment: [
-    "Standard Assignment",
-    "Reading Assignment",
-    "Written Response",
+    "Homework",
+    "Classwork",
     "Essay",
+    "Quiz",
+    "Exam",
     "Project",
+    "Announcement",
   ],
   topic: [
     "Unit Introduction",
@@ -34,42 +37,59 @@ export const templateGroups: Record<SurfaceKey, string[]> = {
 };
 
 export const templates: Record<string, Block[]> = {
-  "Standard Assignment": [
-    { id: 201, type: "hero", label: "ASSIGNMENT", title: "ASSIGNMENT TITLE", body: "Add a concise purpose or summary" },
+  Homework: [
+    { id: 201, type: "hero", label: "HOMEWORK", title: "HOMEWORK TITLE", body: "Add a concise summary of the work" },
     { id: 202, type: "homework", title: "What to do", body: "Describe the assignment clearly" },
-    { id: 203, type: "steps", title: "Directions", body: "Complete the first step\nComplete the next step\nReview and submit your work" },
-    { id: 204, type: "checklist", title: "What to submit", body: "List the required deliverables" },
+    { id: 203, type: "reading", title: "Read or review", body: "Add the pages, problems, or materials" },
+    { id: 204, type: "checklist", title: "Come prepared with", body: "Add notes, responses, or materials to bring to class" },
     { id: 205, type: "deadline", title: "Due", body: "Add the due date and time" },
   ],
-  "Reading Assignment": [
-    { id: 211, type: "hero", label: "READING ASSIGNMENT", title: "ASSIGNED READING", body: "Add the text or unit" },
-    { id: 212, type: "reading", title: "Read", body: "Add the title, chapter, scenes, or pages" },
-    { id: 213, type: "focus", title: "As you read", body: "Add questions, annotations, or ideas to track" },
-    { id: 214, type: "checklist", title: "Come prepared with", body: "Add notes, responses, or materials students need" },
-    { id: 215, type: "deadline", title: "Complete by", body: "Add the due date" },
-  ],
-  "Written Response": [
-    { id: 221, type: "hero", label: "WRITTEN RESPONSE", title: "RESPONSE TITLE", body: "Add the topic or text" },
-    { id: 222, type: "focus", title: "Prompt", body: "Write the complete response question" },
-    { id: 223, type: "targets", title: "A strong response will", body: "Answer the prompt directly\nUse specific evidence\nExplain the reasoning" },
-    { id: 224, type: "checklist", title: "Requirements", body: "Add length, format, and submission requirements" },
-    { id: 225, type: "deadline", title: "Due", body: "Add the due date and time" },
+  Classwork: [
+    { id: 211, type: "hero", label: "CLASSWORK", title: "CLASSWORK TITLE", body: "Add today’s focus" },
+    { id: 212, type: "targets", title: "Today’s goals", body: "Add what students should know or be able to do" },
+    { id: 213, type: "steps", title: "In class today", body: "Warm up\nWork through the task\nShare and discuss\nWrap up" },
+    { id: 214, type: "checklist", title: "What to finish", body: "List what should be complete before class ends" },
+    { id: 215, type: "deadline", title: "Turn in", body: "Add when and how to submit" },
   ],
   Essay: [
-    { id: 231, type: "hero", label: "ESSAY", title: "ESSAY ASSIGNMENT", body: "Add the essay topic" },
-    { id: 232, type: "focus", title: "Prompt", body: "Write the complete essay prompt" },
-    { id: 233, type: "targets", title: "Goals", body: "Develop a clear thesis\nUse relevant evidence\nOrganize ideas purposefully" },
-    { id: 234, type: "checklist", title: "Requirements", body: "Add length, sources, format, and citation expectations" },
-    { id: 235, type: "steps", title: "Process", body: "Plan\nDraft\nRevise\nSubmit" },
-    { id: 236, type: "deadline", title: "Due", body: "Add the due date and time" },
+    { id: 221, type: "hero", label: "ESSAY", title: "ESSAY ASSIGNMENT", body: "Add the essay topic" },
+    { id: 222, type: "focus", title: "Prompt", body: "Write the complete essay prompt" },
+    { id: 223, type: "targets", title: "Goals", body: "Develop a clear thesis\nUse relevant evidence\nOrganize ideas purposefully" },
+    { id: 224, type: "checklist", title: "Requirements", body: "Add length, sources, format, and citation expectations" },
+    { id: 225, type: "steps", title: "Process", body: "Plan\nDraft\nRevise\nSubmit" },
+    { id: 226, type: "deadline", title: "Due", body: "Add the due date and time" },
+  ],
+  Quiz: [
+    { id: 231, type: "hero", label: "QUIZ", title: "QUIZ TITLE", body: "Add the topic and date" },
+    { id: 232, type: "quiz", title: "Quiz details", body: "Add the date, format, and length" },
+    { id: 233, type: "targets", width: "half", title: "What it covers", body: "List the knowledge and skills being assessed" },
+    { id: 234, type: "checklist", width: "half", title: "How to prepare", body: "Review class materials\nPractice key skills\nBring questions" },
+    { id: 235, type: "resource", title: "Study resources", body: "Add review materials or links" },
+    { id: 236, type: "deadline", title: "Quiz date", body: "Add the date and class period" },
+  ],
+  Exam: [
+    { id: 241, type: "hero", label: "EXAM", title: "EXAM TITLE", body: "Add the topic and date" },
+    { id: 242, type: "exam", title: "Exam details", body: "Add the date, format, length, and materials allowed" },
+    { id: 243, type: "targets", width: "half", title: "What it covers", body: "List the units, skills, and key ideas" },
+    { id: 244, type: "vocabulary", width: "half", title: "Key terms", body: "Term — definition" },
+    { id: 245, type: "checklist", title: "How to prepare", body: "Review notes and past assessments\nPractice the hardest skills\nBring questions to class" },
+    { id: 246, type: "resource", title: "Review resources", body: "Add study guides, links, or materials" },
+    { id: 247, type: "deadline", title: "Exam date", body: "Add the date and class period" },
   ],
   Project: [
-    { id: 241, type: "hero", label: "PROJECT", title: "PROJECT TITLE", body: "Add the project’s purpose" },
-    { id: 242, type: "targets", title: "Project goal", body: "Describe the intended outcome" },
-    { id: 243, type: "steps", title: "Process", body: "Plan\nCreate\nRevise\nSubmit" },
-    { id: 244, type: "checklist", title: "Deliverables", body: "List everything students must turn in" },
-    { id: 245, type: "resource", title: "Resources", body: "Add helpful links, files, or examples" },
-    { id: 246, type: "deadline", title: "Final deadline", body: "Add the due date and time" },
+    { id: 251, type: "hero", label: "PROJECT", title: "PROJECT TITLE", body: "Add the project’s purpose" },
+    { id: 252, type: "targets", title: "Project goal", body: "Describe the intended outcome" },
+    { id: 253, type: "steps", title: "Process", body: "Plan\nCreate\nRevise\nSubmit" },
+    { id: 254, type: "checklist", title: "Deliverables", body: "List everything students must turn in" },
+    { id: 255, type: "resource", title: "Resources", body: "Add helpful links, files, or examples" },
+    { id: 256, type: "deadline", title: "Final deadline", body: "Add the due date and time" },
+  ],
+  Announcement: [
+    { id: 261, type: "hero", label: "ANNOUNCEMENT", title: "ANNOUNCEMENT TITLE", body: "Add a one-line summary" },
+    { id: 262, type: "announcement", title: "What you need to know", body: "Write the complete announcement" },
+    { id: 263, type: "checklist", title: "What to do", body: "Add any actions students should take" },
+    { id: 264, type: "deadline", title: "Effective", body: "Add the date this takes effect, if any" },
+    { id: 265, type: "note", title: "Questions", body: "Add how students should follow up" },
   ],
   "Unit Introduction": [
     { id: 301, type: "hero", label: "UNIT", title: "UNIT TITLE", body: "Add the unit’s central idea" },

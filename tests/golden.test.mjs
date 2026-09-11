@@ -68,7 +68,7 @@ const CASES = [
   ["starter-editorial-english-bulletin", starter, "editorial", "english", "bulletin", undefined],
   ["starter-bold-english-bulletin", starter, "bold", "english", "bulletin", undefined],
 
-  ["standard-assignment-soft-english-assignment", templates["Standard Assignment"], "soft", "english", "assignment", undefined],
+  ["homework-soft-english-assignment", templates["Homework"], "soft", "english", "assignment", undefined],
   ["unit-introduction-soft-science-topic", templates["Unit Introduction"], "soft", "science", "topic", undefined],
   ["weekly-overview-editorial-math-bulletin", templates["Weekly Overview"], "editorial", "math", "bulletin", undefined],
 

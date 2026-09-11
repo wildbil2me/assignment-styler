@@ -464,11 +464,14 @@ test("the data tables match the shapes the renderer expects", () => {
   assert.equal(paletteKeys.length, 6, "6 subject palettes");
   assert.equal(profileKeys.length, 3, "3 profiles");
   assert.equal(surfaceKeys.length, 3, "3 surfaces — not 4; announcement is a block type");
-  assert.equal(templateNames.length, 15, "15 templates");
+  assert.equal(templateNames.length, 17, "17 templates");
   assert.equal(defaultProfile.id, "soft", "soft cards is the chosen default");
 
+  // The assignment surface carries the seven a teacher actually posts;
+  // topic and bulletin stay at five each.
+  const offered = { assignment: 7, topic: 5, bulletin: 5 };
   for (const key of surfaceKeys)
-    assert.equal(templateGroups[key].length, 5, `${key} should offer 5 templates`);
+    assert.equal(templateGroups[key].length, offered[key], `${key} should offer ${offered[key]} templates`);
 
   // Every name a surface offers must resolve, or the picker silently no-ops.
   for (const key of surfaceKeys)
