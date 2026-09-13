@@ -50,7 +50,8 @@ posts and exporting HTML that survives Blackbaud's editor. The name is a working
 one, chosen 2026-08-12; [docs/naming.md](docs/naming.md) lists every place it
 appears and, more importantly, draws the line between *our* name and the many
 references to **Blackbaud the product** that a rename must never touch. Content is authored as blocks, previewed per Blackbaud surface (bulletin
-board, topic, assignment, announcement), and exported as inline-styled HTML.
+board, topic, assignment — **three**, not four; `announcement` is a block type,
+as `core/surfaces.ts` says in a comment), and exported as inline-styled HTML.
 
 Layout:
 
@@ -81,6 +82,12 @@ Layout:
     localStorage round trip, and the single `renderHtml` call. **A behaviour that
     lives here cannot drift between the web app and the panel.**
   - `composer.tsx` — the full editor. `quickpost.tsx` — the side panel.
+    The panel is deliberately smaller, but **not** smaller in what it will vouch
+    for: it draws the same `Checks` rows the composer does, collapsed behind a
+    summary that names the unchecked count rather than implying a clean bill.
+    It has a template picker, undo/redo and workspace backup as of 2026-09-12 —
+    see the correction under "What the panel keeps" in the rebuild plan for why
+    the first and last were originally left out and why that stopped holding.
   - `blocklist.tsx`, `inspector.tsx`, `preview.tsx`, `export.tsx`,
     `richtext.tsx` — the pieces both screens draw. `richtext.tsx` is the one
     place `document.execCommand` is called.
@@ -92,6 +99,10 @@ Layout:
   which is where the manifest's paths have to resolve.
 - `tests/` — the core contract suite plus golden HTML and corpus snapshots.
 - `tools/probe/` — the Blackbaud compatibility probe generator (43 rows).
+- `tools/make-icons.mjs` — the extension's PNG icons, drawn from geometry with
+  `node:zlib` and no image dependency. `npm run icons` regenerates them; the
+  outputs are committed because the manifest needs real files, and MV3 will not
+  take an SVG.
 - `docs/` — the plan, the measured compatibility results, the 2026-08-09 class
   style-guide spec, and the deferred AI drafting design.
 

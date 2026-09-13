@@ -350,6 +350,31 @@ Phase 4 already owns versioning and migration, which is when an async adapter
 earns its cost. The manifest's unused `storage` permission was dropped —
 a permission a school can see and we don't use is worth more gone.
 
+#### Both paragraphs above were overtaken by later phases
+
+Recorded 2026-09-12, in place rather than rewritten, because the reasoning is
+still worth reading and the outcome is no longer what it says.
+
+- **Storage did move.** Phase 4 built the versioned workspace and the injectable
+  `StorageAdapter` the paragraph was waiting for, and took the panel to
+  `chrome.storage.local` at the same time — a side panel's `localStorage` is
+  cleared alongside ordinary site data, which is the wrong durability for the
+  only copy of a teacher's post. The `storage` permission came back with it and
+  is genuinely used; `tests/design.test.mjs` pins the permission list at exactly
+  `sidePanel` and `storage` so it cannot grow quietly.
+- **The template picker came back.** Dropping it rested on "cold start opens on
+  the first bulletin template" — true only while the panel had nothing
+  persistent. Once Phase 4 gave it a stored workspace there is no cold start
+  after the first run: the panel reopens on whatever was last in it, so a teacher
+  wanting an assignment was hand-editing last week's bulletin into one. The
+  picker is back, with undo beside it, because applying a template replaces every
+  block and the panel had no way to take that back.
+
+Still dropped, and still for the reasons above: the style editor, HTML import,
+saved posts and export history. **Workspace backup and restore were added**,
+which the list never contemplated — the panel's storage is unreachable from the
+web app, so a downloaded file is the only route out of it.
+
 ### Tailwind is gone, and the preview got more honest
 
 `app/globals.css` imported `tailwindcss` on line 1 for preflight and used no

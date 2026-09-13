@@ -9,7 +9,7 @@ import { renderHtml } from "../core/render.ts";
 import { runChecks } from "../core/checks.ts";
 import { nextId, nextIds } from "../core/ids.ts";
 import {
-  defaultAdapter, emptyCustomPalette,
+  backupFilename, defaultAdapter, emptyCustomPalette, parse, serialize,
   type SavedPost, type StorageAdapter, type Workspace,
 } from "../core/storage.ts";
 
@@ -158,6 +158,48 @@ export function useComposer({
     window.setTimeout(() => setAnnouncement(message), 20);
   };
   const copy = async () => { await navigator.clipboard.writeText(html); setExportHistory(v=>[{date:new Date().toLocaleString(),title:postTitle,html},...v].slice(0,10)); setCopied(true); announce("Copied the generated HTML to the clipboard."); setTimeout(()=>setCopied(false),1800); };
+  /**
+   * A whole workspace out to a file the teacher owns, and back in again.
+   *
+   * These live here rather than in either shell because the panel needs them
+   * more than the composer does: its `chrome.storage.local` is a different
+   * origin from the web app, so a downloaded backup is the only way a post
+   * composed in the side panel ever reaches another browser — or survives an
+   * uninstall. Two copies of "what a backup contains" is exactly the drift this
+   * hook exists to prevent.
+   */
+  const backupWorkspace = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([serialize(workspace)], { type: "application/json" });
+    const url = URL.createObjectURL(blob), anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = backupFilename(postTitle, today);
+    // Attached and revoked late on purpose. A detached anchor does not fire in
+    // every browser, and revoking in the same tick can cancel the download
+    // before it starts — survivable in the composer, which has other exits, and
+    // not in the panel, where this file is the only one a teacher's work has.
+    anchor.style.display = "none";
+    document.body.append(anchor);
+    anchor.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      anchor.remove();
+    }, 1000);
+    announce("Downloaded a permanent backup of the complete workspace.");
+  };
+  /** False when nothing was replaced, so a caller can leave its menu open. */
+  const restoreFromFile = async (file?: File) => {
+    if (!file) return false;
+    const result = parse(await file.text());
+    if (!result.workspace) {
+      announce(result.message);
+      return false;
+    }
+    if (!window.confirm(`${result.message}\n\nThis replaces everything currently in the composer. Continue?`)) return false;
+    restore(result.workspace);
+    announce("Restored the workspace from the selected backup.");
+    return true;
+  };
   const undo = () => {const prior=past.current.pop();if(!prior)return;future.current.push(blocks);historyAction.current=true;setBlocks(prior)};
   const redo = () => {const next=future.current.pop();if(!next)return;past.current.push(blocks);historyAction.current=true;setBlocks(next)};
   // Named `applyTemplate`, not `useTemplate`: the old name made every linter and
@@ -172,6 +214,7 @@ export function useComposer({
     savedPosts, setSavedPosts, exportHistory, palette, profile, surface, html, report,
     copied, announcement, ready, saveStatus, dragged, formatterRef, workspace, restore,
     announce, update, updateBlock, format, move, addBlock, deleteBlock, duplicateBlock, dropBlock, copy, undo, redo, applyTemplate,
+    backupWorkspace, restoreFromFile,
   };
 }
 

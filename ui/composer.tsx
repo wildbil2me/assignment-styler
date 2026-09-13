@@ -7,8 +7,7 @@ import { nextId, nextIds } from "../core/ids.ts";
 import type { Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "../core/model.ts";
 import { palettes } from "../core/palettes.ts";
 import { profiles, profileKeys, defaultProfile } from "../core/profiles/index.ts";
-import { backupFilename, parse, serialize } from "../core/storage.ts";
-import { surfaces, surfaceDescriptions } from "../core/surfaces.ts";
+import { surfaceArticle, surfaces, surfaceDescriptions } from "../core/surfaces.ts";
 import { starter, templateGroups } from "../core/templates.ts";
 import { BlockList } from "./blocklist.tsx";
 import { Dialog } from "./dialog.tsx";
@@ -40,7 +39,8 @@ export function Composer() {
     styleKey, setStyleKey, profileKey, setProfileKey, fonts, setFonts,
     customPalette, setCustomPalette, surfaceKey, setSurfaceKey,
     savedPosts, setSavedPosts, palette, surface, applyTemplate,
-    workspace, restore, announcement, announce, ready, saveStatus,
+    announcement, announce, ready, saveStatus,
+    backupWorkspace, restoreFromFile,
   } = c;
   const [postMenu, setPostMenu] = useState(false);
   const [device, setDevice] = useState<Device>("desktop");
@@ -143,28 +143,17 @@ export function Composer() {
     setPostMenu(false);
     announce("Duplicated the current draft.");
   };
-  const backupWorkspace = () => {
-    const today = new Date().toISOString().slice(0, 10);
-    const blob = new Blob([serialize(workspace)], { type: "application/json" });
-    const url = URL.createObjectURL(blob), anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = backupFilename(postTitle, today);
-    anchor.click();
-    URL.revokeObjectURL(url);
+  // Both shells share the file round trip itself; the composer only adds
+  // closing its menu afterwards. See `useComposer`.
+  const downloadBackup = () => {
+    backupWorkspace();
     setPostMenu(false);
-    announce("Downloaded a permanent backup of the complete workspace.");
   };
-  const restoreWorkspace = async (file?: File) => {
-    if (!file) return;
-    const result = parse(await file.text());
-    if (!result.workspace) {
-      announce(result.message);
-      return;
-    }
-    if (!window.confirm(`${result.message}\n\nThis replaces everything currently in the composer. Continue?`)) return;
-    restore(result.workspace);
-    setPostMenu(false);
-    announce("Restored the workspace from the selected backup.");
+  const restoreWorkspace = async (input: HTMLInputElement) => {
+    const restored = await restoreFromFile(input.files?.[0]);
+    // Clear it either way, or choosing the same file twice fires no change event.
+    input.value = "";
+    if (restored) setPostMenu(false);
   };
   const restoreExample = () => {
     setBlocks(starter.map(block => ({ ...block })));
@@ -252,10 +241,10 @@ export function Composer() {
             <button role="menuitem" onClick={savePost}><span aria-hidden="true"><Icon name="save" /></span><div><strong>Save temporarily to My posts</strong><small>Browser data can erase this snapshot</small></div></button>
             <button role="menuitem" onClick={restoreExample}><span aria-hidden="true"><Icon name="restore" /></span><div><strong>Restore example</strong><small>Return to the Macbeth sample</small></div></button>
             <div className="saved-heading">PERMANENT WORKSPACE BACKUP</div>
-            <button role="menuitem" onClick={backupWorkspace}><span aria-hidden="true"><Icon name="download" /></span><div><strong>Back up workspace</strong><small>Download every post and style permanently</small></div></button>
+            <button role="menuitem" onClick={downloadBackup}><span aria-hidden="true"><Icon name="download" /></span><div><strong>Back up workspace</strong><small>Download every post and style permanently</small></div></button>
             <button role="menuitem" onClick={() => backupFileRef.current?.click()}><span aria-hidden="true"><Icon name="upload" /></span><div><strong>Restore workspace backup</strong><small>Replaces this browser’s temporary workspace</small></div></button>
             {/* conformance-ignore FORM-05 The adjacent Restore workspace backup menu item names and opens this hidden input. */}
-            <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore BBStyler backup" type="file" accept="application/json,.json" onChange={event => restoreWorkspace(event.target.files?.[0])} />
+            <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore BBStyler backup" type="file" accept="application/json,.json" onChange={event => restoreWorkspace(event.target)} />
             <div className="saved-heading">TEMPORARY MY POSTS</div>
             {savedPosts.length === 0 && <p className="empty-state compact">No temporary snapshots yet. Save one to My posts for reuse in this browser.</p>}
             {savedPosts.slice(0, 5).map(post => <button role="menuitem" key={post.id} onClick={() => loadPost(post)}><span aria-hidden="true">□</span><div><strong>{post.title}</strong><small>Open temporary snapshot</small></div></button>)}
@@ -263,7 +252,7 @@ export function Composer() {
         </div></div>
         <div className="purpose-picker"><span className="eyebrow">CREATE FOR</span><div role="tablist" aria-label="Blackbaud destination">{(Object.keys(surfaces) as SurfaceKey[]).map(key => <button key={key} role="tab" aria-selected={surfaceKey === key} className={surfaceKey === key ? "active" : ""} onClick={() => setSurfaceKey(key)}><strong>{surfaces[key].name}</strong><small>{surfaceDescriptions[key]}</small></button>)}</div></div>
         {/* conformance-ignore FORM-05 htmlFor and the computed aria-label both name the template select. */}
-        <div className="draft-box"><label htmlFor="template">Start with a {surface.name.toLowerCase()} template</label><select aria-label={`${surface.name} template`} id="template" key={surfaceKey} defaultValue="" onChange={event => { if (event.target.value) applyTemplate(event.target.value); event.target.value = "" }}><option value="" disabled>Choose a structure…</option>{templateGroups[surfaceKey].map(template => <option key={template}>{template}</option>)}</select><button className="import-button" onClick={() => setImportOpen(true)}>Import existing Blackbaud HTML</button></div>
+        <div className="draft-box"><label htmlFor="template">Start with {surfaceArticle(surface)} {surface.name.toLowerCase()} template</label><select aria-label={`${surface.name} template`} id="template" key={surfaceKey} defaultValue="" onChange={event => { if (event.target.value) applyTemplate(event.target.value); event.target.value = "" }}><option value="" disabled>Choose a structure…</option>{templateGroups[surfaceKey].map(template => <option key={template}>{template}</option>)}</select><button className="import-button" onClick={() => setImportOpen(true)}>Import existing Blackbaud HTML</button></div>
         <BlockList c={c} />
       </aside>
       <section className="stage" aria-label="Post preview"><Preview c={c} device={device} onDevice={setDevice} /></section>

@@ -42,3 +42,13 @@ export const surfaceDescriptions: Record<SurfaceKey, string> = {
 };
 
 export const surfaceKeys = Object.keys(surfaces) as SurfaceKey[];
+
+/**
+ * "a bulletin board", "a topic", "an assignment".
+ *
+ * Both shells build "Start with ... template" from the surface name, and both
+ * read "a assignment" until this existed — a third of the time, on the surface
+ * teachers use most.
+ */
+export const surfaceArticle = (surface: Surface): string =>
+  /^[aeiou]/i.test(surface.name) ? "an" : "a";

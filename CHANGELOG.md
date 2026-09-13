@@ -28,6 +28,14 @@ All notable changes to this project are documented here. Versions follow
 
 ### Added
 
+- Gave the side panel a template picker for the selected destination, undo and
+  redo, the compatibility and contrast checks the web app already showed, and
+  workspace backup and restore — previously the panel's storage had no way out.
+- Added extension icons at 16, 32, 48 and 128px, generated from geometry by
+  `npm run icons` with no image dependency, so the toolbar button is the product
+  rather than a placeholder.
+- Declared `minimum_chrome_version` for the side panel API, and reported a
+  failure to bind the toolbar click instead of dropping it silently.
 - Added a responsive three-section application footer with a Ko-fi support link.
 - Vendored design authority, source and built-output conformance gates, upstream
   integrity hashes, and a reviewed suppression inventory.

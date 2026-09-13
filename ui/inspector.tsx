@@ -64,11 +64,19 @@ function TextFormatting({ c }: { c: Composer }) {
 
 const MARKER: Record<CheckStatus, string> = { pass: "✓", fail: "!", unknown: "?" };
 
-/** Draw the compatibility report computed by the core. */
-export function Checks({ c }: { c: Composer }) {
+/**
+ * Draw the compatibility report computed by the core.
+ *
+ * `heading` is off in the side panel, where the disclosure's own summary already
+ * carries the surface and the score and repeating them reads as a stutter. The
+ * rows themselves are identical in both shells on purpose: this is the one place
+ * the composer says what it can and cannot vouch for, and a panel that quietly
+ * showed less would be the bug `CheckStatus` exists to prevent.
+ */
+export function Checks({ c, heading = true }: { c: Composer; heading?: boolean }) {
   const { surface, report, setSelected } = c;
   return <div className="checks">
-    <div className="check-head"><div><span className="eyebrow">COMPATIBILITY</span><h3>{surface.name}</h3></div><span className={`score ${report.failed ? "score-fail" : ""}`}>{report.passed}/{report.checked}</span></div>
+    {heading && <div className="check-head"><div><span className="eyebrow">COMPATIBILITY</span><h3>{surface.name}</h3></div><span className={`score ${report.failed ? "score-fail" : ""}`}>{report.passed}/{report.checked}</span></div>}
     <p className="surface-note">{surface.note}</p>
     {report.checks.map(check => <div key={check.id} className={`check-row check-${check.status}`}>
       <p><i aria-hidden="true">{MARKER[check.status]}</i> {check.label}</p>

@@ -20,8 +20,10 @@ The **web app** is the full editor: templates, HTML import, custom class styles,
 saved posts, accessibility checks, and desktop/mobile previews.
 
 The **Chrome and Edge side panel** is a focused quick-post workflow. Pick the
-destination and class style, edit the blocks, copy the generated HTML, and paste
-it into Blackbaud's HTML/source editor.
+destination and class style, start from a template for that destination, edit the
+blocks, copy the generated HTML, and paste it into Blackbaud's HTML/source
+editor. It runs the same compatibility and contrast checks as the web app and
+reports them the same way — collapsed, but never quieter.
 
 ![BBStyler extension side panel in quick-post mode](docs/screenshots/extension-quick-post.png)
 
@@ -47,7 +49,8 @@ Then:
 6. Paste into Blackbaud's HTML/source editor and preview before publishing.
 
 The extension requests only `sidePanel` and `storage`. Storage holds the panel's
-workspace locally; there is no content script and no Blackbaud host access.
+workspace locally; there is no content script and no Blackbaud host access. A
+test pins that permission list so it cannot grow without someone noticing.
 
 ## Temporary saves and permanent backups
 
@@ -59,6 +62,11 @@ as temporary because clearing browser data or reimaging a device can erase it.
 Use **Back up workspace** often to download a permanent copy, and **Restore
 workspace backup** to move it to another browser or recover it later. BBStyler
 cannot recover temporary saves because the project operates no server.
+
+Both shells can do this: the web app from its post-actions menu, the side panel
+from its **Workspace backup** section. In the panel it is the only way out —
+nothing else can read `chrome.storage.local`, and removing the extension clears
+it.
 
 ## Blackbaud compatibility
 

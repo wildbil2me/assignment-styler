@@ -38,3 +38,6 @@ yarn-error.log*
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Playwright MCP scratch (snapshots, console logs, downloads)
+/.playwright-mcp/
