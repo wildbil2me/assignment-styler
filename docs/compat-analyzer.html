@@ -445,8 +445,7 @@ document.getElementById('run').addEventListener('click', function(){
     result.found = targets.map(function(target){
       const found = markerEl(doc, target);
       return found ? target + ': ' + found.outerHTML : target + ': no returned element contains this marker.';
-    }).join('
-');
+    }).join('\n');
     results[surface][row.id] = result;
   });
   render(surface);
