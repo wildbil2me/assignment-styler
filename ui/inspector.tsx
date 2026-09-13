@@ -7,8 +7,15 @@ import type { Composer } from "./state.ts";
 const ICONS = ["", "📘", "📖", "✏️", "💡", "❓", "✅", "⚠️", "📅", "🔬", "🎨", "🌎"];
 const TEXT_EMOJIS = ["📘", "📖", "✏️", "💡", "❓", "✅", "⚠️", "📅", "🔬", "🎨", "🌎", "✦"];
 
-/** Structural settings for the selected block. Text is edited in the preview. */
-export function BlockFields({ c }: { c: Composer }) {
+/**
+ * Structural settings for the selected block. Text is edited in the preview.
+ *
+ * `formatting` is off in the side panel, which places `TextFormatting` against
+ * the preview instead. In one narrow column the toolbar and the words it acts on
+ * have to be visible together, and these fields are 500px of occasional settings
+ * that were sitting between them.
+ */
+export function BlockFields({ c, formatting = true }: { c: Composer; formatting?: boolean }) {
   const { active, update, deleteBlock } = c;
   return <>
     <div className="inspector-title">
@@ -17,7 +24,7 @@ export function BlockFields({ c }: { c: Composer }) {
     </div>
     {active && <div className="fields">
       <p className="inline-edit-help">Edit the heading and content directly in the preview.</p>
-      <TextFormatting c={c} />
+      {formatting && <TextFormatting c={c} />}
       <label>Block type<select aria-label="Block type" value={active.type} onChange={event => update({ type: event.target.value as BlockType })}>{Object.entries(blockMeta).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select></label>
       <button aria-pressed={Boolean(active.hidden)} className={`visibility-toggle ${active.hidden ? "active" : ""}`} onClick={() => update({ hidden: !active.hidden })}>{active.hidden ? "Show in export" : "Hide from export"}</button>
       {active.type !== "hero" && active.type !== "intro" && <fieldset className="width-control">
@@ -33,7 +40,7 @@ export function BlockFields({ c }: { c: Composer }) {
   </>;
 }
 
-function TextFormatting({ c }: { c: Composer }) {
+export function TextFormatting({ c }: { c: Composer }) {
   const { active, format } = c;
   if (!active) return null;
   const tool = (label: string, command: string, glyph: string, shortcut?: string) => <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => format(command)} aria-label={label} title={`${label}${shortcut ? ` (${shortcut})` : ""}`}>{glyph}</button>;

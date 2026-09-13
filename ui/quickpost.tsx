@@ -8,7 +8,7 @@ import { templateGroups, templates } from "../core/templates.ts";
 import { BlockList } from "./blocklist.tsx";
 import { ExportPanel } from "./export.tsx";
 import { Icon } from "./icon.tsx";
-import { BlockFields, Checks } from "./inspector.tsx";
+import { BlockFields, Checks, TextFormatting } from "./inspector.tsx";
 import { Preview } from "./preview.tsx";
 import { useComposer } from "./state.ts";
 
@@ -18,7 +18,7 @@ export function QuickPost() {
   const c = useComposer({ initialBlocks: initial, initialSelected: initial[0].id, initialTitle: templateGroups.bulletin[0] });
   const {
     styleKey, setStyleKey, profileKey, setProfileKey, customPalette,
-    surfaceKey, setSurfaceKey, palette, surface, applyTemplate,
+    surfaceKey, setSurfaceKey, palette, surface, applyTemplate, active,
     report, undo, redo, backupWorkspace, restoreFromFile,
     announcement, ready, saveStatus,
   } = c;
@@ -83,8 +83,22 @@ export function QuickPost() {
     </div>
 
     <BlockList c={c} />
-    <BlockFields c={c} />
+
+    {/*
+      The toolbar sits against the words it formats. It used to live inside
+      BlockFields, which put 500px of block type, width, icon and context label
+      between the Bold button and the text — select, scroll up 350px, click,
+      scroll back. The panel bar above stopped being sticky for the same reason:
+      destination and class style are set once, and they were holding 126px of a
+      860px panel hostage for the whole session.
+    */}
+    {active && <div className="panel-format"><TextFormatting c={c} /></div>}
     <Preview c={c} device="mobile" />
+
+    <details className="panel-disclosure panel-settings">
+      <summary><span>Block settings</span></summary>
+      <BlockFields c={c} formatting={false} />
+    </details>
 
     {/*
       The panel's `chrome.storage.local` is a different origin from the web app's
