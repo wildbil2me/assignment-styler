@@ -27,7 +27,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { esc, safeRich, cssSafe } from "../core/sanitize.ts";
+import { esc, safeRich, cssSafe, harvestRich, harvestText } from "../core/sanitize.ts";
 import { renderHtml } from "../core/render.ts";
 import { importHtml } from "../core/import.ts";
 import { palettes, paletteKeys } from "../core/palettes.ts";
@@ -764,4 +764,46 @@ test("backup filenames are findable six months later", () => {
   // this assertion is not updated with it, that is the rename being incomplete.
   assert.equal(backupFilename("Tuesday’s class post", "2026-08-12"), "bbstyler-tuesday-s-class-post-2026-08-12.json");
   assert.equal(backupFilename("", "2026-08-12"), "bbstyler-workspace-2026-08-12.json");
+});
+
+test("what the teacher typed is what the student reads", () => {
+  // The editor hands back serialised HTML; safeRich escapes a tagless value a
+  // second time. Before harvestRich, typing "Tom & Jerry" published the visible
+  // text "Tom &amp; Jerry" — but only in a body carrying no markup, so adding a
+  // bold word appeared to fix it. Each case is (what was typed, what innerHTML
+  // gives back for it); each must survive the round trip reading as it started.
+  const typed = [
+    ["Tom & Jerry", "Tom &amp; Jerry"],
+    ["under 5 < 10", "under 5 &lt; 10"],
+    ["a > b", "a &gt; b"],
+    ["5 < 10 & rising", "5 &lt; 10 &amp; rising"],
+    ["Tom & Jerry bold", 'Tom &amp; Jerry <strong>bold</strong>'],
+  ];
+  for (const [wasTyped, fromTheEditor] of typed) {
+    const published = safeRich(harvestRich(fromTheEditor));
+    const element = document.createElement("div");
+    element.innerHTML = published;
+    assert.equal(element.textContent, wasTyped, `typed ${JSON.stringify(wasTyped)} · published ${JSON.stringify(published)}`);
+  }
+});
+
+test("a doubled or trailing space never reaches the export as a non-breaking one", () => {
+  // The browser substitutes U+00A0 for the second of two spaces and for one at
+  // the end of a line. It is never what was meant, and it stops the line
+  // wrapping. Both the rich and the plain boundary drop it.
+  const NBSP = String.fromCharCode(0xa0);
+  assert.equal(harvestRich("Bring&nbsp; two pens&nbsp;"), "Bring  two pens ");
+  assert.equal(harvestRich(`Bring${NBSP} two`), "Bring  two");
+  assert.equal(harvestRich(`keep <strong>the${NBSP}markup</strong>`), "keep <strong>the markup</strong>");
+  assert.equal(harvestText(`UNIT${NBSP}UPDATE `), "UNIT UPDATE");
+  assert.ok(!safeRich(harvestRich("Bring&nbsp; two")).includes("nbsp"));
+});
+
+test("a literal &nbsp; a teacher actually typed is still shown to them", () => {
+  // harvestRich decodes the entity, so what survives is the text they typed,
+  // escaped exactly once — not a non-breaking space and not a double escape.
+  const published = safeRich(harvestRich("&amp;nbsp; is the entity"));
+  const element = document.createElement("div");
+  element.innerHTML = published;
+  assert.equal(element.textContent, "&nbsp; is the entity");
 });

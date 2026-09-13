@@ -1,5 +1,6 @@
 import { memo, useLayoutEffect, useRef, type RefObject } from "react";
 
+import { harvestRich, harvestText } from "../core/sanitize.ts";
 import type { Block } from "../core/model.ts";
 import { Icon } from "./icon.tsx";
 import type { Composer } from "./state.ts";
@@ -117,7 +118,7 @@ export function Preview({ c, device, onDevice }: {
           const alignment = align ? { align } : {};
           if (field === "body") updateBlock(block.id, { body: readBody(element, block), ...alignment });
           else if (field === "title") updateBlock(block.id, { title: readTitle(element, block), ...alignment });
-          else updateBlock(block.id, { label: element.textContent?.trim() || "", ...alignment });
+          else updateBlock(block.id, { label: harvestText(element.textContent || ""), ...alignment });
           pendingAlign.current.delete(block.id);
           dirty = false;
         };
@@ -275,14 +276,14 @@ function directChild(root: HTMLElement, selector: string): HTMLElement | undefin
 }
 
 function readTitle(element: HTMLElement, block: Block): string {
-  let value = element.textContent?.trim() || "";
+  let value = harvestText(element.textContent || "");
   if (block.emoji && value.startsWith(block.emoji)) value = value.slice(block.emoji.length).trimStart();
   return value;
 }
 
 function readBody(element: HTMLElement, block: Block): string {
   if (["steps", "checklist", "targets"].includes(block.type)) {
-    return Array.from(element.querySelectorAll(":scope > li"))
+    const joined = Array.from(element.querySelectorAll(":scope > li"))
       .map(item => {
         const clone = item.cloneNode(true) as HTMLElement;
         if (block.type === "checklist" && clone.firstChild?.nodeType === Node.TEXT_NODE) {
@@ -292,6 +293,7 @@ function readBody(element: HTMLElement, block: Block): string {
       })
       .filter(Boolean)
       .join("<br>");
+    return harvestRich(joined);
   }
-  return element.innerHTML;
+  return harvestRich(element.innerHTML);
 }

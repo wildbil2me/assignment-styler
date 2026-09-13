@@ -43,6 +43,37 @@ export const esc = (s: string): string =>
  */
 export const cssSafe = (value: string): string => value.replace(/[<>"]/g, "");
 
+/**
+ * The inbound boundary: what a `contenteditable` gives back, in the shape
+ * `safeRich` expects. The two are a pair and belong next to each other.
+ *
+ * `innerHTML` is *serialised* HTML — a typed `&` is already `&amp;`, a typed
+ * `<` is already `&lt;`, a doubled space is already `&nbsp;`. But `safeRich`
+ * escapes a value carrying no tag a second time, so a teacher who typed
+ * "Tom & Jerry" published "Tom &amp; Jerry" — and only when the body happened
+ * to carry no markup, which is why bolding a word appeared to make it better.
+ * Decode when there is no markup and exactly one escape happens either way.
+ */
+export function harvestRich(html: string): string {
+  const text = html.replace(/&nbsp;|\u00a0/g, " ");
+  // The same test `safeRich` makes, so the two cannot disagree about markup.
+  if (text.includes("<")) return text;
+  if (typeof document === "undefined") return text;
+  const decoder = document.createElement("div");
+  decoder.innerHTML = text;
+  return decoder.textContent || "";
+}
+
+/**
+ * The same boundary for a plain-text field. Already decoded, so only the spaces
+ * are at stake: the browser substitutes a non-breaking space for a doubled or
+ * trailing one, it is never what a teacher meant, and it stops the line
+ * wrapping where it should.
+ */
+export function harvestText(value: string): string {
+  return value.replace(/\u00a0/g, " ").trim();
+}
+
 export function safeRich(value: string): string {
   if (!value.includes("<")) return esc(value).replace(/\n/g, "<br>");
 
