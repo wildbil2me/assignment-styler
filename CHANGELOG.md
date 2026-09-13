@@ -7,6 +7,12 @@ All notable changes to this project are documented here. Versions follow
 
 ### Changed
 
+- Fixed the hero eyebrow's contrast failure rather than continuing to report it.
+  It is 12px bold, so WCAG wants 4.5:1, and all six accents landed between
+  2.65:1 and 3.49:1. The eyebrow now takes a variant of the accent darkened by
+  lightness alone; the accent itself is unchanged everywhere it draws a border,
+  rule, dot or fill, and a custom palette is derived the same way. Every
+  palette, profile and surface combination now reports clean.
 - Rendered the hero eyebrow as a `div` rather than a `p`, because Blackbaud
   rewrites every `p` it is given into a `div`; exported markup and stored
   markup now match. Goldens relocked — the only byte change is that tag.

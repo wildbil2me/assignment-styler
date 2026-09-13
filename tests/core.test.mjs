@@ -28,6 +28,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 import { esc, safeRich, cssSafe, harvestRich, harvestText } from "../core/sanitize.ts";
+import { readableOn } from "../core/color.ts";
 import { renderHtml } from "../core/render.ts";
 import { importHtml } from "../core/import.ts";
 import { palettes, paletteKeys } from "../core/palettes.ts";
@@ -423,6 +424,11 @@ test("every colour in the output was declared by a token", () => {
       const declared = new Set(
         [
           ...Object.values(palettes[key]),
+          // Derived from the accent, not invented alongside it: the eyebrow is
+          // small text, so it takes the accent darkened just far enough to read.
+          // The promise this test guards is that no colour appears which no
+          // token asked for, and a variant of a token still answers to its token.
+          readableOn(palettes[key].accent, ASSUMED_PAGE_BACKGROUND, 4.5),
           ...(JSON.stringify(profiles[pk]).match(/#[0-9A-Fa-f]{3,8}/g) ?? []),
         ].map((v) => String(v).toLowerCase())
       );
@@ -556,28 +562,38 @@ test("large text uses the WCAG thresholds, read from profile tokens", () => {
   assert.equal(requiredRatio(28, 400), 3);
 });
 
-test("the hero eyebrow fails on every shipped palette, and the panel says so", () => {
-  // The finding that motivated the phase. If a palette is ever darkened this
-  // test is the thing that notices — update it deliberately.
+test("the hero eyebrow reads at 4.5:1 on every shipped palette", () => {
+  // This asserted the opposite until 2026-09-13, when the finding that motivated
+  // Phase 4 was fixed rather than reported. The reason it existed still holds and
+  // is the first half of this test: every shipped accent is a mid-tone picked for
+  // borders and fills, and not one of them clears small text on white.
   for (const key of paletteKeys) {
-    const ratio = contrastRatio(palettes[key].accent, ASSUMED_PAGE_BACKGROUND);
-    assert.ok(ratio < 4.5, `${key} accent now passes at ${ratio.toFixed(2)} — update this test on purpose`);
+    const accent = palettes[key].accent;
+    const raw = contrastRatio(accent, ASSUMED_PAGE_BACKGROUND);
+    assert.ok(raw < 4.5, `${key} accent clears 4.5 unaided at ${raw.toFixed(2)} — the derivation may be unnecessary`);
+
+    const derived = readableOn(accent, ASSUMED_PAGE_BACKGROUND, 4.5);
+    const lifted = contrastRatio(derived, ASSUMED_PAGE_BACKGROUND);
+    assert.notEqual(derived, accent, `${key} did not move`);
+    assert.ok(lifted >= 4.5, `${key} derived to ${derived} at only ${lifted.toFixed(2)}:1`);
+
+    // Only the text moves. The accent itself still draws every border and rule.
+    const html = render(starter, { profile: profiles.soft, palette: palettes[key] });
+    assert.ok(html.includes(`color:${derived}`), `${key}: the eyebrow does not carry the derived colour`);
+    assert.ok(html.includes(accent), `${key}: the accent vanished from the output entirely`);
   }
 
   const report = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin);
   const ground = report.checks.find((c) => c.id === "contrast-ground");
-  assert.equal(ground.status, "fail");
-  assert.match(ground.detail, /UNIT UPDATE/, "names the failing element");
-  assert.match(ground.detail, /2\.65:1, needs 4\.5:1/, "shows the evidence");
-  assert.match(ground.detail, /Assumes a white page background/, "states the assumption");
-  assert.deepEqual(ground.blockIds, [1], "points at the block to fix");
+  assert.equal(ground.status, "pass", ground.detail);
+  assert.match(ground.detail, /Assumes a white page background/, "still states the assumption");
 });
 
 test("the score counts passes over checks attempted, unknowns apart", () => {
   const report = runChecks(starter, profiles.soft, palettes.english, surfaces.bulletin);
   assert.equal(report.checked, report.passed + report.failed);
   assert.equal(report.checks.length, report.checked + report.unknown);
-  assert.ok(report.failed >= 1, "the starter post has the failing eyebrow");
+  assert.equal(report.failed, 0, "the starter post is clean since the eyebrow was fixed");
   assert.equal(report.tenantMeasured, true);
   assert.equal(report.tenant, "St John's");
 });

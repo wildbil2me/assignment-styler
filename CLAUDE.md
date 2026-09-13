@@ -75,10 +75,22 @@ Layout:
     from both and contains no hex or magic pixel value — a test enforces that.
   - `core/degrade.ts` sits between what a profile asks for and what a tenant
     keeps. Small on purpose: Blackbaud turned out permissive.
+  - `core/color.ts` is the contrast maths, and the one colour decision
+    `render.ts` and `checks.ts` have to agree on. It sits under both because
+    `checks.ts` imports `render.ts`. `readableOn()` lives here: the hero eyebrow
+    is 12px bold, so WCAG wants 4.5:1, and every shipped accent is a mid-tone
+    picked for borders and fills that lands between 2.65 and 3.49. Only the text
+    darkens, by lightness alone, so the accent still draws every border and rule
+    and a **custom** palette gets the same treatment without a seventh token.
+    `checks.ts` re-exports it all, so callers still ask there.
   - `core/checks.ts` is what the composer can honestly say about a post. It
     mirrors `renderHtml`'s parameter order so it cannot drift from what was
-    rendered, and it is where **the hero eyebrow's 2.65:1 failure on every
-    shipped palette** is reported rather than hidden. Its tri-state result is
+    rendered — including the eyebrow's colour, which it must judge as *derived*
+    rather than as the raw accent, or it reports a failure no longer on the page.
+    **The eyebrow failure this file was built around is fixed as of 2026-09-13**,
+    and the 54-combination matrix pins every palette x profile x surface as
+    clean. That matters more than it sounds: a check that can never go green
+    teaches people to ignore checks. Its tri-state result is
     load-bearing: if you find yourself adding a fourth state, or defaulting an
     uncomputable pair to `pass`, you are rebuilding the bug it replaced.
   - `core/storage.ts` is the **only** place the workspace shape is known. It is

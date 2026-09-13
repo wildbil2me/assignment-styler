@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import packageJson from "../package.json";
-import { contrastRatio, requiredRatio, ASSUMED_PAGE_BACKGROUND } from "../core/checks.ts";
+import { contrastRatio, readableOn, requiredRatio, ASSUMED_PAGE_BACKGROUND } from "../core/checks.ts";
 import { importHtml } from "../core/import.ts";
 import { nextId, nextIds } from "../core/ids.ts";
 import type { Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "../core/model.ts";
@@ -23,7 +23,10 @@ function contrastRows(palette: Palette, profile: Profile) {
   const pairs = [
     { what: "Card heading on card", fg: palette.primary, bg: palette.surface, px: size(profile.heading.size), weight: size(profile.heading.weight) || bold },
     { what: "Body text on card", fg: profile.colors.text, bg: palette.surface, px: size(profile.fontSizes.body), weight: size(profile.fontWeights.normal) || 400 },
-    { what: "Label on the page", fg: palette.accent, bg: ASSUMED_PAGE_BACKGROUND, px: size(profile.fontSizes.label), weight: bold },
+    // The colour the eyebrow is rendered in, which for a mid-tone accent is a
+    // darkened variant of it. This row reported a failure a teacher had no way
+    // to act on until the renderer started deriving one.
+    { what: "Label on the page", fg: readableOn(palette.accent, ASSUMED_PAGE_BACKGROUND, requiredRatio(size(profile.fontSizes.label), bold)), bg: ASSUMED_PAGE_BACKGROUND, px: size(profile.fontSizes.label), weight: bold },
   ];
   return pairs.map(pair => {
     const ratio = contrastRatio(pair.fg, pair.bg), required = requiredRatio(pair.px, pair.weight);

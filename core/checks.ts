@@ -22,6 +22,13 @@ import { resolveTone } from "./profiles/index.ts";
 import { guard } from "./degrade.ts";
 import { renderHtml } from "./render.ts";
 import { stJohns, supportsElement, supportsHeadingInSummary, supportsStyle, type CompatSpec } from "./compat.ts";
+import {
+  ASSUMED_PAGE_BACKGROUND, contrastRatio, isLargeText, parseHex, readableOn, requiredRatio,
+} from "./color.ts";
+
+// Re-exported because this was their home until the renderer needed one of them
+// too, and every caller — the style editor, the tests — still asks here.
+export { ASSUMED_PAGE_BACKGROUND, contrastRatio, isLargeText, parseHex, readableOn, requiredRatio };
 
 /* ------------------------------------------------------------------ types */
 
@@ -51,61 +58,6 @@ export type CheckReport = {
   /** False when running against `conservative` — nobody has probed this tenant. */
   tenantMeasured: boolean;
 };
-
-/**
- * WCAG needs a background to compare against, and the renderer never sets one:
- * cards are tinted, but the hero and intro sit directly on Blackbaud's own page
- * background, which we do not control and have not measured.
- *
- * Phase 4 decision D1: assume white, and say so in every row that depends on it.
- * White is almost certainly right and it keeps the largest text on the page
- * checkable; the alternative marks half the pairs permanently unknown. The
- * assumption is stated in the detail string rather than buried here.
- */
-export const ASSUMED_PAGE_BACKGROUND = "#FFFFFF";
-
-/* --------------------------------------------------------------- contrast */
-
-/** `#abc` and `#aabbcc`. Anything else — `rgba()`, a named colour, junk from an
- *  imported style file — returns null, which becomes an `unknown`, not a pass. */
-export function parseHex(value: string): [number, number, number] | null {
-  const hex = value.trim().replace(/^#/, "");
-  const full = hex.length === 3 ? hex.replace(/./g, (c) => c + c) : hex;
-  if (!/^[0-9a-f]{6}$/i.test(full)) return null;
-  const n = parseInt(full, 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-
-/** WCAG 2.x relative luminance. Internal — `contrastRatio` is the entry point. */
-function relativeLuminance(rgb: [number, number, number]): number {
-  const [r, g, b] = rgb.map((v) => {
-    const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-/** Null when either colour is not a hex the formula can take. */
-export function contrastRatio(foreground: string, background: string): number | null {
-  const [f, b] = [parseHex(foreground), parseHex(background)];
-  if (!f || !b) return null;
-  const [hi, lo] = [relativeLuminance(f), relativeLuminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
-
-/**
- * WCAG large text: 24px, or 18.66px at bold. Both thresholds come from the
- * profile's own tokens rather than constants in this file, so a new profile is
- * judged by its own type scale — and note that soft's 16px/700 card heading is
- * *not* large, and needs the full 4.5:1.
- */
-export function isLargeText(sizePx: number, weight: number): boolean {
-  return sizePx >= 24 || (weight >= 700 && sizePx >= 18.66);
-}
-
-export function requiredRatio(sizePx: number, weight: number): number {
-  return isLargeText(sizePx, weight) ? 3 : 4.5;
-}
 
 function px(value: string): number {
   return parseFloat(value) || 0;
@@ -224,7 +176,12 @@ export function runChecks(
       if (b.label?.trim())
         groundPairs.push({
           what: `the “${b.label.trim()}” label`,
-          foreground: palette.accent,
+          // The colour `render.ts` actually emits, not the accent as drawn: the
+          // eyebrow takes a readable variant because 12px bold is small text.
+          // Reading `palette.accent` here would report a failure that is no
+          // longer on the page — the mirror between this file and the renderer
+          // has to hold in both directions.
+          foreground: readableOn(palette.accent, ground, requiredRatio(px(fontSizes.label), bold)),
           background: ground,
           sizePx: px(fontSizes.label),
           weight: bold,

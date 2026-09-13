@@ -46,6 +46,7 @@ import { esc, safeRich } from "./sanitize.ts";
 import { fontStack, resolveTone } from "./profiles/index.ts";
 import { style } from "./degrade.ts";
 import { stJohns, supportsElement, supportsHeadingInSummary, supportsStyle, type CompatSpec } from "./compat.ts";
+import { ASSUMED_PAGE_BACKGROUND, readableOn, requiredRatio } from "./color.ts";
 
 export function renderHtml(
   blocks: Block[],
@@ -210,10 +211,18 @@ export function renderHtml(
       alignment,
     ]);
 
+    // Small text, so it needs the accent dark enough to read rather than the
+    // accent as drawn. `readableOn` returns it untouched when it already clears.
+    const eyebrowColor = readableOn(
+      palette.accent,
+      ASSUMED_PAGE_BACKGROUND,
+      requiredRatio(parseFloat(fontSizes.label) || 0, parseFloat(profile.fontWeights.bold) || 700)
+    );
+
     const eyebrow = b.label?.trim()
       ? `<div style="${s([
           ["margin", `0 0 ${spacing.xxs}`],
-          ["color", palette.accent],
+          ["color", eyebrowColor],
           ["font-size", fontSizes.label],
           ["font-weight", profile.fontWeights.bold],
           ["letter-spacing", hero.labelLetterSpacing],
