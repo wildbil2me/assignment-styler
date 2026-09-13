@@ -23,6 +23,7 @@
       .probe-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
       h1{font-size:15px;font-weight:700}
       .probe-tag{padding:2px 8px;border-radius:20px;background:#eef2ff;color:#4a5fbb;font-size:11px;font-weight:700}
+      .probe-tag-unset{background:#fdeaea;color:#c0392b}
       .probe-lead{color:#687482;font-size:12px}
 
       /* Readouts. Tabular figures, per the numeric-column rule. */
@@ -142,6 +143,14 @@
         var askedWidth = param("w");
         var label = param("label").slice(0, 40);
 
+        /* The 2026-08-27 run produced seven good measurements that cannot be used:
+           every label was still the literal E<n>-SURFACE from the doc's copy-paste
+           block, so no row can be attributed to bulletin, topic or assignment and
+           the per-surface table is still empty. A label nobody edited is a defect
+           in the reading, not a cosmetic detail, so the probe says so — in the tag,
+           in the verdict, and in the row you paste. */
+        var labelUnset = !label || /SURFACE/i.test(label);
+
         var el = function (id) { return document.getElementById(id); };
         var text = function (id, value) { el(id).textContent = value; };
 
@@ -177,6 +186,22 @@
           }
         }
 
+        /* The height verdict, in one place so the banner and the record cannot disagree.
+           A deficit of a few px is not an override: an iframe carries a 2px inset border
+           per side by default, and under the `box-sizing: border-box` that most host
+           pages set globally, that border eats into the height you asked for. Measured
+           2026-08-27: 450 asked returned 446, and 900 returned 896, while the same 450
+           with `border:0` returned exactly 450. Calling that "overridden" sends the
+           reader hunting for a sanitizer that was never involved. */
+        function heightVerdict(viewportHeight, framed) {
+          if (!framed) return { key: "unframed" };
+          if (!askedHeight) return { key: "undeclared" };
+          var deficit = askedHeight - viewportHeight;
+          if (Math.abs(deficit) <= 1) return { key: "honoured" };
+          if (deficit >= 2 && deficit <= 6) return { key: "border", deficit: deficit };
+          return { key: "overridden" };
+        }
+
         function row(cells, className) {
           var tr = document.createElement("tr");
           if (className) tr.className = className;
@@ -208,7 +233,8 @@
           var framed = window.parent !== window;
           var measuredRatio = viewportHeight ? viewportWidth / viewportHeight : 0;
 
-          text("tag", label || "no label");
+          text("tag", labelUnset ? (label || "no label") + " · SURFACE NOT SET" : label);
+          el("tag").className = "probe-tag" + (labelUnset ? " probe-tag-unset" : "");
           text("stat-w", viewportWidth + "px");
           text("stat-h", viewportHeight + "px");
           text("stat-ratio", ratioText(viewportWidth, viewportHeight));
@@ -217,19 +243,28 @@
           /* Verdict. The interesting question is not the height we asked for, it is
              whether the embed box kept it. */
           var verdict = el("verdict");
+          var shape = " Width at 100% resolves to " + viewportWidth + "px, so the box is " + ratioText(viewportWidth, viewportHeight) + ".";
+          var outcome = heightVerdict(viewportHeight, framed);
           var message, tone;
-          if (!framed) {
+          if (outcome.key === "unframed") {
             message = "Not inside an iframe. These are this window's own numbers - load this page through the embed box to measure it.";
             tone = "verdict-warn";
-          } else if (askedHeight && Math.abs(viewportHeight - askedHeight) > 1) {
+          } else if (outcome.key === "overridden") {
             message = "Height OVERRIDDEN: asked for " + askedHeight + "px, the box gave " + viewportHeight + "px.";
             tone = "verdict-bad";
-          } else if (askedHeight) {
-            message = "Height honoured at " + askedHeight + "px. Width at 100% resolves to " + viewportWidth + "px, so the box is " + ratioText(viewportWidth, viewportHeight) + ".";
+          } else if (outcome.key === "border") {
+            message = "Height honoured, less " + outcome.deficit + "px: that is the iframe's own default border (2px inset per side) taken out of the " + askedHeight + "px you asked for. Add border:0 to get it back - nothing rewrote the height." + shape;
+            tone = "verdict-warn";
+          } else if (outcome.key === "honoured") {
+            message = "Height honoured at " + askedHeight + "px." + shape;
             tone = "verdict-good";
           } else {
-            message = "Framed, but no requested height was declared. Add ?h=<px> to the src to test whether the box keeps it.";
+            message = "Framed, but no requested height was declared. Add ?h=<px> to the src to test whether the box keeps it." + shape;
             tone = "verdict-warn";
+          }
+          if (labelUnset) {
+            message = "This reading cannot be attributed to a surface: put bulletin, topic or assignment in ?label= before recording it. " + message;
+            tone = "verdict-bad";
           }
           verdict.textContent = message;
           verdict.className = "verdict " + tone;
@@ -286,14 +321,20 @@
 
           /* The record: a markdown table row, ready to paste into the results table. */
           el("report").value = "| " + [
-            label || "(unlabelled)",
+            labelUnset ? (label || "(unlabelled)") + " -- UNATTRIBUTED, surface not set" : label,
             askedWidth || "-",
             askedHeight ? askedHeight + "px" : "-",
             viewportWidth + "px",
             viewportHeight + "px",
             ratioText(viewportWidth, viewportHeight),
             viewportWidth ? (viewportHeight / viewportWidth * 100).toFixed(2) + "%" : "-",
-            framed ? (askedHeight ? (Math.abs(viewportHeight - askedHeight) > 1 ? "overridden" : "honoured") : "not declared") : "not framed",
+            {
+              unframed: "not framed",
+              undeclared: "not declared",
+              honoured: "honoured",
+              border: "honoured less " + outcome.deficit + "px of iframe border",
+              overridden: "overridden",
+            }[outcome.key],
           ].join(" | ") + " |";
         }
 

@@ -1,8 +1,19 @@
 # Embed ratio test — what does 100% width actually mean?
 
-Written 2026-08-27. **Status: instrument built, measurements not taken yet.**
-Fill in the results table from a real tenant; until then every width in this
-document is an assumption, including the ones already compiled into the app.
+Written 2026-08-27. **Status: measured once, on one surface, on one browser.**
+The answer is in [The answer](#the-answer): declare `aspect-ratio` and the ratio
+question stops being a measurement problem. What is still missing is *which*
+surface produced these numbers — every label was left as the literal `SURFACE` —
+so the per-surface table below is still empty and `core/surfaces.ts` cannot be
+corrected yet.
+
+**The probe now refuses to let that happen quietly.** A `?label=` still holding
+the literal `SURFACE`, or missing entirely, turns the tag red, replaces the
+verdict with "this reading cannot be attributed to a surface", and stamps the
+one-line record `-- UNATTRIBUTED`. Seven good measurements were lost to a
+copy-paste that nobody edited; a row that reaches this table now says so itself.
+**Replace `SURFACE` with `bulletin`, `topic` or `assignment` in every URL below
+before you paste it.**
 
 ## The question
 
@@ -88,7 +99,8 @@ Two exceptions and one failure mode:
 
 **E0 — the URL alone.** Before pasting any markup, try pasting just the URL. If
 the embed box accepts it and builds its own iframe, *its* wrapper decides the
-ratio and E1–E6 are moot for that surface. Record what it produces.
+ratio and E1–E6 are moot for that surface. Record what it produces. **Measured
+2026-08-27: rejected. The field requires iframe markup.**
 
 ```
 https://wildbil2me.github.io/assignment-styler/embed-probe.html?label=E0-SURFACE&w=unknown
@@ -145,19 +157,74 @@ ratio changes with the viewport, so one reading cannot describe it.
 
 ## Results
 
-Paste the copied rows here. One row per case per surface per viewport.
+Measured 2026-08-27, desktop browser, one surface, labels left as `SURFACE`.
+The last column is as the probe reported it at the time; the two `overridden`
+verdicts were the probe misreading a 4px border, and it no longer says that —
+see finding 4.
 
-| Label | Asked width | Asked height | Measured width | Measured height | Ratio | padding-bottom | Height verdict |
+| Label | Asked width | Asked height | Measured width | Measured height | Ratio | padding-bottom | Height verdict as reported |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |  |  |
+| E0 | — | — | — | — | — | — | **the field rejects a bare URL; it needs iframe markup** |
+| E1 | 100% | 450px | 824px | 446px | 1.848:1 | 54.13% | overridden → actually the 4px border |
+| E2 | 100% | 450px | 827px | 450px | 1.838:1 | 54.41% | honoured |
+| E3 | 100% | — | 827px | 465px | 1.778:1 | 56.23% | not declared — **16:9 held** |
+| E4 | 100% | — | 827px | 465px | 1.778:1 | 56.23% | not declared — **16:9 held** |
+| E5 | 100% | 900px | 824px | 896px | 0.920:1 | 108.74% | overridden → actually the 4px border |
+| E6 | 100% | — | 824px | 150px | 5.493:1 | 18.20% | not declared |
 
-Then record, per surface:
+Still to fill, and blocked on knowing which surface the run above was on:
 
 | Surface | App assumes | Measured at desktop | Measured at phone | Fluid or fixed? |
 | --- | --- | --- | --- | --- |
 | Bulletin Board | 720px | | | |
 | Topic | 760px | | | |
 | Assignment | 680px | | | |
+
+## Findings
+
+1. **100% resolves to about 827px** — and to 824px whenever the iframe keeps its
+   default border. That is **wider than all three widths in `core/surfaces.ts`**
+   (720 / 760 / 680), so the composer's preview paper is narrower than the real
+   column on at least one surface. Which one is the open question.
+2. **`aspect-ratio` survives (E3).** 827 × 465 is 16:9 to the pixel
+   (827 × 9 ÷ 16 = 465.2). The sanitizer left the declaration alone.
+3. **The `padding-bottom` wrapper survives too (E4)** — byte-identical result,
+   which also means `position:relative`, `position:absolute` and the nested
+   `div` all came through. Two independent ways to fix a ratio, not one.
+4. **E1 and E5 were never overridden.** Both came back exactly 4px short — 450 →
+   446, 900 → 896 — and E2 asked for the same 450px *with `border:0`* and got
+   450px exactly. That 4px is the iframe's own default `2px inset` border, one
+   per side, charged against the declared height because the host page sets
+   `box-sizing: border-box` globally. Blackbaud rewrote nothing. **Always set
+   `border:0`**, and not for looks: it is 4px of content.
+5. **Nothing sizes an embed for you.** E6 declared no height and got 150px,
+   which is the HTML default for an iframe. Blackbaud's own CSS is not sizing
+   embeds, so it will not fight a height you declare — but it will not supply one.
+6. **Tall frames are not clamped.** E5 asked for 900px and got 896px, the same
+   4px border and nothing else. There is no ceiling to design around.
+7. **E0 fails: the field will not take a bare URL**, only iframe markup. So the
+   embed box never builds a wrapper of its own, which is why E1–E6 are decisive
+   rather than advisory — our markup is the only markup.
+
+## The answer
+
+**Declare the ratio; do not derive it from the width.** `aspect-ratio` survives,
+so the shape holds at every viewport and the measured 827px stops mattering for
+sizing:
+
+```html
+<iframe src="YOUR-URL" style="width:100%;aspect-ratio:16/9;border:0" title="Class content"></iframe>
+```
+
+Keep E4's wrapper as the fallback for a tenant browser too old for
+`aspect-ratio`; it measured identically here.
+
+A fixed px height (E2) also works and is honoured exactly, but it is the worse
+choice for the same reason it always is: the width is fluid and the height is
+not, so the frame is 16:9 at one window width and wrong either side of it. Only
+reach for it if the content genuinely has a fixed pixel height.
+
+For reference, at the measured 827px: 16:9 is 465px, 3:2 is 551px, 4:3 is 620px.
 
 ## How to read it
 
