@@ -10,8 +10,17 @@ instructed; it had drifted and said nothing was implemented.)
 
 - **Phase 0 — done.** Blackbaud measured across three surfaces:
   [docs/blackbaud-compatibility.md](docs/blackbaud-compatibility.md), encoded as
-  data in `core/compat.ts`. Four measured rows need manual observations; R42 and
-  R43 were added later and need a new tenant probe run.
+  data in `core/compat.ts`. **50 rows, measured 2026-08-21.** That document's own
+  "Outstanding" section is the authority on what is left, and it is two narrow
+  things: **R48**'s alignment variants need the corrected multi-marker analyzer
+  run over the *already captured* HTML — no tenant visit, and note the capture
+  is not in this repo — and **R41** (animated GIF) is unanswered on purpose,
+  since exported motion is off and it has no product impact.
+
+  This bullet used to say four rows needed manual observation and that R42 and
+  R43 needed a fresh tenant run. Both claims were stale, corrected 2026-09-13:
+  R42 and R43 survived on all three surfaces on 2026-08-21, and R41 is the only
+  row marked *manual*.
 - **Phase 1 — done.** Domain logic extracted from `app/page.tsx` into `core/`,
   proven byte-identical at the time.
 - **Phase 2 — done.** Tokenized: the fused subject presets became **profiles
@@ -98,7 +107,7 @@ Layout:
   live under `public/` because Vite copies that directory to the output root,
   which is where the manifest's paths have to resolve.
 - `tests/` — the core contract suite plus golden HTML and corpus snapshots.
-- `tools/probe/` — the Blackbaud compatibility probe generator (43 rows).
+- `tools/probe/` — the Blackbaud compatibility probe generator (50 rows).
 - `tools/make-icons.mjs` — the extension's PNG icons, drawn from geometry with
   `node:zlib` and no image dependency. `npm run icons` regenerates them; the
   outputs are committed because the manifest needs real files, and MV3 will not

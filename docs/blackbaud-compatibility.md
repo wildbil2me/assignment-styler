@@ -226,6 +226,10 @@ Two narrow items remain:
   lettered marker, confirming justify but not independently reporting left,
   center, and right. The corrected analyzer now evaluates all four markers; the
   same stored HTML can be pasted into it again without rerunning the probe.
+  **That capture is not in this repository**, so this is only closable by
+  whoever still holds the 2026-08-21 output — or by one fresh paste through
+  `docs/compat-probe.html`. Worth storing the next capture alongside this
+  document so a reanalysis never depends on one machine again.
 - **R41 animated GIF** — intentionally left unanswered because exported motion
   is disabled. It has no product impact.
 
