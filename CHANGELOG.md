@@ -7,6 +7,9 @@ All notable changes to this project are documented here. Versions follow
 
 ### Changed
 
+- Rendered the hero eyebrow as a `div` rather than a `p`, because Blackbaud
+  rewrites every `p` it is given into a `div`; exported markup and stored
+  markup now match. Goldens relocked — the only byte change is that tag.
 - Renamed the product and package from Betterbaud to BBStyler, and synchronized
   project links and the Pages base with `wildbil2me/assignment-styler`.
 - Adopted the educator suite admin UI style guide across the web composer and

@@ -14,7 +14,10 @@ designed to be overridden, not assumed.
 **Blackbaud is far more permissive than the prototype assumed.** The current
 results match across bulletin, topic, and assignment. Style blocks and CSS
 keyframes are stripped as expected; strikethrough is normalized without visual
-loss; R48 still needs reanalysis with the corrected multi-marker analyzer.
+loss; R48's four alignment values all survived on topic when the corrected
+multi-marker analyzer was finally run on 2026-09-13 — bulletin and assignment
+still need the same reanalysis. That run also turned up a rewrite no row was
+watching for: **Blackbaud converts every `<p>` it is given into a `<div>`.**
 
 Three findings change the plan:
 
@@ -80,7 +83,7 @@ Three findings change the plan:
 | R45 | `<i>` italic text | survived | survived | survived |
 | R46 | `<u>` underlined text | survived | survived | survived |
 | R47 | `<strike>` struck text | rewritten to line-through span | rewritten to line-through span | rewritten to line-through span |
-| R48 | `text-align` values | justify survived; reanalyze others | justify survived; reanalyze others | justify survived; reanalyze others |
+| R48 | `text-align` values | justify survived; reanalyze others | **survived** (all four, 2026-09-13) | justify survived; reanalyze others |
 | R49 | combined rich inline formatting | survived | survived | survived |
 | R50 | list nested inside a rendered card | survived | survived | survived |
 
@@ -94,9 +97,37 @@ tenants retain the prior plain-summary fallback.
 
 R44–R46, R49, and R50 survive unchanged. R47 is visually preserved but
 Blackbaud rewrites `<strike>` to `<span style="text-decoration: line-through;">`;
-the renderer and importer normalize to that measured form. The original
-analyzer checked only R48d, so justify is confirmed while the other alignment
-values await reanalysis with the corrected analyzer.
+the renderer and importer normalize to that measured form.
+
+R48 was reanalyzed on **topic** on 2026-09-13 and all four values survived
+untouched — `left`, `center`, `right` and `justify`, each on its own element:
+
+    R48a  SURVIVED  text-align: left    · on the element
+    R48b  SURVIVED  text-align: center  · on the element
+    R48c  SURVIVED  text-align: right   · on the element
+    R48d  SURVIVED  text-align: justify · on the element
+
+The original analyzer reported only R48d because `markerEl` matched the row
+prefix `[R48` and kept the last match in document order; the other three were in
+the returned markup the whole time, unread. Bulletin and assignment still carry
+the old single-marker reading and want one more paste each.
+
+### Blackbaud rewrites `<p>` to `<div>`
+
+Found in the same capture, and by nobody's test: all four of R48's paragraphs
+came back as `div`s with their style attributes intact. R48 checks
+`style:text-align`, so it never looked at the tag.
+
+```
+sent:     <p style="text-align:left;margin:4px 0;">[R48a] aligned left</p>
+returned: <div style="text-align: left; margin: 4px 0;">[R48a] aligned left</div>
+```
+
+The renderer emitted exactly one `<p>` — the hero eyebrow — and it is a `div`
+as of 2026-09-13, on the same principle as the single-quoted font stacks: emit
+what Blackbaud stores, so the exported markup and the saved markup are the same
+markup. Nothing else was affected; every other container was already a `div`
+because a body can contain a list.
 
 ### No current per-surface difference
 
@@ -222,14 +253,13 @@ importer's best structural signal is intact.
 
 Two narrow items remain:
 
-- **R48 alignment variants** — the original analyzer reported only the last
-  lettered marker, confirming justify but not independently reporting left,
-  center, and right. The corrected analyzer now evaluates all four markers; the
-  same stored HTML can be pasted into it again without rerunning the probe.
-  **That capture is not in this repository**, so this is only closable by
-  whoever still holds the 2026-08-21 output — or by one fresh paste through
-  `docs/compat-probe.html`. Worth storing the next capture alongside this
-  document so a reanalysis never depends on one machine again.
+- **R48 on bulletin and assignment** — topic is done (all four values survived,
+  2026-09-13). The other two still carry the old single-marker reading and need
+  one paste each through `docs/compat-analyzer.html`. Note the analyzer itself
+  was broken from 2026-08-21 until 2026-09-13 by a syntax error that stopped its
+  script parsing at all, which is why this sat open; it works now. Worth storing
+  each capture alongside this document so a reanalysis never depends on one
+  machine again.
 - **R41 animated GIF** — intentionally left unanswered because exported motion
   is disabled. It has no product impact.
 

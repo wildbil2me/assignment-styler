@@ -236,9 +236,17 @@ function shortcutFor(event: KeyboardEvent): string | undefined {
 function editableFields(root: HTMLElement, block: Block): EditableField[] {
   if (block.type === "intro") return [{ element: root, field: "body" }];
   if (block.type === "hero") {
-    const label = directChild(root, "p");
-    const title = directChild(root, "h1");
-    const body = directChildren(root, "div").at(-1);
+    // Eyebrow and body are both `div` since the eyebrow stopped being a `<p>`,
+    // so they are told apart by which side of the heading they fall on. First
+    // and last would not do it: a hero with no label has only the body div, and
+    // first-and-last would then hand the body over to be edited as an eyebrow.
+    const children = Array.from(root.children) as HTMLElement[];
+    const titleIndex = children.findIndex(element => element.matches("h1"));
+    const title = titleIndex < 0 ? undefined : children[titleIndex];
+    const label = titleIndex < 0 ? undefined : children.slice(0, titleIndex).find(element => element.matches("div"));
+    const body = titleIndex < 0
+      ? children.filter(element => element.matches("div")).at(-1)
+      : children.slice(titleIndex + 1).find(element => element.matches("div"));
     return compact([label && { element: label, field: "label" }, title && { element: title, field: "title" }, body && { element: body, field: "body" }]);
   }
   if (block.type === "details") {

@@ -24,11 +24,15 @@
  *    the shorthands (R01, R07, R27); it never isolated `margin-right` or
  *    `padding-left`. Using the shorthands means the renderer claims nothing the
  *    probe did not actually establish.
- *  - **Bodies are wrapped in `<div>`, not `<p>`.** The prototype used `<p>`, and
+ *  - **Nothing is wrapped in `<p>`.** Bodies never were: the prototype used `<p>`, and
  *    a list block therefore emitted `<p><ul>…</ul></p>` — invalid nesting that
  *    browsers silently repair but a WYSIWYG round trip is exactly the thing to
  *    mangle. Any body can contain a list, because the rich editor allows one
  *    anywhere, so every body container is a `div`. Headings stay semantic.
+ *    The hero eyebrow was the last `<p>` here and became a `div` on 2026-09-13,
+ *    for the same reason the font stacks below are single-quoted: R48's topic
+ *    capture showed Blackbaud rewriting every `<p>` it is given into a `div`,
+ *    so emitting one meant the stored markup never matched the exported markup.
  *  - **`data-layout` is the importer's structural signal** and survives a round
  *    trip (R15).
  *  - **Font stacks are single-quoted** (`fontStack`), because Blackbaud rewrites
@@ -207,14 +211,14 @@ export function renderHtml(
     ]);
 
     const eyebrow = b.label?.trim()
-      ? `<p style="${s([
+      ? `<div style="${s([
           ["margin", `0 0 ${spacing.xxs}`],
           ["color", palette.accent],
           ["font-size", fontSizes.label],
           ["font-weight", profile.fontWeights.bold],
           ["letter-spacing", hero.labelLetterSpacing],
           ["text-transform", hero.labelTransform === "none" ? "" : hero.labelTransform],
-        ])}">${esc(b.label)}</p>`
+        ])}">${esc(b.label)}</div>`
       : "";
 
     return (

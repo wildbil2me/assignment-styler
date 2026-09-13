@@ -11,11 +11,14 @@ instructed; it had drifted and said nothing was implemented.)
 - **Phase 0 — done.** Blackbaud measured across three surfaces:
   [docs/blackbaud-compatibility.md](docs/blackbaud-compatibility.md), encoded as
   data in `core/compat.ts`. **50 rows, measured 2026-08-21.** That document's own
-  "Outstanding" section is the authority on what is left, and it is two narrow
-  things: **R48**'s alignment variants need the corrected multi-marker analyzer
-  run over the *already captured* HTML — no tenant visit, and note the capture
-  is not in this repo — and **R41** (animated GIF) is unanswered on purpose,
-  since exported motion is off and it has no product impact.
+  "Outstanding" section is the authority on what is left. **R48 closed on topic
+  on 2026-09-13** — all four `text-align` values survived — and bulletin and
+  assignment want one paste each. **R41** (animated GIF) is unanswered on
+  purpose, since exported motion is off and it has no product impact.
+
+  That reanalysis also found **Blackbaud rewriting every `<p>` into a `<div>`**,
+  which no row was checking for. The renderer's one `<p>`, the hero eyebrow, is
+  a `div` now and the goldens were relocked for it.
 
   This bullet used to say four rows needed manual observation and that R42 and
   R43 needed a fresh tenant run. Both claims were stale, corrected 2026-09-13:
