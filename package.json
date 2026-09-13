@@ -18,6 +18,7 @@
     "test:core": "node --test tests/core.test.mjs tests/golden.test.mjs",
     "test:design": "node --test tests/design.test.mjs",
     "probe": "node tools/probe/build.mjs",
+    "icons": "node tools/make-icons.mjs",
     "probe:test": "node --test tools/probe/analyze.test.mjs"
   },
   "dependencies": {
