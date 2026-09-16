@@ -41,6 +41,43 @@ leaves the browser unless the teacher asks it to.** A drafter is the first
 feature that would send anything anywhere, so it needs to be opt-in, visibly, per
 request.
 
+### The on-device option, noted 2026-09-13
+
+The three-part objection above — endpoint, key, budget — has one exit that did
+not exist when this was deferred: Chrome's built-in **Prompt API**, which runs
+Gemini Nano on the user's own machine. `LanguageModel.create()` returns a
+session, `session.prompt()` answers, and `LanguageModel.availability()` says
+whether the model is there yet. No endpoint, no key, no budget, and nothing to
+configure per school.
+
+It is worth more than convenience here. The constraint above says no data leaves
+the browser unless the teacher asks it to; on-device inference means **no data
+leaves the browser at all**, which is a stronger promise than any hosted drafter
+could make and matches what the README already claims about the rest of the
+tool. It satisfies `Drafter` as written, and its `responseConstraint` option
+takes a JSON Schema — so the schema preserved below is usable as-is, once the
+`type` enum is generated from `blockMeta` as noted.
+
+Two things stop this being a plan rather than a note:
+
+- **It is gated on hardware and a download.** Chrome 138+, roughly 22 GB free,
+  and 16 GB RAM or a >4 GB GPU, with a multi-gigabyte first-run fetch. Our
+  manifest declares `minimum_chrome_version: 114`, so most of the audience this
+  was built for would get `unavailable`. Whatever surfaces it has to handle that
+  state honestly — and *not* as a disabled button, per the rule above. A drafter
+  that is absent on the machines it cannot serve is better than one that is
+  visibly greyed out on them.
+- **Availability is per-browser, not per-shell.** It is generally available to
+  ordinary web pages as well as extensions in Chrome 138+, so this is not the
+  extension-only feature it first looks like and would not drift the two shells
+  apart by design. It would still be the first capability in the tool that some
+  teachers have and others do not, which is a product decision, not a technical
+  one.
+
+Reference: <https://developer.chrome.com/docs/extensions/ai/prompt-api>. The
+neighbouring *Modern Web Guidance* page on that site is coding-agent tooling, not
+a product capability, and was looked at and passed over on the same date.
+
 ## Preserved prompt
 
 Sent as `instructions` against the OpenAI Responses API:
