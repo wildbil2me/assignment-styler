@@ -144,12 +144,15 @@ export function useComposer({
   // the *pre-deletion* array, so deleting the first block re-selected the block it
   // had just removed and the inspector went blank. Select the neighbour instead —
   // the one that slid into its place, or the new last block.
-  const deleteBlock = () => {
-    const i = blocks.findIndex(b => b.id === selected);
+  const deleteBlock = (id: number = selected) => {
+    const i = blocks.findIndex(b => b.id === id);
     if (i < 0) return;
-    const remaining = blocks.filter(b => b.id !== selected);
+    const remaining = blocks.filter(b => b.id !== id);
     setBlocks(remaining);
-    setSelected(remaining[Math.min(i, remaining.length - 1)]?.id ?? 0);
+    // The block list deletes any row, not only the selected one, so removing a
+    // block elsewhere in the document has to leave the selection where the
+    // teacher put it rather than swap the inspector out from under them.
+    if (id === selected) setSelected(remaining[Math.min(i, remaining.length - 1)]?.id ?? 0);
   };
   const duplicateBlock = (id:number) => {const i=blocks.findIndex(b=>b.id===id);if(i<0)return;const copy={...blocks[i],id:nextId(),title:`${blocks[i].title} copy`};setBlocks(v=>[...v.slice(0,i+1),copy,...v.slice(i+1)]);setSelected(copy.id)};
   const dropBlock = (target:number) => {const source=dragged.current;if(source===null||source===target)return;setBlocks(v=>{const n=[...v],from=n.findIndex(b=>b.id===source),to=n.findIndex(b=>b.id===target);const [item]=n.splice(from,1);n.splice(to,0,item);return n});dragged.current=null};

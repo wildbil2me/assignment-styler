@@ -20,7 +20,7 @@ export function BlockFields({ c, formatting = true }: { c: Composer; formatting?
   return <>
     <div className="inspector-title">
       <div><span className="eyebrow">BLOCK SETTINGS</span><h2>{active ? blockMeta[active.type].label : "Block"}</h2></div>
-      {active && <button className="danger-icon" onClick={deleteBlock} aria-label="Delete block" title="Delete block"><Icon name="delete" /></button>}
+      {active && <button className="danger-icon" onClick={() => deleteBlock()} aria-label="Delete block" title="Delete block"><Icon name="delete" /></button>}
     </div>
     {active && <div className="fields">
       <p className="inline-edit-help">Edit the heading and content directly in the preview.</p>

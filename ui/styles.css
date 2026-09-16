@@ -124,7 +124,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .block-row:hover .block-actions,.block-row.selected .block-actions{display:flex}
 .block-actions button{padding:5px;border-radius:6px;color:#687482}
 .block-actions button:hover{background:#fff;color:#4a5fbb}
-.danger-icon:hover{background:#fdeaea;color:#c0392b}
+.danger-icon:hover,.block-actions .danger-icon:hover{background:#fdeaea;color:#c0392b}
 .hidden-block{opacity:.55}
 
 /* Preview stage */
@@ -337,7 +337,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
   .blocks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 20px 20px}
   .block-row{grid-template-columns:minmax(0,1fr)}
   .block-actions{position:absolute;right:6px;top:6px;padding:2px;border-radius:7px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.07)}
-  .block-row:hover .block-select,.block-row.selected .block-select{padding-right:88px}
+  .block-row:hover .block-select,.block-row.selected .block-select{padding-right:114px}
   .inspector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   .inspector>.export,.inspector-title{grid-column:1/-1}
   .inspector .fields{border-right:1px solid #eef0f4}

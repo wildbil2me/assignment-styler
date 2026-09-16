@@ -4,7 +4,7 @@ import type { Composer } from "./state.ts";
 
 /** Shared keyboard- and pointer-accessible block list. */
 export function BlockList({ c }: { c: Composer }) {
-  const { blocks, selected, setSelected, dragged, dropBlock, duplicateBlock, move, addBlock } = c;
+  const { blocks, selected, setSelected, dragged, dropBlock, duplicateBlock, deleteBlock, move, addBlock } = c;
   return <>
     <div className="block-head"><span>CONTENT BLOCKS</span><button onClick={addBlock}><Icon name="add" /> Add block</button></div>
     <div className="blocks">{blocks.map((block, index) => {
@@ -18,6 +18,15 @@ export function BlockList({ c }: { c: Composer }) {
           <button onClick={() => duplicateBlock(block.id)} aria-label={`Duplicate ${label}`} title={`Duplicate ${label}`}><Icon name="duplicate" /></button>
           <button onClick={() => move(block.id, -1)} disabled={!index} aria-label={`Move ${label} up`} title={`Move ${label} up`}><Icon name="up" /></button>
           <button onClick={() => move(block.id, 1)} disabled={index === blocks.length - 1} aria-label={`Move ${label} down`} title={`Move ${label} down`}><Icon name="down" /></button>
+          {/*
+            Deleting from the row, not only from the selected block's settings.
+            A template arrives as five or six blocks and a teacher keeps three of
+            them, so removing the rest is the first thing they do — and in the
+            side panel the only delete button lived behind the collapsed "Block
+            settings" disclosure, one block at a time. Undo is a click away in
+            both shells, which is why this asks nothing before it removes.
+          */}
+          <button className="danger-icon" onClick={() => deleteBlock(block.id)} aria-label={`Delete ${label}`} title={`Delete ${label}`}><Icon name="delete" /></button>
         </span>
       </div>;
     })}</div>
