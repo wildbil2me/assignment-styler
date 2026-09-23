@@ -1,11 +1,11 @@
 import { useRef } from "react";
 
-import type { ProfileKey, StyleKey, SurfaceKey } from "../core/model.ts";
-import { palettes } from "../core/palettes.ts";
+import type { ProfileKey, SurfaceKey } from "../core/model.ts";
 import { profiles, profileKeys } from "../core/profiles/index.ts";
 import { surfaceArticle, surfaces } from "../core/surfaces.ts";
 import { templateGroups, templates } from "../core/templates.ts";
 import { BlockList } from "./blocklist.tsx";
+import { ClassManager } from "./classmanager.tsx";
 import { ExportPanel } from "./export.tsx";
 import { Icon } from "./icon.tsx";
 import { BlockFields, Checks, TextFormatting } from "./inspector.tsx";
@@ -17,8 +17,8 @@ export function QuickPost() {
   const initial = templates[templateGroups.bulletin[0]];
   const c = useComposer({ initialBlocks: initial, initialSelected: initial[0].id, initialTitle: templateGroups.bulletin[0] });
   const {
-    styleKey, setStyleKey, profileKey, setProfileKey, customPalette,
-    surfaceKey, setSurfaceKey, palette, surface, applyTemplate, active,
+    profileKey, setProfileKey,
+    surfaceKey, setSurfaceKey, surface, applyTemplate, active,
     report, undo, redo, backupWorkspace, restoreFromFile,
     announcement, ready, saveStatus,
   } = c;
@@ -45,12 +45,9 @@ export function QuickPost() {
     <header className="panel-bar">
       <div className="panel-brand"><span className="brandmark" aria-hidden="true">BB</span><h1>BBStyler</h1></div>
       <span className={`save-chip save-${saveStatus}`}>{saveStatus === "saving" ? "Saving" : saveStatus === "error" ? "Save failed" : "Saved locally"}</span>
-      {/* conformance-ignore CODE-08 palette.accent is teacher-selected runtime data. */}
-      <span className="class-dot" style={{ background: palette.accent }} aria-hidden="true" />
       {/* conformance-ignore FORM-05 aria-label explicitly names the destination select. */}
       <select value={surfaceKey} onChange={event => setSurfaceKey(event.target.value as SurfaceKey)} aria-label="Blackbaud destination">{(Object.keys(surfaces) as SurfaceKey[]).map(key => <option key={key} value={key}>{surfaces[key].name}</option>)}</select>
-      {/* conformance-ignore FORM-05 aria-label explicitly names the class-style select. */}
-      <select value={styleKey} onChange={event => setStyleKey(event.target.value as StyleKey)} aria-label="Class style">{Object.entries(palettes).map(([key, value]) => <option key={key} value={key}>{value.name}</option>)}<option value="custom">{customPalette.className}</option></select>
+      <ClassManager c={c} compact />
       {/* conformance-ignore FORM-05 aria-label explicitly names the visual-style select. */}
       <select value={profileKey} onChange={event => setProfileKey(event.target.value as ProfileKey)} aria-label="Visual style">{profileKeys.map(key => <option key={key} value={key}>{profiles[key].name}</option>)}</select>
     </header>

@@ -708,11 +708,13 @@ test("migration accepts what the prototype wrote and rejects what it didn't", ()
     surfaceKey: "nonsense",
     profileKey: "nonsense",
   });
-  assert.equal(v0.version, 1);
+  assert.equal(v0.version, 2);
   assert.equal("animation" in v0.blocks[0], false, "the prototype's animation field is dropped");
   assert.equal(v0.surfaceKey, "bulletin", "an unknown surface falls back rather than throwing");
   assert.equal(v0.profileKey, "soft");
-  assert.equal(v0.styleKey, "science");
+  assert.equal(v0.classes.length, 1, "one flat style becomes one class");
+  assert.equal(v0.classes[0].styleKey, "science");
+  assert.equal(v0.activeClassId, v0.classes[0].id);
 
   const junk = migrate({ blocks: [{ id: 1, type: "nonexistent", title: "", body: "" }, ...starter] });
   assert.equal(junk.blocks.length, starter.length, "a block type this build doesn't have is dropped");
@@ -725,17 +727,39 @@ test("the pre-split fused customStyle migrates colour always, fonts only if chos
   const fused = { className: "My Class", primary: "#111111", accent: "#222222", surface: "#333333", focus: "#444444", heading: "Verdana, sans-serif", body: "Verdana, sans-serif" };
 
   const chosen = migrate({ blocks: starter, styleKey: "custom", customStyle: fused });
-  assert.equal(chosen.customPalette.primary, "#111111");
-  assert.equal(chosen.customPalette.className, "My Class");
-  assert.equal(chosen.fonts.heading, "Verdana, sans-serif", "they had picked it, so the fonts come too");
+  assert.equal(chosen.classes[0].customPalette.primary, "#111111");
+  assert.equal(chosen.classes[0].customPalette.className, "My Class");
+  assert.equal(chosen.classes[0].fonts.heading, "Verdana, sans-serif", "they had picked it, so the fonts come too");
 
   const notChosen = migrate({ blocks: starter, styleKey: "english", customStyle: fused });
-  assert.equal(notChosen.customPalette.accent, "#222222", "the colours are still preserved");
-  assert.deepEqual(notChosen.fonts, defaultProfile.fonts, "but the fonts are not adopted");
+  assert.equal(notChosen.classes[0].customPalette.accent, "#222222", "the colours are still preserved");
+  assert.deepEqual(notChosen.classes[0].fonts, defaultProfile.fonts, "but the fonts are not adopted");
 
   // A current workspace wins over a legacy one if somehow both are present.
   const both = migrate({ blocks: starter, customPalette: { ...palettes.arts, className: "New" }, customStyle: fused });
-  assert.equal(both.customPalette.primary, palettes.arts.primary);
+  assert.equal(both.classes[0].customPalette.primary, palettes.arts.primary);
+});
+
+test("a v2 workspace's classes survive migration, and an unknown active id falls back to the first", () => {
+  const w = migrate({
+    blocks: starter,
+    profileKey: "bold",
+    classes: [
+      { id: 10, name: "Homeroom", styleKey: "math", customPalette: palettes.math, fonts: defaultProfile.fonts },
+      { id: 11, name: "AP Bio", styleKey: "custom", customPalette: { ...palettes.science, className: "AP Bio" }, fonts: defaultProfile.fonts },
+    ],
+    activeClassId: 999,
+  });
+  assert.equal(w.classes.length, 2);
+  assert.equal(w.classes[0].name, "Homeroom");
+  assert.equal(w.classes[1].name, "AP Bio");
+  assert.equal(w.activeClassId, w.classes[0].id, "an active id that names no class falls back to the first");
+
+  const kept = migrate({ blocks: starter, classes: [{ id: 10, name: "Homeroom", styleKey: "math" }], activeClassId: 10 });
+  assert.equal(kept.activeClassId, 10, "a known active id survives");
+
+  const empty = migrate({ blocks: starter, classes: [] });
+  assert.equal(empty.classes.length, 1, "a workspace can never end up with zero classes");
 });
 
 test("saved posts survive migration with their blocks cleaned", () => {

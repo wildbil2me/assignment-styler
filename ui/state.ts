@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { Block, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "../core/model.ts";
+import type { Block, Palette, Profile, ProfileKey, SchoolClass, StyleKey, SurfaceKey } from "../core/model.ts";
 import { palettes } from "../core/palettes.ts";
 import { profiles, defaultProfile, withFonts } from "../core/profiles/index.ts";
 import { surfaces } from "../core/surfaces.ts";
@@ -47,10 +47,15 @@ export function useComposer({
   const [blocks, setBlocks] = useState(initialBlocks);
   const [postTitle, setPostTitle] = useState(initialTitle);
   const [selected, setSelected] = useState(initialSelected);
-  const [styleKey, setStyleKey] = useState<StyleKey>("english");
+  const [classes, setClasses] = useState<SchoolClass[]>(() => [{
+    id: nextId(),
+    name: palettes.english.className,
+    styleKey: "english",
+    customPalette: emptyCustomPalette(),
+    fonts: defaultProfile.fonts,
+  }]);
+  const [activeClassId, setActiveClassId] = useState<number>(() => classes[0].id);
   const [profileKey, setProfileKey] = useState<ProfileKey>(defaultProfile.id);
-  const [fonts, setFonts] = useState<Profile["fonts"]>(defaultProfile.fonts);
-  const [customPalette, setCustomPalette] = useState<Palette>(emptyCustomPalette);
   const [surfaceKey, setSurfaceKey] = useState<SurfaceKey>("bulletin");
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>([]);
@@ -61,6 +66,17 @@ export function useComposer({
   const past = useRef<Block[][]>([]), future = useRef<Block[][]>([]), previous = useRef<Block[]>(initialBlocks), historyAction = useRef(false);
   const dragged = useRef<number | null>(null);
   const formatterRef = useRef<(command: string, argument?: string) => void>(() => undefined);
+  // A class carries the colours and fonts a teacher picked for it; the visual
+  // style (profile) is a workspace-wide preference every class shares.
+  const activeClass = classes.find(c => c.id === activeClassId) ?? classes[0];
+  const styleKey = activeClass.styleKey;
+  const customPalette = activeClass.customPalette;
+  const fonts = activeClass.fonts;
+  const patchActiveClass = (patch: Partial<SchoolClass>) =>
+    setClasses(list => list.map(c => (c.id === activeClass.id ? { ...c, ...patch } : c)));
+  const setStyleKey = (value: StyleKey) => patchActiveClass({ styleKey: value });
+  const setCustomPalette = (value: Palette) => patchActiveClass({ customPalette: value });
+  const setFonts = (value: Profile["fonts"]) => patchActiveClass({ fonts: value });
   const palette = styleKey === "custom" ? customPalette : palettes[styleKey];
   // Profile is the feel, palette is the subject. The teacher's font choice is a
   // profile override rather than a fourth profile.
@@ -77,19 +93,18 @@ export function useComposer({
 
   /** One object, one schema — the thing that is saved and the thing that is exported. */
   const workspace = useMemo<Workspace>(
-    () => ({ version: 1, blocks, postTitle, styleKey, surfaceKey, profileKey, fonts, customPalette, savedPosts }),
-    [blocks, postTitle, styleKey, surfaceKey, profileKey, fonts, customPalette, savedPosts]
+    () => ({ version: 2, blocks, postTitle, surfaceKey, profileKey, classes, activeClassId, savedPosts }),
+    [blocks, postTitle, surfaceKey, profileKey, classes, activeClassId, savedPosts]
   );
 
   /** Adopt a restored or imported workspace wholesale. */
   const restore = (w: Workspace) => {
     setBlocks(w.blocks);
     setPostTitle(w.postTitle);
-    setStyleKey(w.styleKey);
     setSurfaceKey(w.surfaceKey);
     setProfileKey(w.profileKey);
-    setFonts(w.fonts);
-    setCustomPalette(w.customPalette);
+    setClasses(w.classes);
+    setActiveClassId(w.activeClassId);
     setSavedPosts(w.savedPosts);
     setSelected(w.blocks[0]?.id ?? 0);
     // A restore is a new document, not an edit — undoing back into the previous
@@ -210,10 +225,29 @@ export function useComposer({
   // rules-of-hooks violation for exactly that reason.
   const applyTemplate = (name:string) => {const source=templates[name];if(!source)return;const ids=nextIds(source.length),next=source.map((b,i)=>({...b,id:ids[i]}));setBlocks(next);setSelected(ids[0]);setPostTitle(name);};
 
+  /** A brand-new class, switched to immediately — the "Create a new class" path. */
+  const addClass = (input: { name: string; styleKey: StyleKey; customPalette: Palette; fonts: Profile["fonts"] }): SchoolClass => {
+    const created: SchoolClass = { ...input, id: nextId(), name: input.name.trim() || "Untitled class" };
+    setClasses(list => [...list, created]);
+    setActiveClassId(created.id);
+    return created;
+  };
+  const switchClass = (id: number) => setActiveClassId(id);
+  const renameClass = (id: number, name: string) =>
+    setClasses(list => list.map(c => (c.id === id ? { ...c, name: name.trim() || "Untitled class" } : c)));
+  /** Refuses to empty the list — a workspace with no classes has no style to render with. */
+  const removeClass = (id: number) => {
+    if (classes.length <= 1) return;
+    const remaining = classes.filter(c => c.id !== id);
+    setClasses(remaining);
+    if (activeClassId === id) setActiveClassId(remaining[0].id);
+  };
+
   return {
     blocks, setBlocks, postTitle, setPostTitle, selected, setSelected, active,
     styleKey, setStyleKey, profileKey, setProfileKey, fonts, setFonts,
     customPalette, setCustomPalette, surfaceKey, setSurfaceKey,
+    classes, activeClassId, activeClass, addClass, switchClass, renameClass, removeClass,
     savedPosts, setSavedPosts, exportHistory, palette, profile, surface, html, report,
     copied, announcement, ready, saveStatus, dragged, formatterRef, workspace, restore,
     announce, update, updateBlock, format, move, addBlock, deleteBlock, duplicateBlock, dropBlock, copy, undo, redo, applyTemplate,

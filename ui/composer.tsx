@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import packageJson from "../package.json";
-import { contrastRatio, readableOn, requiredRatio, ASSUMED_PAGE_BACKGROUND } from "../core/checks.ts";
 import { importHtml } from "../core/import.ts";
 import { nextId, nextIds } from "../core/ids.ts";
-import type { Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "../core/model.ts";
-import { palettes } from "../core/palettes.ts";
-import { profiles, profileKeys, defaultProfile } from "../core/profiles/index.ts";
+import type { ProfileKey, SurfaceKey } from "../core/model.ts";
+import { profiles, profileKeys } from "../core/profiles/index.ts";
 import { surfaceArticle, surfaces, surfaceDescriptions } from "../core/surfaces.ts";
 import { starter, templateGroups } from "../core/templates.ts";
 import { BlockList } from "./blocklist.tsx";
+import { ClassManager } from "./classmanager.tsx";
 import { Dialog } from "./dialog.tsx";
 import { ExportPanel } from "./export.tsx";
 import { Icon } from "./icon.tsx";
@@ -17,49 +16,25 @@ import { BlockFields, Checks } from "./inspector.tsx";
 import { Preview, type Device } from "./preview.tsx";
 import { useComposer, type SavedPost } from "./state.ts";
 
-function contrastRows(palette: Palette, profile: Profile) {
-  const size = (value: string) => parseFloat(value) || 0;
-  const bold = size(profile.fontWeights.bold) || 700;
-  const pairs = [
-    { what: "Card heading on card", fg: palette.primary, bg: palette.surface, px: size(profile.heading.size), weight: size(profile.heading.weight) || bold },
-    { what: "Body text on card", fg: profile.colors.text, bg: palette.surface, px: size(profile.fontSizes.body), weight: size(profile.fontWeights.normal) || 400 },
-    // The colour the eyebrow is rendered in, which for a mid-tone accent is a
-    // darkened variant of it. This row reported a failure a teacher had no way
-    // to act on until the renderer started deriving one.
-    { what: "Label on the page", fg: readableOn(palette.accent, ASSUMED_PAGE_BACKGROUND, requiredRatio(size(profile.fontSizes.label), bold)), bg: ASSUMED_PAGE_BACKGROUND, px: size(profile.fontSizes.label), weight: bold },
-  ];
-  return pairs.map(pair => {
-    const ratio = contrastRatio(pair.fg, pair.bg), required = requiredRatio(pair.px, pair.weight);
-    return { what: pair.what, required, ratio: ratio === null ? "—" : `${ratio.toFixed(2)}:1`, ok: ratio !== null && ratio >= required };
-  });
-}
-
 /** The full editor, shared core wrapped in the educator-suite application chrome. */
 export function Composer() {
   const c = useComposer();
   const {
     blocks, setBlocks, postTitle, setPostTitle, setSelected,
-    styleKey, setStyleKey, profileKey, setProfileKey, fonts, setFonts,
-    customPalette, setCustomPalette, surfaceKey, setSurfaceKey,
-    savedPosts, setSavedPosts, palette, surface, applyTemplate,
+    profileKey, setProfileKey, surfaceKey, setSurfaceKey,
+    savedPosts, setSavedPosts, surface, applyTemplate,
     announcement, announce, ready, saveStatus,
     backupWorkspace, restoreFromFile,
   } = c;
   const [postMenu, setPostMenu] = useState(false);
   const [device, setDevice] = useState<Device>("desktop");
-  const [styleEditor, setStyleEditor] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const [styleDraft, setStyleDraft] = useState<Palette>(customPalette);
-  const [fontDraft, setFontDraft] = useState<Profile["fonts"]>(defaultProfile.fonts);
   const [importOpen, setImportOpen] = useState(false);
   const [importSource, setImportSource] = useState("");
   const [importMessage, setImportMessage] = useState("");
-  const [styleMessage, setStyleMessage] = useState("");
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const styleFileRef = useRef<HTMLInputElement>(null);
   const backupFileRef = useRef<HTMLInputElement>(null);
-  const closeStyleEditor = useCallback(() => setStyleEditor(false), []);
   const closeImport = useCallback(() => setImportOpen(false), []);
   const closeAbout = useCallback(() => setAboutOpen(false), []);
 
@@ -86,33 +61,6 @@ export function Composer() {
     setSelected(post.blocks[0]?.id);
     setPostMenu(false);
     announce(`Opened the saved ${post.title} snapshot.`);
-  };
-  const exportStyle = () => {
-    const payload = { version: 2, palette: { ...styleDraft, name: "Custom" }, profile: profileKey, fonts: fontDraft };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob), anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${styleDraft.className.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "class-style"}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    announce("Exported the custom class style as JSON.");
-  };
-  const importStyle = async (file?: File) => {
-    if (!file) return;
-    try {
-      const parsed = JSON.parse(await file.text());
-      const nextPalette = parsed.palette || parsed;
-      if (!nextPalette.primary || !nextPalette.accent) throw new Error();
-      setStyleDraft({ ...styleDraft, ...nextPalette, name: "Custom" });
-      const nextFonts = parsed.fonts || (nextPalette.heading && nextPalette.body ? { heading: nextPalette.heading, body: nextPalette.body } : null);
-      if (nextFonts) setFontDraft({ heading: nextFonts.heading || fontDraft.heading, body: nextFonts.body || fontDraft.body });
-      if (parsed.profile && parsed.profile in profiles) setProfileKey(parsed.profile);
-      setStyleMessage("");
-      announce(`Imported the style file ${file.name}.`);
-    } catch {
-      setStyleMessage("That file is not a valid BBStyler style. Choose a class-style JSON file exported by BBStyler.");
-      announce("The selected file is not a valid BBStyler style.");
-    }
   };
   const importExistingHtml = () => {
     const result = importHtml(importSource);
@@ -174,14 +122,13 @@ export function Composer() {
     <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
     <header className="topbar">
       <div className="brand"><span className="brandmark" aria-hidden="true">BB</span><div><h1>BBStyler</h1><small>for Blackbaud</small></div></div>
-      <div className="style-tools">
-        {/* conformance-ignore FORM-05 Enclosing label and aria-label name this select; conformance-ignore CODE-08 palette.accent is user-selected runtime data. */}
-        <label className="class-picker"><span className="class-dot" style={{ background: palette.accent }} aria-hidden="true" /><select value={styleKey} onChange={event => setStyleKey(event.target.value as StyleKey)} aria-label="Class style">{Object.entries(palettes).map(([key, value]) => <option key={key} value={key}>{value.name} · {value.className}</option>)}<option value="custom">Custom · {customPalette.className}</option></select></label>
-        {/* conformance-ignore FORM-05 Enclosing label and aria-label both name the visual-style select. */}
-        <label className="class-picker"><select value={profileKey} onChange={event => setProfileKey(event.target.value as ProfileKey)} aria-label="Visual style">{profileKeys.map(key => <option key={key} value={key}>{profiles[key].name}</option>)}</select></label>
-        <button className="style-edit-button" onClick={() => { setStyleDraft({ ...palette, name: "Custom" }); setFontDraft(fonts); setStyleEditor(true) }}>Style editor</button>
-      </div>
       <button className="about-button" onClick={() => setAboutOpen(true)}>About</button>
+    </header>
+
+    <header className="classbar">
+      <ClassManager c={c} />
+      {/* conformance-ignore FORM-05 Enclosing label and aria-label both name the visual-style select. */}
+      <label className="class-picker"><select value={profileKey} onChange={event => setProfileKey(event.target.value as ProfileKey)} aria-label="Visual style">{profileKeys.map(key => <option key={key} value={key}>{profiles[key].name}</option>)}</select></label>
     </header>
 
     {aboutOpen && <Dialog labelledBy="about-title" onClose={closeAbout} className="about-modal">
@@ -194,37 +141,6 @@ export function Composer() {
         <a className="about-source" href="https://github.com/wildbil2me/assignment-styler" target="_blank" rel="noreferrer">View source on GitHub ↗</a>
       </div>
       <footer><button className="apply-style" onClick={closeAbout}>Done</button></footer>
-    </Dialog>}
-
-    {styleEditor && <Dialog labelledBy="style-editor-title" onClose={closeStyleEditor}>
-      <header><div><span className="eyebrow">CLASS STYLE</span><h2 id="style-editor-title">Create a custom style</h2></div><button onClick={closeStyleEditor} aria-label="Close style editor" title="Close style editor"><Icon name="close" /></button></header>
-      <div className="style-form">
-        {/* conformance-ignore FORM-05 The style-name input is nested directly in its visible label. */}
-        <label>Style name<input value={styleDraft.className} onChange={event => setStyleDraft(value => ({ ...value, className: event.target.value }))} /></label>
-        <div className="color-grid">
-          <label>Primary color<span><input aria-label="Primary color" type="color" value={styleDraft.primary} onChange={event => setStyleDraft(value => ({ ...value, primary: event.target.value }))} />{styleDraft.primary}</span></label>
-          <label>Accent color<span><input aria-label="Accent color" type="color" value={styleDraft.accent} onChange={event => setStyleDraft(value => ({ ...value, accent: event.target.value }))} />{styleDraft.accent}</span></label>
-          <label>Surface color<span><input aria-label="Surface color" type="color" value={styleDraft.surface} onChange={event => setStyleDraft(value => ({ ...value, surface: event.target.value }))} />{styleDraft.surface}</span></label>
-          <label>Highlight color<span><input aria-label="Highlight color" type="color" value={styleDraft.focus} onChange={event => setStyleDraft(value => ({ ...value, focus: event.target.value }))} />{styleDraft.focus}</span></label>
-        </div>
-        {/* conformance-ignore FORM-05 Enclosing label and aria-label both name the heading-font select. */}
-        <label>Heading font<select aria-label="Heading font" value={fontDraft.heading} onChange={event => setFontDraft(value => ({ ...value, heading: event.target.value }))}><option value="Georgia, serif">Georgia</option><option value="Arial, sans-serif">Arial</option><option value="Trebuchet MS, sans-serif">Trebuchet</option><option value="Verdana, sans-serif">Verdana</option></select></label>
-        {/* conformance-ignore FORM-05 Enclosing label and aria-label both name the body-font select. */}
-        <label>Body font<select aria-label="Body font" value={fontDraft.body} onChange={event => setFontDraft(value => ({ ...value, body: event.target.value }))}><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Trebuchet MS, sans-serif">Trebuchet</option><option value="Verdana, sans-serif">Verdana</option></select></label>
-        {styleMessage && <p className="form-error" role="alert">{styleMessage}</p>}
-        <div className="contrast-readout">{contrastRows(styleDraft, profiles[profileKey]).map(row => <div key={row.what} className={row.ok ? "contrast-ok" : "contrast-bad"}><span>{row.what}<br /><small>needs {row.required}:1</small></span><b>{row.ratio}</b></div>)}</div>
-        <p className="import-help">Colors and fonts belong to your class. The visual style — {profiles[profileKey].name.toLowerCase()} — applies to every class.</p>
-        {/* conformance-ignore CODE-08 The swatch is a live specimen of teacher-selected runtime colors and fonts. */}
-        <div className="style-swatch" style={{ borderColor: styleDraft.accent, background: styleDraft.surface }}><strong style={{ color: styleDraft.primary, fontFamily: fontDraft.heading }}>Custom style preview</strong><p style={{ fontFamily: fontDraft.body }}>Clear, consistent content for your class.</p></div>
-      </div>
-      <footer>
-        <button className="secondary" onClick={() => styleFileRef.current?.click()}>Import JSON</button>
-        {/* conformance-ignore FORM-05 The adjacent Import JSON button names and opens this hidden file input. */}
-        <input ref={styleFileRef} className="sr-only" tabIndex={-1} aria-label="Import class style JSON" type="file" accept="application/json,.json" onChange={event => importStyle(event.target.files?.[0])} />
-        <button className="secondary" onClick={exportStyle}>Export JSON</button><span className="footer-spacer" />
-        <button className="secondary" onClick={closeStyleEditor}>Cancel</button>
-        <button className="apply-style" onClick={() => { setCustomPalette({ ...styleDraft, name: "Custom" }); setStyleKey("custom"); setFonts(fontDraft); closeStyleEditor(); announce("Applied the custom class style.") }}>Apply custom style</button>
-      </footer>
     </Dialog>}
 
     {importOpen && <Dialog labelledBy="import-title" onClose={closeImport} className="import-modal">

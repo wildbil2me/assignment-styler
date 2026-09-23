@@ -15,27 +15,31 @@
  * workspaces in different places and neither can read the other's.
  */
 
-import type { Block, Palette, Profile, ProfileKey, StyleKey, SurfaceKey } from "./model.ts";
+import type { Block, Palette, Profile, ProfileKey, SchoolClass, StyleKey, SurfaceKey } from "./model.ts";
 import { palettes } from "./palettes.ts";
 import { profiles, defaultProfile } from "./profiles/index.ts";
 import { surfaces } from "./surfaces.ts";
 import { blockMeta } from "./catalog.ts";
-import { reserveIds } from "./ids.ts";
+import { nextId, reserveIds } from "./ids.ts";
 
 export const STORAGE_KEY = "bcc-workspace";
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export type SavedPost = { id: number; title: string; blocks: Block[] };
 
+/**
+ * Phase 6: one style became a list of classes a teacher switches between,
+ * the way Planbook's class list works. `profileKey` (the visual style) stays
+ * outside a class on purpose — see `SchoolClass`'s own comment.
+ */
 export type Workspace = {
   version: typeof SCHEMA_VERSION;
   blocks: Block[];
   postTitle: string;
-  styleKey: StyleKey;
   surfaceKey: SurfaceKey;
   profileKey: ProfileKey;
-  fonts: Profile["fonts"];
-  customPalette: Palette;
+  classes: SchoolClass[];
+  activeClassId: number;
   savedPosts: SavedPost[];
 };
 
@@ -74,33 +78,18 @@ function cleanBlocks(value: unknown): Block[] {
 }
 
 /**
- * Any stored shape becomes the current one, or `null` if there is nothing
- * usable in it.
+ * The pre-v2 shape: one style, fields flat on the workspace rather than inside
+ * a class. Split out because both migration paths below need it — a v0/v1
+ * document has it at the top level, and it is also what the pre-Phase-2 fused
+ * `customStyle` unfused into before v2 existed.
  *
- * Two vintages exist. **v0** is anything without a `version` field: the shape
- * the prototype wrote, which may additionally predate Phase 2's split of colour
- * from type and carry one fused `customStyle` object. That split is the only
- * genuinely lossy migration in the tool's history — a fused style held both a
- * palette and a font pairing, and the font half only ever applied when the
- * teacher had actually selected the custom style, so it is carried over only in
- * that case. Guessing otherwise would silently restyle every class.
+ * That fusion split is the only genuinely lossy migration in the tool's
+ * history — a fused style held both a palette and a font pairing, and the font
+ * half only ever applied when the teacher had actually selected the custom
+ * style, so it is carried over only in that case. Guessing otherwise would
+ * silently restyle every class.
  */
-export function migrate(raw: unknown): Workspace | null {
-  if (!isObject(raw)) return null;
-
-  const blocks = cleanBlocks(raw.blocks);
-  const savedPosts: SavedPost[] = Array.isArray(raw.savedPosts)
-    ? raw.savedPosts.filter(isObject).map((p) => ({
-        id: Number(p.id) || 0,
-        title: str(p.title, "Untitled"),
-        blocks: cleanBlocks(p.blocks),
-      }))
-    : [];
-
-  // Nothing worth restoring — let the caller keep its defaults rather than
-  // clobbering them with an empty document.
-  if (!blocks.length && !savedPosts.length) return null;
-
+function legacyStyle(raw: Unknown): { styleKey: StyleKey; customPalette: Palette; fonts: Profile["fonts"] } {
   const styleKey = (typeof raw.styleKey === "string" && (raw.styleKey in palettes || raw.styleKey === "custom")
     ? raw.styleKey
     : "english") as StyleKey;
@@ -130,27 +119,86 @@ export function migrate(raw: unknown): Workspace | null {
       };
   }
 
+  return { styleKey, customPalette, fonts };
+}
+
+/** A class's own name, when nothing in the stored shape names it directly. */
+function classNameFor(styleKey: StyleKey, customPalette: Palette): string {
+  return styleKey === "custom" ? customPalette.className : palettes[styleKey].className;
+}
+
+function validateClass(raw: unknown): SchoolClass | null {
+  if (!isObject(raw)) return null;
+  const id = Number(raw.id);
+  if (!Number.isFinite(id)) return null;
+  const { styleKey, customPalette, fonts } = legacyStyle(raw);
+  return { id, name: str(raw.name, classNameFor(styleKey, customPalette)), styleKey, customPalette, fonts };
+}
+
+/**
+ * Any stored shape becomes the current one, or `null` if there is nothing
+ * usable in it.
+ *
+ * Three vintages exist. **v0** is anything without a `version` field: the
+ * shape the prototype wrote. **v1** added the version field but still kept one
+ * style flat on the workspace. **v2** (Phase 6) replaced that one style with a
+ * switchable list of classes — v0 and v1 each migrate into a workspace holding
+ * exactly one class built from their flat style fields.
+ */
+export function migrate(raw: unknown): Workspace | null {
+  if (!isObject(raw)) return null;
+
+  const blocks = cleanBlocks(raw.blocks);
+  const savedPosts: SavedPost[] = Array.isArray(raw.savedPosts)
+    ? raw.savedPosts.filter(isObject).map((p) => ({
+        id: Number(p.id) || 0,
+        title: str(p.title, "Untitled"),
+        blocks: cleanBlocks(p.blocks),
+      }))
+    : [];
+
+  // Nothing worth restoring — let the caller keep its defaults rather than
+  // clobbering them with an empty document.
+  if (!blocks.length && !savedPosts.length) return null;
+
+  // Ids in a restored workspace may come from a clock ahead of this one —
+  // reserved before any class id is minted below, so a freshly created class
+  // can never land on one of them.
+  reserveIds([
+    ...blocks.map((b) => b.id),
+    ...savedPosts.flatMap((p) => [p.id, ...p.blocks.map((b) => b.id)]),
+    ...(Array.isArray(raw.classes) ? raw.classes.filter(isObject).map((c) => Number(c.id)) : []),
+  ]);
+
+  const classes: SchoolClass[] = Array.isArray(raw.classes)
+    ? raw.classes.map(validateClass).filter((c): c is SchoolClass => c !== null)
+    : [];
+  // v0/v1, or a v2 document whose classes array didn't survive validation —
+  // either way, fall back to the one style that used to live flat on the
+  // workspace, wrapped into a single class.
+  if (!classes.length) {
+    const { styleKey, customPalette, fonts } = legacyStyle(raw);
+    classes.push({ id: nextId(), name: classNameFor(styleKey, customPalette), styleKey, customPalette, fonts });
+  }
+
+  const activeClassId = classes.some((c) => c.id === Number(raw.activeClassId))
+    ? Number(raw.activeClassId)
+    : classes[0].id;
+
   const workspace: Workspace = {
     version: SCHEMA_VERSION,
     blocks,
     postTitle: str(raw.postTitle, "Untitled class post"),
-    styleKey,
     surfaceKey: (typeof raw.surfaceKey === "string" && raw.surfaceKey in surfaces
       ? raw.surfaceKey
       : "bulletin") as SurfaceKey,
     profileKey: (typeof raw.profileKey === "string" && raw.profileKey in profiles
       ? raw.profileKey
       : defaultProfile.id) as ProfileKey,
-    fonts,
-    customPalette,
+    classes,
+    activeClassId,
     savedPosts,
   };
-
-  // Ids in a restored workspace may come from a clock ahead of this one.
-  reserveIds([
-    ...workspace.blocks.map((b) => b.id),
-    ...workspace.savedPosts.flatMap((p) => [p.id, ...p.blocks.map((b) => b.id)]),
-  ]);
 
   return workspace;
 }

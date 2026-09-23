@@ -153,3 +153,17 @@ export type Surface = {
   width: number;
   note: string;
 };
+
+/**
+ * A teacher's class: a name over a saved colour and font choice. The visual
+ * style (`Profile`) stays a workspace-wide setting — every class shares it —
+ * so it lives outside this type, exactly as the style editor already told a
+ * teacher: "colours and fonts belong to your class."
+ */
+export type SchoolClass = {
+  id: number;
+  name: string;
+  styleKey: StyleKey;
+  customPalette: Palette;
+  fonts: Profile["fonts"];
+};
