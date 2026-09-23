@@ -1,10 +1,11 @@
 # The name, and everywhere it lives
 
-**Product name, as of 2026-08-21: BBStyler.** This replaces the working name
-Betterbaud chosen on 2026-08-12. The repository was renamed separately from
+**Product name, as of 2026-09-23: BaudStyler.** This replaces BBStyler, which
+was used from 2026-08-21, and before that the working name Betterbaud, chosen
+2026-08-12. The repository was renamed separately from
 `toomey-sj/blackbaud-styler` to `wildbil2me/assignment-styler` on 2026-08-21.
 The repository slug is descriptive; the product, package and extension use
-BBStyler.
+BaudStyler. The repository and Pages URL were not part of the 2026-09-23 rename.
 
 It is explicitly a *for now* name. This file exists so that changing it later is
 a checklist rather than an archaeology exercise.
@@ -21,23 +22,23 @@ is ours to rename.**
   never be swept up in a rename.** They describe an external system, and a
   find-and-replace that catches them makes the documentation wrong.
 
-A rename that changes "Blackbaud-safe HTML" to "BBStyler-safe HTML" has
+A rename that changes "Blackbaud-safe HTML" to "BaudStyler-safe HTML" has
 broken the one claim the tool exists to make.
 
 ## Where our name appears
 
-Everything below says **BBStyler** as of 2026-08-21 unless the "current value"
+Everything below says **BaudStyler** as of 2026-09-23 unless the "current value"
 column says otherwise.
 
 | Where | What it is | Audience | Cost to change |
 | --- | --- | --- | --- |
-| `package.json` → `name` | npm package identity, `bbstyler` | internal | free |
+| `package.json` → `name` | npm package identity, `baudstyler` | internal | free |
 | `apps/web/index.html` | `<title>`, social metadata and `og.png` | **public** — browser tab, link previews | free |
 | `apps/ext/index.html` | `<title>` of the side panel | public | free |
 | `apps/ext/public/manifest.json` | extension `name`, and `action.default_title` | **public** — shown in the browser's extension list | free before publishing to a store; a store listing is a rename with users attached |
-| `ui/composer.tsx` | the brand block in the top bar: mark letter, wordmark, "for Blackbaud" strapline | **public** — the most visible instance | free |
-| `core/storage.ts` | the failed-import message, "a BBStyler backup" | public, at the moment something goes wrong | free |
-| `core/storage.ts` → `backupFilename` | the prefix on every workspace backup file, `bbstyler-<post>-<date>.json` | **public, and durable** — it is the filename sitting in a teacher's Downloads folder for years | free in code; already-downloaded files keep the old name, and `parse()` reads any of them regardless of filename. Pinned by two assertions in `tests/core.test.mjs` — update them in the same commit or the rename is incomplete. Said `content-composer-` until 2026-08-18 and `betterbaud-` until 2026-08-21. |
+| `ui/composer.tsx`, `ui/quickpost.tsx`, `ui/classmanager.tsx` | the brand block (mark letters `BB`, unchanged in the BaudStyler rename; wordmark; "for Blackbaud" strapline), the About dialog, the footer, and import error messages | **public** — the most visible instance | free |
+| `core/storage.ts` | the failed-import message, "a BaudStyler backup" | public, at the moment something goes wrong | free |
+| `core/storage.ts` → `backupFilename` | the prefix on every workspace backup file, `baudstyler-<post>-<date>.json` | **public, and durable** — it is the filename sitting in a teacher's Downloads folder for years | free in code; already-downloaded files keep the old name, and `parse()` reads any of them regardless of filename. Pinned by two assertions in `tests/core.test.mjs` — update them in the same commit or the rename is incomplete. Said `content-composer-` until 2026-08-18, `betterbaud-` until 2026-08-21 and `bbstyler-` until 2026-09-23. |
 | `tools/probe/build.mjs` | footer of both generated probe pages | public — other schools receive these | free, but **regenerate the kit** (`npm run probe`) or `docs/*.html` keeps the old name |
 | `README.md` | title and prose | **public** | free |
 | `CLAUDE.md` | the "What this is" line | internal | free |
@@ -66,7 +67,7 @@ canonical location above.
 
 ```bash
 # Everything that is ours. Read each hit — this pattern is deliberately narrow.
-rg -n "BBStyler|bbstyler" --glob '!node_modules'
+rg -n "BaudStyler|baudstyler" --glob '!node_modules'
 
 # The blast radius of getting it wrong. These must NOT change.
 rg -nc "Blackbaud" --glob '!node_modules' core/ docs/blackbaud-compatibility.md
@@ -84,7 +85,7 @@ Then, in order:
 ## Why Betterbaud changed
 
 The previous working name was a close play on “Blackbaud” and could read as a
-comparative claim about another company's product. BBStyler keeps the connection
+comparative claim about another company's product. BBStyler kept the connection
 to the tool's purpose without presenting itself as a variation of Blackbaud's
 brand. This resolves open item #2 in the rebuild plan; it is a naming decision,
 not a legal opinion.

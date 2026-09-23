@@ -108,7 +108,7 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
     input.value = "";
     if (!file) return;
     const result = await parseClassFile(file);
-    if (!result) { announce("That file is not a valid BBStyler class or style."); return; }
+    if (!result) { announce("That file is not a valid BaudStyler class or style."); return; }
     setDraft(result);
     setMessage("");
     setEditorOpen("create");
@@ -118,7 +118,7 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
     input.value = "";
     if (!file) return;
     const result = await parseClassFile(file);
-    if (!result) { setMessage("That file is not a valid BBStyler class or style. Choose a JSON file exported by BBStyler."); return; }
+    if (!result) { setMessage("That file is not a valid BaudStyler class or style. Choose a JSON file exported by BaudStyler."); return; }
     setDraft(value => ({ name: value.name || result.name, palette: result.palette, fonts: result.fonts }));
     setMessage("");
     announce(`Imported ${file.name}.`);

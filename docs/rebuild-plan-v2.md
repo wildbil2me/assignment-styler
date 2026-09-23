@@ -504,7 +504,7 @@ written back as `version: 1` with all four of those handled.
 **Implemented 2026-08-21.** The repository is release-ready; merging and tagging
 remain explicit publication actions.
 
-- MIT license attributed to BBStyler contributors.
+- MIT license attributed to BaudStyler contributors.
 - Privacy-first README with real captures of both running shells and prominent
   disclosure that no data leaves the browser.
 - Semantic Versioning policy and a `0.1.0` changelog, with a release check that
@@ -633,5 +633,8 @@ Fixed by the phases above, listed so none get lost:
 2. ~~**Someone else's trademark.**~~ **Resolved 2026-08-21.** The working name
    Betterbaud was replaced by BBStyler so the product no longer reads as a
    comparative variation of Blackbaud's brand.
+
+   *Later:* BBStyler was renamed BaudStyler on 2026-09-23. See
+   [naming.md](naming.md).
 3. **Tenant variation.** Unknown until a second school runs the probe. Design
    `core/compat.ts` to be overridable rather than assuming one answer.

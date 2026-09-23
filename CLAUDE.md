@@ -57,9 +57,9 @@ which is what makes a zero-backend, free-to-publish tool possible.
 
 ## What this is
 
-**BBStyler** (`bbstyler`) — a composer for building student-facing class
+**BaudStyler** (`baudstyler`) — a composer for building student-facing class
 posts and exporting HTML that survives Blackbaud's editor. The name is a working
-one, chosen 2026-08-12; [docs/naming.md](docs/naming.md) lists every place it
+one, chosen 2026-09-23 (replacing BBStyler); [docs/naming.md](docs/naming.md) lists every place it
 appears and, more importantly, draws the line between *our* name and the many
 references to **Blackbaud the product** that a rename must never touch. Content is authored as blocks, previewed per Blackbaud surface (bulletin
 board, topic, assignment — **three**, not four; `announcement` is a block type,

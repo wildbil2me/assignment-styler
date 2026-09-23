@@ -30,7 +30,7 @@ export function QuickPost() {
     input.value = "";
   };
 
-  if (!ready) return <main className="app-loading panel-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">BB</span><strong>BBStyler</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading quick post</span></main>;
+  if (!ready) return <main className="app-loading panel-loading" aria-busy="true"><div className="loading-brand"><span className="brandmark" aria-hidden="true">BB</span><strong>BaudStyler</strong></div><div className="skel skel-title" /><div className="skel skel-row" /><div className="skel skel-row" /><span className="sr-only">Loading quick post</span></main>;
 
   // Never a bare tick: an unknown is its own word here, exactly as it is in the
   // rows underneath, so a collapsed panel cannot imply more than was checked.
@@ -43,7 +43,7 @@ export function QuickPost() {
   return <main className="panel">
     <div className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
     <header className="panel-bar">
-      <div className="panel-brand"><span className="brandmark" aria-hidden="true">BB</span><h1>BBStyler</h1></div>
+      <div className="panel-brand"><span className="brandmark" aria-hidden="true">BB</span><h1>BaudStyler</h1></div>
       <span className={`save-chip save-${saveStatus}`}>{saveStatus === "saving" ? "Saving" : saveStatus === "error" ? "Save failed" : "Saved locally"}</span>
       {/* conformance-ignore FORM-05 aria-label explicitly names the destination select. */}
       <select value={surfaceKey} onChange={event => setSurfaceKey(event.target.value as SurfaceKey)} aria-label="Blackbaud destination">{(Object.keys(surfaces) as SurfaceKey[]).map(key => <option key={key} value={key}>{surfaces[key].name}</option>)}</select>
@@ -110,7 +110,7 @@ export function QuickPost() {
         <div className="panel-backup-actions">
           <button onClick={backupWorkspace}><Icon name="download" /> Back up</button>
           <button onClick={() => backupFileRef.current?.click()}><Icon name="upload" /> Restore</button>
-          <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore BBStyler backup" type="file" accept="application/json,.json" onChange={event => restoreBackup(event.target)} />
+          <input ref={backupFileRef} className="sr-only" tabIndex={-1} aria-label="Restore BaudStyler backup" type="file" accept="application/json,.json" onChange={event => restoreBackup(event.target)} />
         </div>
       </div>
     </details>

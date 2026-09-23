@@ -3,49 +3,49 @@
     "rule": "FORM-05",
     "source": "ui/composer.tsx: toolbar and dialog selects",
     "reason": "Each select is wrapped by a visible label or carries an explicit aria-label; the static checker does not associate JSX labels.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   },
   {
     "rule": "FORM-05",
     "source": "ui/quickpost.tsx: panel-bar selects",
     "reason": "Each compact panel select has an explicit aria-label; the static checker does not recognize the JSX attribute.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   },
   {
     "rule": "FORM-05",
     "source": "ui/inspector.tsx: context and heading inputs",
     "reason": "Each input is nested directly in its visible label; the static checker cannot associate conditional JSX labels.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   },
   {
     "rule": "CODE-08",
     "source": "ui/composer.tsx: class dot and custom style specimen",
     "reason": "These values are teacher-selected runtime palette colors and fonts, the explicit dynamic-inline-style exception in the adoption plan.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   },
   {
     "rule": "CODE-08",
     "source": "ui/quickpost.tsx: class dot",
     "reason": "The dot displays the teacher-selected runtime class palette, not a static chrome value.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   },
   {
     "rule": "CODE-08",
     "source": "ui/preview.tsx: paper maxWidth",
     "reason": "The preview width is selected at runtime from the active Blackbaud delivery surface.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   },
   {
     "rule": "CODE-08",
     "source": "pages-dist/assets/app.js and extension-dist/assets/app.js",
     "reason": "Compiled bundles duplicate the source findings and contain the exported Blackbaud HTML contract; source TSX and built CSS/HTML remain audited, while the compiled JavaScript files are explicitly excluded.",
-    "reviewer": "BBStyler maintainers",
+    "reviewer": "BaudStyler maintainers",
     "reviewDate": "2026-08-21"
   }
 ]

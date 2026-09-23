@@ -8,7 +8,7 @@
 const openOnClick = () =>
   chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })
-    .catch(error => console.error("BBStyler: could not open the side panel on action click.", error));
+    .catch(error => console.error("BaudStyler: could not open the side panel on action click.", error));
 
 chrome.runtime.onInstalled.addListener(openOnClick);
 openOnClick();

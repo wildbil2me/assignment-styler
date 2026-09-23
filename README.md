@@ -1,18 +1,18 @@
-# BBStyler
+# BaudStyler
 
 Create polished, structured class content and export inline-styled HTML that
 survives Blackbaud's editor.
 
-> **Private by design:** BBStyler has no backend, accounts, analytics, or
+> **Private by design:** BaudStyler has no backend, accounts, analytics, or
 > telemetry. Your drafts stay in your browser. The extension has no host
 > permissions and cannot read or publish a Blackbaud page.
 
-BBStyler is not affiliated with, endorsed by, or produced by Blackbaud. It is
+BaudStyler is not affiliated with, endorsed by, or produced by Blackbaud. It is
 an independent tool for schools that use Blackbaud.
 
 [Open the web composer](https://wildbil2me.github.io/assignment-styler/)
 
-![BBStyler web composer showing a structured Macbeth class post](docs/screenshots/web-composer.png)
+![BaudStyler web composer showing a structured Macbeth class post](docs/screenshots/web-composer.png)
 
 ## Two ways to compose
 
@@ -25,10 +25,10 @@ blocks, copy the generated HTML, and paste it into Blackbaud's HTML/source
 editor. It runs the same compatibility and contrast checks as the web app and
 reports them the same way — collapsed, but never quieter.
 
-![BBStyler extension side panel in quick-post mode](docs/screenshots/extension-quick-post.png)
+![BaudStyler extension side panel in quick-post mode](docs/screenshots/extension-quick-post.png)
 
 Both shells use the same renderer, so the same blocks, profile, palette, and
-surface produce the same HTML. BBStyler supports 17 content block types, 15
+surface produce the same HTML. BaudStyler supports 17 content block types, 15
 templates, three visual profiles, six subject palettes, and bulletin, topic,
 and assignment destinations.
 
@@ -44,7 +44,7 @@ Then:
 1. Open `chrome://extensions` or `edge://extensions`.
 2. Enable **Developer mode**.
 3. Choose **Load unpacked** and select `extension-dist`.
-4. Click the BBStyler extension icon to open the side panel.
+4. Click the BaudStyler extension icon to open the side panel.
 5. Compose and choose **Copy to clipboard**.
 6. Paste into Blackbaud's HTML/source editor and preview before publishing.
 
@@ -56,11 +56,11 @@ test pins that permission list so it cannot grow without someone noticing.
 
 The web app stores its workspace in `localStorage`; the extension uses
 `chrome.storage.local`. Browser origins are isolated, so their workspaces do not
-automatically sync. BBStyler treats all browser storage, including **My posts**,
+automatically sync. BaudStyler treats all browser storage, including **My posts**,
 as temporary because clearing browser data or reimaging a device can erase it.
 
 Use **Back up workspace** often to download a permanent copy, and **Restore
-workspace backup** to move it to another browser or recover it later. BBStyler
+workspace backup** to move it to another browser or recover it later. BaudStyler
 cannot recover temporary saves because the project operates no server.
 
 Both shells can do this: the web app from its post-actions menu, the side panel

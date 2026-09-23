@@ -16,6 +16,9 @@ All notable changes to this project are documented here. Versions follow
 - Rendered the hero eyebrow as a `div` rather than a `p`, because Blackbaud
   rewrites every `p` it is given into a `div`; exported markup and stored
   markup now match. Goldens relocked — the only byte change is that tag.
+- Renamed the product and package from BBStyler to BaudStyler. Workspace
+  backups now download as `baudstyler-<post>-<date>.json`; older
+  `bbstyler-` and `betterbaud-` files still restore.
 - Renamed the product and package from Betterbaud to BBStyler, and synchronized
   project links and the Pages base with `wildbil2me/assignment-styler`.
 - Adopted the educator suite admin UI style guide across the web composer and
@@ -27,7 +30,7 @@ All notable changes to this project are documented here. Versions follow
   failure states backed by the active browser storage adapter.
 - Revalidated compatibility with a 50-row probe across all three Blackbaud
   surfaces, including rich formatting, alignment, nested lists, and flex wrap.
-- Kept half-width cards paired in BBStyler's narrower desktop preview while
+- Kept half-width cards paired in BaudStyler's narrower desktop preview while
   preserving full-width stacking in the mobile preview.
 - Moved the primary Copy for Blackbaud action to the top of the right-hand
   column so it remains visible before block settings and compatibility details.
