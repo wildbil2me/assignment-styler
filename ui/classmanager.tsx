@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { ASSUMED_PAGE_BACKGROUND, contrastRatio, readableOn, requiredRatio } from "../core/checks.ts";
 import type { Palette, Profile, SchoolClass, StyleKey } from "../core/model.ts";
@@ -72,21 +72,10 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
   const [editorOpen, setEditorOpen] = useState<"create" | "edit" | null>(null);
   const [draft, setDraft] = useState<Draft>(blankDraft);
   const [message, setMessage] = useState("");
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuFileRef = useRef<HTMLInputElement>(null);
   const dialogFileRef = useRef<HTMLInputElement>(null);
   const closeEditor = useCallback(() => setEditorOpen(null), []);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const close = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setMenuOpen(false);
-      menuButtonRef.current?.focus();
-    };
-    document.addEventListener("keydown", close);
-    return () => document.removeEventListener("keydown", close);
-  }, [menuOpen]);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   const openCreate = () => { setDraft(blankDraft()); setMessage(""); setMenuOpen(false); setEditorOpen("create"); };
   const openEdit = () => {
@@ -167,18 +156,24 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
         {classes.map(cls => <option key={cls.id} value={cls.id}>{cls.name}</option>)}
       </select>
     </label>
-    <div className="class-add">
-      <button ref={menuButtonRef} className="class-icon-button" aria-label="Add class" title="Add class" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><Icon name="add" /></button>
-      {menuOpen && <div className="post-menu-popover" role="menu">
-        <button role="menuitem" onClick={openCreate}><span aria-hidden="true"><Icon name="add" /></span><div><strong>Create a new class</strong><small>Start from a subject color or blank</small></div></button>
-        <button role="menuitem" onClick={chooseImport}><span aria-hidden="true"><Icon name="upload" /></span><div><strong>Import a class</strong><small>From a class or style file someone shared</small></div></button>
-      </div>}
-      {/* conformance-ignore FORM-05 The adjacent Import a class menu item names and opens this hidden input. */}
-      <input ref={menuFileRef} className="sr-only" tabIndex={-1} aria-label="Import class JSON" type="file" accept="application/json,.json" onChange={event => handleMenuImport(event.target)} />
-    </div>
+    {/* A modal, not a popover: the class bar scrolls sideways, which clips anything positioned out of it. */}
+    <button className="class-icon-button" aria-label="Add class" title="Add class" aria-haspopup="dialog" onClick={() => setMenuOpen(true)}><Icon name="add" /></button>
+    {/* conformance-ignore FORM-05 The Import a class choice names and opens this hidden input. */}
+    <input ref={menuFileRef} className="sr-only" tabIndex={-1} aria-label="Import class JSON" type="file" accept="application/json,.json" onChange={event => handleMenuImport(event.target)} />
     {compact
       ? <button className="class-icon-button" aria-label="Edit class" title="Edit class" onClick={openEdit}><Icon name="more" /></button>
       : <button className="style-edit-button" onClick={openEdit}>Edit class</button>}
+
+    {menuOpen && <Dialog labelledBy="class-add-title" onClose={closeMenu} className="class-add-modal">
+      <header>
+        <div><span className="eyebrow">NEW CLASS</span><h2 id="class-add-title">Add a class</h2></div>
+        <button onClick={closeMenu} aria-label="Close" title="Close"><Icon name="close" /></button>
+      </header>
+      <div className="class-add-choices">
+        <button onClick={openCreate}><span aria-hidden="true"><Icon name="add" /></span><div><strong>Create a new class</strong><small>Start from a subject color or blank</small></div></button>
+        <button onClick={chooseImport}><span aria-hidden="true"><Icon name="upload" /></span><div><strong>Import a class</strong><small>From a class or style file someone shared</small></div></button>
+      </div>
+    </Dialog>}
 
     {editorOpen && <Dialog labelledBy="class-editor-title" onClose={closeEditor}>
       <header>
