@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 
 import { ASSUMED_PAGE_BACKGROUND, contrastRatio, readableOn, requiredRatio } from "../core/checks.ts";
-import type { Palette, Profile, SchoolClass, StyleKey } from "../core/model.ts";
+import type { Palette, Profile, ProfileKey, SchoolClass, StyleKey } from "../core/model.ts";
 import { palettes, paletteKeys } from "../core/palettes.ts";
-import { defaultProfile, profiles } from "../core/profiles/index.ts";
+import { defaultProfile, profileKeys, profiles } from "../core/profiles/index.ts";
 import { emptyCustomPalette } from "../core/storage.ts";
 import { Dialog } from "./dialog.tsx";
 import { Icon } from "./icon.tsx";
@@ -26,10 +26,12 @@ function contrastRows(palette: Palette, profile: Profile) {
   });
 }
 
-type Draft = { name: string; palette: Palette; fonts: Profile["fonts"] };
+/** `profileKey: ""` is "no default": switching to the class leaves the card type as it is. */
+type Draft = { name: string; palette: Palette; fonts: Profile["fonts"]; profileKey: ProfileKey | "" };
 
-const draftFromClass = (cls: SchoolClass): Draft => ({ name: cls.name, palette: { ...cls.customPalette }, fonts: { ...cls.fonts } });
-const blankDraft = (): Draft => ({ name: "", palette: emptyCustomPalette(), fonts: defaultProfile.fonts });
+const draftFromClass = (cls: SchoolClass): Draft => ({ name: cls.name, palette: { ...cls.customPalette }, fonts: { ...cls.fonts }, profileKey: cls.profileKey ?? "" });
+const blankDraft = (): Draft => ({ name: "", palette: emptyCustomPalette(), fonts: defaultProfile.fonts, profileKey: "" });
+const isProfileKey = (value: unknown): value is ProfileKey => typeof value === "string" && value in profiles;
 
 /**
  * Parses the same JSON shape the style editor has exported since Phase 4
@@ -48,6 +50,7 @@ async function parseClassFile(file: File): Promise<Draft | null> {
       name: typeof parsed.name === "string" ? parsed.name : (typeof source.className === "string" ? source.className : ""),
       palette: { ...emptyCustomPalette(), ...source, name: "Custom" },
       fonts: fontsIn ? { heading: fontsIn.heading || fallback.heading, body: fontsIn.body || fallback.body } : fallback,
+      profileKey: isProfileKey(parsed.profile) ? parsed.profile : "",
     };
   } catch {
     return null;
@@ -65,8 +68,8 @@ async function parseClassFile(file: File): Promise<Draft | null> {
 export function ClassManager({ c, compact = false }: { c: Composer; compact?: boolean }) {
   const {
     classes, activeClassId, switchClass, addClass, renameClass, removeClass,
-    profileKey, palette, announce,
-    setStyleKey, setCustomPalette, setFonts,
+    profileKey, setProfileKey, palette, announce,
+    setStyleKey, setCustomPalette, setFonts, setClassProfile,
   } = c;
   const [menuOpen, setMenuOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState<"create" | "edit" | null>(null);
@@ -108,13 +111,13 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
     if (!file) return;
     const result = await parseClassFile(file);
     if (!result) { setMessage("That file is not a valid BaudStyler class or style. Choose a JSON file exported by BaudStyler."); return; }
-    setDraft(value => ({ name: value.name || result.name, palette: result.palette, fonts: result.fonts }));
+    setDraft(value => ({ name: value.name || result.name, palette: result.palette, fonts: result.fonts, profileKey: result.profileKey || value.profileKey }));
     setMessage("");
     announce(`Imported ${file.name}.`);
   };
 
   const exportDraft = () => {
-    const payload = { version: 2, name: draft.name || "Custom", palette: { ...draft.palette, name: "Custom" }, profile: profileKey, fonts: draft.fonts };
+    const payload = { version: 2, name: draft.name || "Custom", palette: { ...draft.palette, name: "Custom" }, profile: draft.profileKey || undefined, fonts: draft.fonts };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob), anchor = document.createElement("a");
     anchor.href = url;
@@ -130,10 +133,12 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
       setStyleKey("custom");
       setCustomPalette(customPaletteOut);
       setFonts(draft.fonts);
+      setClassProfile(activeClassId, draft.profileKey || undefined);
+      if (draft.profileKey) setProfileKey(draft.profileKey);
       renameClass(activeClassId, name);
       announce(`Updated ${name}.`);
     } else {
-      const created = addClass({ name, styleKey: "custom", customPalette: customPaletteOut, fonts: draft.fonts });
+      const created = addClass({ name, styleKey: "custom", customPalette: customPaletteOut, fonts: draft.fonts, profileKey: draft.profileKey || undefined });
       announce(`Added the class ${created.name}.`);
     }
     setEditorOpen(null);
@@ -197,9 +202,11 @@ export function ClassManager({ c, compact = false }: { c: Composer; compact?: bo
         <label>Heading font<select aria-label="Heading font" value={draft.fonts.heading} onChange={event => setDraft(value => ({ ...value, fonts: { ...value.fonts, heading: event.target.value } }))}><option value="Georgia, serif">Georgia</option><option value="Arial, sans-serif">Arial</option><option value="Trebuchet MS, sans-serif">Trebuchet</option><option value="Verdana, sans-serif">Verdana</option></select></label>
         {/* conformance-ignore FORM-05 Enclosing label and aria-label both name the body-font select. */}
         <label>Body font<select aria-label="Body font" value={draft.fonts.body} onChange={event => setDraft(value => ({ ...value, fonts: { ...value.fonts, body: event.target.value } }))}><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="Trebuchet MS, sans-serif">Trebuchet</option><option value="Verdana, sans-serif">Verdana</option></select></label>
+        {/* conformance-ignore FORM-05 Enclosing label and aria-label both name the default card type select. */}
+        <label>Default card type<select aria-label="Default card type" value={draft.profileKey} onChange={event => setDraft(value => ({ ...value, profileKey: event.target.value as ProfileKey | "" }))}><option value="">No default (keep the current one)</option>{profileKeys.map(key => <option key={key} value={key}>{profiles[key].name}</option>)}</select></label>
         {message && <p className="form-error" role="alert">{message}</p>}
-        <div className="contrast-readout">{contrastRows(draft.palette, profiles[profileKey]).map(row => <div key={row.what} className={row.ok ? "contrast-ok" : "contrast-bad"}><span>{row.what}<br /><small>needs {row.required}:1</small></span><b>{row.ratio}</b></div>)}</div>
-        <p className="import-help">Colors and fonts belong to this class. The visual style — {profiles[profileKey].name.toLowerCase()} — applies to every class.</p>
+        <div className="contrast-readout">{contrastRows(draft.palette, profiles[draft.profileKey || profileKey]).map(row => <div key={row.what} className={row.ok ? "contrast-ok" : "contrast-bad"}><span>{row.what}<br /><small>needs {row.required}:1</small></span><b>{row.ratio}</b></div>)}</div>
+        <p className="import-help">Colors and fonts belong to this class. {draft.profileKey ? `Switching to this class sets the card type to ${profiles[draft.profileKey].name.toLowerCase()}.` : `Without a default, the card type stays at ${profiles[profileKey].name.toLowerCase()} when you switch to this class.`} You can still change it for any post.</p>
         {/* conformance-ignore CODE-08 The swatch is a live specimen of teacher-selected runtime colors and fonts. */}
         <div className="style-swatch" style={{ borderColor: draft.palette.accent, background: draft.palette.surface }}><strong style={{ color: draft.palette.primary, fontFamily: draft.fonts.heading }}>{draft.name || "Class style preview"}</strong><p style={{ fontFamily: draft.fonts.body }}>Clear, consistent content for this class.</p></div>
       </div>

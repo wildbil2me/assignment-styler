@@ -66,8 +66,8 @@ export function useComposer({
   const past = useRef<Block[][]>([]), future = useRef<Block[][]>([]), previous = useRef<Block[]>(initialBlocks), historyAction = useRef(false);
   const dragged = useRef<number | null>(null);
   const formatterRef = useRef<(command: string, argument?: string) => void>(() => undefined);
-  // A class carries the colours and fonts a teacher picked for it; the visual
-  // style (profile) is a workspace-wide preference every class shares.
+  // A class carries the colours and fonts a teacher picked for it; the card
+  // type (profile) is workspace-wide, and a class may only carry a default.
   const activeClass = classes.find(c => c.id === activeClassId) ?? classes[0];
   const styleKey = activeClass.styleKey;
   const customPalette = activeClass.customPalette;
@@ -226,13 +226,28 @@ export function useComposer({
   const applyTemplate = (name:string) => {const source=templates[name];if(!source)return;const ids=nextIds(source.length),next=source.map((b,i)=>({...b,id:ids[i]}));setBlocks(next);setSelected(ids[0]);setPostTitle(name);};
 
   /** A brand-new class, switched to immediately — the "Create a new class" path. */
-  const addClass = (input: { name: string; styleKey: StyleKey; customPalette: Palette; fonts: Profile["fonts"] }): SchoolClass => {
-    const created: SchoolClass = { ...input, id: nextId(), name: input.name.trim() || "Untitled class" };
+  const addClass = (input: { name: string; styleKey: StyleKey; customPalette: Palette; fonts: Profile["fonts"]; profileKey?: ProfileKey }): SchoolClass => {
+    const { profileKey: preferred, ...rest } = input;
+    const created: SchoolClass = { ...rest, id: nextId(), name: input.name.trim() || "Untitled class" };
+    if (preferred) created.profileKey = preferred;
     setClasses(list => [...list, created]);
     setActiveClassId(created.id);
+    if (preferred) setProfileKey(preferred);
     return created;
   };
-  const switchClass = (id: number) => setActiveClassId(id);
+  /** Moving to a class adopts its default card type, when it has one. */
+  const switchClass = (id: number) => {
+    setActiveClassId(id);
+    const preferred = classes.find(c => c.id === id)?.profileKey;
+    if (preferred) setProfileKey(preferred);
+  };
+  /** `undefined` clears the default, leaving the card type to whatever is current. */
+  const setClassProfile = (id: number, key: ProfileKey | undefined) =>
+    setClasses(list => list.map(c => {
+      if (c.id !== id) return c;
+      const { profileKey: _dropped, ...rest } = c;
+      return key ? { ...rest, profileKey: key } : rest;
+    }));
   const renameClass = (id: number, name: string) =>
     setClasses(list => list.map(c => (c.id === id ? { ...c, name: name.trim() || "Untitled class" } : c)));
   /** Refuses to empty the list — a workspace with no classes has no style to render with. */
@@ -247,7 +262,7 @@ export function useComposer({
     blocks, setBlocks, postTitle, setPostTitle, selected, setSelected, active,
     styleKey, setStyleKey, profileKey, setProfileKey, fonts, setFonts,
     customPalette, setCustomPalette, surfaceKey, setSurfaceKey,
-    classes, activeClassId, activeClass, addClass, switchClass, renameClass, removeClass,
+    classes, activeClassId, activeClass, addClass, switchClass, renameClass, removeClass, setClassProfile,
     savedPosts, setSavedPosts, exportHistory, palette, profile, surface, html, report,
     copied, announcement, ready, saveStatus, dragged, formatterRef, workspace, restore,
     announce, update, updateBlock, format, move, addBlock, deleteBlock, duplicateBlock, dropBlock, copy, undo, redo, applyTemplate,

@@ -762,6 +762,20 @@ test("a v2 workspace's classes survive migration, and an unknown active id falls
   assert.equal(empty.classes.length, 1, "a workspace can never end up with zero classes");
 });
 
+test("a class's default card type survives migration only when it names a real profile", () => {
+  const w = migrate({
+    blocks: starter,
+    classes: [
+      { id: 20, name: "With default", styleKey: "math", profileKey: "editorial" },
+      { id: 21, name: "Unknown default", styleKey: "math", profileKey: "neon" },
+      { id: 22, name: "No default", styleKey: "math" },
+    ],
+  });
+  assert.equal(w.classes[0].profileKey, "editorial");
+  assert.ok(!("profileKey" in w.classes[1]), "an unknown card type is dropped, not kept as garbage");
+  assert.ok(!("profileKey" in w.classes[2]), "a class stored before defaults existed gains no field");
+});
+
 test("saved posts survive migration with their blocks cleaned", () => {
   const w = migrate({
     blocks: starter,

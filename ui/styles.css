@@ -6,6 +6,8 @@ body{min-height:100vh}
 h1,h2,h3,h4,h5,h6,p,blockquote,figure,fieldset,legend,dl,dd{margin:0}
 fieldset,legend,menu{padding:0}
 button,input,optgroup,select,textarea{font:inherit;color:inherit;background-color:transparent;border-radius:0}
+/* The native arrow sits flush against the edge; this one gets room either side. */
+select{appearance:none;padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23687482' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:12px}
 button,summary{cursor:pointer;touch-action:manipulation}
 button{transition:transform .1s,background-color .15s,border-color .15s}
 button:active{transform:scale(.95)}
@@ -35,11 +37,13 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .brand>div{display:flex;flex-direction:column;line-height:1.05}
 .brand h1,.panel-brand h1{font-size:16px;font-weight:700;line-height:1.1}
 .brand small{margin-top:4px;color:rgba(255,255,255,.5);font-size:10px;letter-spacing:.8px;text-transform:uppercase}
-.class-picker{display:flex;flex:none;align-items:center;gap:9px;padding:8px 12px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.08);font-size:13px;font-weight:600}
+.class-picker{display:flex;flex:none;align-items:center;padding:0;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.08);font-size:13px;font-weight:600}
 .class-picker:hover{background:rgba(255,255,255,.18)}
-.class-picker select{max-width:240px;color:#fff;font-size:13px;font-weight:600}
+.class-picker select{max-width:240px;padding:8px 34px 8px 16px;background-position:right 13px center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");color:#fff;font-size:13px;font-weight:600}
 .class-picker option{color:#1a1a2e;background:#fff}
-.class-dot{flex:none;width:9px;height:9px;border-radius:50%}
+/* Padding lives on the select, so the whole pill opens it; the dot sits in front and the text follows it. */
+.class-dot{flex:none;width:9px;height:9px;margin:0 10px 0 16px;border-radius:50%}
+.class-dot+select{padding-left:0}
 .class-add-modal{width:min(440px,100%)}
 .class-add-choices{display:grid;gap:10px;padding:20px 24px 24px}
 .class-add-choices>button{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:center;padding:14px 16px;border:1.5px solid #e0e4ea;border-radius:10px;background:#fff;color:#1a1a2e;text-align:left}
@@ -111,7 +115,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .purpose-picker small{margin-top:3px;color:#687482;font-size:11px;line-height:1.35}
 .draft-box{margin:0 16px 20px;padding:14px;border:1px solid #e0e4f0;border-radius:10px;background:#f8f9fc}
 .draft-box label{font-size:13px;font-weight:700}
-.draft-box select{width:100%;margin:8px 0 12px;padding:8px;border:1.5px solid #e0e4ea;border-radius:8px;background:#fff;font-size:13px}
+.draft-box select{width:100%;margin:8px 0 12px;padding:8px 34px 8px 8px;border:1.5px solid #e0e4ea;border-radius:8px;background-color:#fff;font-size:13px}
 .draft-box button{width:100%;padding:9px;border-radius:7px;background:#5b6fcc;color:#fff;font-size:13px;font-weight:700}
 .draft-box button:hover{background:#4a5fbb}
 
@@ -163,7 +167,8 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .fields{padding:18px 20px;border-bottom:1px solid #eef0f4}
 .inline-edit-help{margin:0 0 16px;padding:10px;border-left:1.5px solid #5b6fcc;background:#eef2ff;color:#4a5fbb;font-size:12px;line-height:1.45}
 .fields label,.style-form>label,.color-grid label{display:block;margin-bottom:16px;font-size:13px;font-weight:700}
-.fields input,.fields textarea,.fields select,.style-form>label>input,.style-form select,.style-form .html-import-source{display:block;width:100%;margin-top:7px;padding:9px;border:1.5px solid #e0e4ea;border-radius:8px;background:#fff;color:#1a1a2e;font-size:13px}
+.fields input,.fields textarea,.fields select,.style-form>label>input,.style-form select,.style-form .html-import-source{display:block;width:100%;margin-top:7px;padding:9px;border:1.5px solid #e0e4ea;border-radius:8px;background-color:#fff;color:#1a1a2e;font-size:13px}
+.fields select,.style-form select{padding-right:34px}
 .fields textarea{height:105px;resize:vertical;line-height:1.5}
 .visibility-toggle{width:100%;margin:-3px 0 16px;padding:8px;border:1.5px solid #e0e4ea;border-radius:7px;background:#fff;color:#687482;font-size:12px}
 .visibility-toggle.active{border-color:#f0b0b0;background:#fdeaea;color:#c0392b}
@@ -246,7 +251,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 
 /* Dialogs */
 .modal-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.5)}
-.style-modal{width:min(560px,100%);max-height:calc(100vh - 40px);overflow:auto;border-radius:14px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.style-modal{width:min(560px,100%);max-height:calc(100vh - 40px);overflow:auto;border-radius:14px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,.25);color:#1a1a2e}
 .style-modal>header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:2px solid #e67e22;background:linear-gradient(135deg,#0d2137 0%,#1a3c5e 100%);color:#fff}
 .style-modal>header .eyebrow{color:rgba(255,255,255,.5)}
 .style-modal h2{margin-top:4px;font-size:22px;font-weight:700}
@@ -293,7 +298,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .panel-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px max(12px,env(safe-area-inset-left,0px));border-bottom:2px solid #e67e22;background:linear-gradient(135deg,#0d2137 0%,#1a3c5e 60%,#2a2a6e 100%);box-shadow:0 2px 12px rgba(0,0,0,.3);color:#fff}
 .panel-brand{width:100%}
 .panel-brand .brandmark{width:30px;height:30px;font-size:16px}
-.panel-bar select{max-width:118px;padding:6px;border:1.5px solid rgba(255,255,255,.15);border-radius:7px;background:rgba(255,255,255,.08);color:#fff;font-size:11px;font-weight:600}
+.panel-bar select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");max-width:118px;padding:6px 28px 6px 12px;border:1.5px solid rgba(255,255,255,.15);border-radius:7px;background-color:rgba(255,255,255,.08);background-position:right 9px center;color:#fff;font-size:11px;font-weight:600}
 .panel-bar option{color:#1a1a2e;background:#fff}
 .panel .block-head{padding:14px 14px 8px}
 .panel .blocks{padding:0 8px 10px}
@@ -309,7 +314,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .panel-format .formatting-panel>small{display:none}
 .panel-settings .inspector-title{border-top:0;padding-top:0}
 .panel-start{display:flex;align-items:center;gap:6px;padding:12px 14px 10px;border-bottom:1px solid #eef0f4}
-.panel-start select{flex:1;min-width:0;padding:8px;border:1.5px solid #e0e4ea;border-radius:8px;background:#fff;font-size:12px}
+.panel-start select{flex:1;min-width:0;padding:8px 34px 8px 8px;border:1.5px solid #e0e4ea;border-radius:8px;background-color:#fff;font-size:12px}
 .panel-history{display:flex;flex:0 0 auto;gap:2px}
 .panel-history button{display:grid;width:32px;height:32px;place-items:center;border-radius:7px;color:#687482}
 .panel-history button:hover{background:#eef2ff;color:#4a5fbb}
@@ -357,7 +362,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
   .inspector>.export,.inspector-title{grid-column:1/-1}
   .inspector .fields{border-right:1px solid #eef0f4}
   .inspector .fields,.inspector .checks{border-bottom:0}
-  .class-picker:first-child select{max-width:150px}
+  .class-picker:first-child select{max-width:176px}
 }
 
 @media(max-width:640px){

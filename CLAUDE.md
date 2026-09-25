@@ -147,7 +147,7 @@ npm run build      # the web build - the real gate, must pass
 npm run build:ext  # the extension build - the other real gate
 npm run design:check:built # run after both builds, 0/0
 npm test           # test:core + test:design + probe:test - the whole suite
-npm run test:core  # 64 tests over core/ - green, keep it that way
+npm run test:core  # 69 tests over core/ - green, keep it that way
 npm run test:design # admin chrome contrast, suppressions and permissions
 npm run probe:test # 27 tests over the probe analyzer - green, keep it that way
 npm run lint       # 0 errors - anything else is yours, or stale build output

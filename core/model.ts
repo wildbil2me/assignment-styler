@@ -155,10 +155,11 @@ export type Surface = {
 };
 
 /**
- * A teacher's class: a name over a saved colour and font choice. The visual
- * style (`Profile`) stays a workspace-wide setting — every class shares it —
- * so it lives outside this type, exactly as the style editor already told a
- * teacher: "colours and fonts belong to your class."
+ * A teacher's class: a name over a saved colour and font choice, plus an
+ * optional default card type. The card type itself (`Profile`) is still a
+ * workspace-wide setting a teacher can change for any post; `profileKey` here
+ * is only what switching to this class sets it to. Absent means "leave the
+ * current card type alone", which is how every class stored before it reads.
  */
 export type SchoolClass = {
   id: number;
@@ -166,4 +167,5 @@ export type SchoolClass = {
   styleKey: StyleKey;
   customPalette: Palette;
   fonts: Profile["fonts"];
+  profileKey?: ProfileKey;
 };

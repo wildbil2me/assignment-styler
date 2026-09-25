@@ -29,8 +29,8 @@ export type SavedPost = { id: number; title: string; blocks: Block[] };
 
 /**
  * Phase 6: one style became a list of classes a teacher switches between,
- * the way Planbook's class list works. `profileKey` (the visual style) stays
- * outside a class on purpose — see `SchoolClass`'s own comment.
+ * the way Planbook's class list works. `profileKey` (the card type) stays on
+ * the workspace; a class only carries a default for it — see `SchoolClass`.
  */
 export type Workspace = {
   version: typeof SCHEMA_VERSION;
@@ -132,7 +132,11 @@ function validateClass(raw: unknown): SchoolClass | null {
   const id = Number(raw.id);
   if (!Number.isFinite(id)) return null;
   const { styleKey, customPalette, fonts } = legacyStyle(raw);
-  return { id, name: str(raw.name, classNameFor(styleKey, customPalette)), styleKey, customPalette, fonts };
+  const cls: SchoolClass = { id, name: str(raw.name, classNameFor(styleKey, customPalette)), styleKey, customPalette, fonts };
+  // Optional, and left off entirely when absent or unknown, so a class stored
+  // before defaults existed round-trips byte for byte.
+  if (typeof raw.profileKey === "string" && raw.profileKey in profiles) cls.profileKey = raw.profileKey as ProfileKey;
+  return cls;
 }
 
 /**
